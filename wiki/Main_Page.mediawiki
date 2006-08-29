@@ -1,0 +1,13 @@
+---
+title: Main Page
+---
+
+<big>'''MediaWiki has been successfully installed.'''</big>
+
+Consult the [http://meta.wikipedia.org/wiki/MediaWiki_User%27s_Guide User's Guide] for information on using the wiki software.
+
+== Getting started ==
+
+* [http://www.mediawiki.org/wiki/Help:Configuration_settings Configuration settings list]
+* [http://www.mediawiki.org/wiki/Help:FAQ MediaWiki FAQ]
+* [http://mail.wikipedia.org/mailman/listinfo/mediawiki-announce MediaWiki release mailing list]
