@@ -4,6 +4,8 @@ title: Main Page
 
 <big>'''MediaWiki has been successfully installed.'''</big>
 
+This is the default wiki page for *.wiki.kernel.org.
+
 Consult the [http://meta.wikipedia.org/wiki/MediaWiki_User%27s_Guide User's Guide] for information on using the wiki software.
 
 == Getting started ==
