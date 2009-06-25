@@ -5,3 +5,20 @@ title: Main Page
 <big>'''Performance Counters for Linux Wiki'''</big>
 
 This is the wiki page for the perfcounters subsystem in Linux.
+
+Performance counters are special hardware registers available on most modern 
+CPUs. These registers count the number of certain types of hw events: such 
+as instructions executed, cache-misses suffered, or branches mispredicted - 
+without slowing down the kernel or applications. These registers can also 
+trigger interrupts when a threshold number of events have passed - and can 
+thus be used to profile the code that runs on that CPU. 
+ 
+The Linux Performance Counter subsystem provides rich abstractions over these 
+hardware capabilities. It provides per task, per CPU and per-workload counters,
+counter groups, and it provides sampling capabilities on top of those - and more.
+
+It also provides abstraction for 'software events' - such as minor/major page faults, task migrations, task context-switches and tracepoints.
+
+There is a new tool ('perf') that makes full use of this new kernel subsystem. It can be used to optimize, validate and measure applications, workloads or the full system.
+
+'perf' is hosted in the upstream kernel repository and can be found under: tools/perf/
