@@ -22,3 +22,27 @@ It also provides abstraction for 'software events' - such as minor/major page fa
 There is a new tool ('perf') that makes full use of this new kernel subsystem. It can be used to optimize, validate and measure applications, workloads or the full system.
 
 'perf' is hosted in the upstream kernel repository and can be found under: tools/perf/
+
+<big>'''Getting Started'''</big>
+
+Once you have installed 'perf' on your system, the simplest way to start profiling an userspace program is to use the "perf record" and "perf report" command as follows:
+
+ $ <b>perf record -f -- git gc</b>
+ &nbsp;
+ Counting objects: 1283571, done.
+ Compressing objects: 100% (206724/206724), done.
+ Writing objects: 100% (1283571/1283571), done.
+ Total 1283571 (delta 1070675), reused 1281443 (delta 1068566)
+ [ perf record: Captured and wrote 31.054 MB perf.data (~1356768 samples) ]
+ &nbsp;
+ $ <b>perf report --sort comm,dso,symbol</b> | head -10
+ # Samples: 1355726
+ #
+ # Overhead          Command                            Shared Object  Symbol
+ # ........  ...............  .......................................  ......
+ #
+     31.53%              git  /usr/bin/git                             [.] 0x0000000009804f
+     13.41%        git-prune  /usr/bin/git-prune                       [.] 0x000000000ad06d
+     10.05%              git  /lib/tls/i686/cmov/libc-2.8.90.so        [.] _nl_make_l10nflist
+      5.36%        git-prune  /usr/lib/libz.so.1.2.3.3                 [.] 0x00000000009d51
+      4.48%              git  /lib/tls/i686/cmov/libc-2.8.90.so        [.] memcpy
