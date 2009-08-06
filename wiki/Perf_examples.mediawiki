@@ -195,3 +195,25 @@ and check which instructions/source-code generated page allocations:
 
 ( this shows that 83.42% of __GI___fork's page allocations come from 
 the 0x38 system call it performs. )
+
+== Is it worth optimizing some particular function? ==
+
+Suppose you want to know whether optimizing some particular function 
+in your program is worth the effort. For example, in the git mailing list
+the idea of optimizing the SHA1 encryption routine came up, and one can
+use 'perf' to decide about it.
+See Linus' reply [http://thread.gmane.org/gmane.comp.version-control.git/124745]:
+
+ "perf report --sort comm,dso,symbol" profiling shows the following for 
+ 'git fsck --full' on the kernel repo, using the Mozilla SHA1:
+    47.69%               git  /home/torvalds/git/git     [.] moz_SHA1_Update
+    22.98%               git  /lib64/libz.so.1.2.3       [.] inflate_fast
+     7.32%               git  /lib64/libc-2.10.1.so      [.] __GI_memcpy
+     4.66%               git  /lib64/libz.so.1.2.3       [.] inflate
+     3.76%               git  /lib64/libz.so.1.2.3       [.] adler32
+     2.86%               git  /lib64/libz.so.1.2.3       [.] inflate_table
+     2.41%               git  /home/torvalds/git/git     [.] lookup_object
+     1.31%               git  /lib64/libc-2.10.1.so      [.] _int_malloc
+     0.84%               git  /home/torvalds/git/git     [.] patch_delta
+     0.78%               git  [kernel]                   [k] hpet_next_event
+ so yeah, SHA1 performance matters.
