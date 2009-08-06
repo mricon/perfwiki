@@ -23,7 +23,7 @@ There is a new tool ('perf') that makes full use of this new kernel subsystem. I
 
 'perf' is hosted in the upstream kernel repository and can be found under: tools/perf/
 
-<big>'''Getting Started'''</big>
+== Getting Started ==
 
 Once you have installed 'perf' on your system, the simplest way to start profiling an userspace program is to use the "perf record" and "perf report" command as follows:
 
@@ -46,3 +46,5 @@ Once you have installed 'perf' on your system, the simplest way to start profili
      10.05%              git  /lib/tls/i686/cmov/libc-2.8.90.so        [.] _nl_make_l10nflist
       5.36%        git-prune  /usr/lib/libz.so.1.2.3.3                 [.] 0x00000000009d51
       4.48%              git  /lib/tls/i686/cmov/libc-2.8.90.so        [.] memcpy
+
+For more examples of how 'perf' can be used see [[perf examples]].
