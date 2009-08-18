@@ -48,3 +48,17 @@ Once you have installed 'perf' on your system, the simplest way to start profili
       4.48%              git  /lib/tls/i686/cmov/libc-2.8.90.so        [.] memcpy
 
 For more examples of how 'perf' can be used see [[perf examples]].
+
+== TODO list ==
+
+=== Perf tools ===
+
+* Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
+* Implement a perf cmp (profile comparison between two perf.data)
+* Implement a perf view (GUI)
+* Enhance perf trace:
+** Handle the cpu field
+** Handle the timestamp
+** Use the in-perf ip -> symbol resolving
+** Use the in-perf pid -> cmdline resolving
+** Implement multidimensional sorting by field name
