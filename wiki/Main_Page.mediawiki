@@ -2,6 +2,9 @@
 title: Main Page
 ---
 
+<b><big><i><center>...More than just counters...</center></i></big></b>
+
+
 <big>'''Performance Counters for Linux Wiki'''</big>
 
 This is the wiki page for the perfcounters subsystem in Linux.
