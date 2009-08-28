@@ -25,6 +25,8 @@ The PMU can filter events through multiple mechanisms to focus on specific areas
 
 The PMU also has an [b]EAR[/b], event address registers which are special PMCs & PMDs to collect address traces and memory latencies; and the ETB, the event trace buffer, to collect branch history.
 
+[[File:Montecito pmu list.PNG]]
+
 == External links ==
 * Wikipedia [[ http://en.wikipedia.org/wiki/Itanium | Intel Itanium ]]
 * Wikipedia [[ http://en.wikipedia.org/wiki/Montecito_(processor) | Montecito processor ]]
