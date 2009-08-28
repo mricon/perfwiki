@@ -1,0 +1,26 @@
+---
+title: Montecito
+---
+
+== Intel Itanium 2 Montecito processor PMU ==
+
+
+=== Introduction ===
+
+Intel defines the architected PMU in the 'Intel IA-64 Architecture Software Developer's Manual'. However the architected PMU is a bare bone version of what is actually implemented. It is noteworthy that the Itanium 2
+PMU has not changed too much, so support of the whole familly does not require rewriting the tools for each member
+of the familly. Therefore readers interrested in the capabilities of the Itanium PMU should go directly to the specific documentation of a processor's functionality.
+
+The Itanium-1 (Merced) is obsolete, so there's two PMU implementations that are available: The McKinley class PMU (with 4 counters), and the Montecito class PMU (with 12 counters). The Montecito processor supports hardware threads
+(hyperthreading), so the 4 architected counters allow monitoring of activity of the whole core or the hardware thread,
+while the 8 new counters can only monitor thread activity.
+
+
+
+== External links ==
+* Wikipedia [[ http://en.wikipedia.org/wiki/Itanium | Intel Itanium ]]
+* Wikipedia [[ http://en.wikipedia.org/wiki/Montecito_(processor) | Montecito processor ]]
+* Intel [[ http://www.intel.com/design/itanium/manuals/iiasdmanual.htm | Intel® Itanium® Architecture ]]
+
+----
+Last edit by: --[[User:Dantruong|Dantruong]] 01:48, 28 August 2009 (UTC)
