@@ -1,0 +1,15 @@
+---
+title: Nehalem
+---
+
+
+== Intel x86-64 PMU (Nehalem) ==
+
+The x86-64 PMUs are specific to each underlying architecture. The Netburst architecture of the Pentium-4 has given way to the Core architecture, in use in Nehalem, i7 processors.
+
+The recent PMUs seem to be somewhat structured similarly across Core and Atom CPU models.
+
+
+== PMU overview ==
+
+The diagram of PMU registers shows the registers available depending on which processor family you are using.
