@@ -217,3 +217,73 @@ See Linus' reply [http://thread.gmane.org/gmane.comp.version-control.git/124745]
      0.84%               git  /home/torvalds/git/git     [.] patch_delta
      0.78%               git  [kernel]                   [k] hpet_next_event
  so yeah, SHA1 performance matters.
+
+== Measuring latency ==
+(from http://marc.info/?l=linux-kernel&m=125236192700449&w=2)
+
+btw., if you run -tip and have these enabled:
+
+  CONFIG_PERF_COUNTER=y 
+  CONFIG_EVENT_TRACING=y
+
+  cd tools/perf/
+  make -j install
+
+... then you can use a couple of new perfcounters features to 
+measure scheduler latencies. For example:
+
+  perf stat -e sched:sched_stat_wait -e task-clock ./hackbench 20
+
+Will tell you how many times this workload got delayed by waiting 
+for CPU time.
+
+You can repeat the workload as well and see the statistical 
+properties of those metrics:
+
+ aldebaran:/home/mingo> perf stat --repeat 10 -e \
+              sched:sched_stat_wait:r -e task-clock ./hackbench 20
+ Time: 0.251
+ Time: 0.214
+ Time: 0.254
+ Time: 0.278
+ Time: 0.245
+ Time: 0.308
+ Time: 0.242
+ Time: 0.222
+ Time: 0.268
+ Time: 0.244
+
+ Performance counter stats for './hackbench 20' (10 runs):
+
+          59826  sched:sched_stat_wait    #      0.026 M/sec   ( +-   5.540% )
+    2280.099643  task-clock-msecs         #      7.525 CPUs    ( +-   1.620% )
+
+    0.303013390  seconds time elapsed   ( +-   3.189% )
+
+To get scheduling events, do:
+
+ # perf list 2>&1 | grep sched:
+  sched:sched_kthread_stop                   [Tracepoint event]
+  sched:sched_kthread_stop_ret               [Tracepoint event]
+  sched:sched_wait_task                      [Tracepoint event]
+  sched:sched_wakeup                         [Tracepoint event]
+  sched:sched_wakeup_new                     [Tracepoint event]
+  sched:sched_switch                         [Tracepoint event]
+  sched:sched_migrate_task                   [Tracepoint event]
+  sched:sched_process_free                   [Tracepoint event]
+  sched:sched_process_exit                   [Tracepoint event]
+  sched:sched_process_wait                   [Tracepoint event]
+  sched:sched_process_fork                   [Tracepoint event]
+  sched:sched_signal_send                    [Tracepoint event]
+  sched:sched_stat_wait                      [Tracepoint event]
+  sched:sched_stat_sleep                     [Tracepoint event]
+  sched:sched_stat_iowait                    [Tracepoint event]
+
+stat_wait/sleep/iowait would be the interesting ones, for latency 
+analysis.
+
+Or, if you want to see all the specific delays and want to see 
+min/max/avg, you can do:
+
+  perf record -e sched:sched_stat_wait:r -f -R -c 1 ./hackbench 20
+  perf trace
