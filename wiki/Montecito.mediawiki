@@ -31,6 +31,16 @@ Montecito control registers go beyond controlling event counters. The following 
 
 [[File:Montecito_pmc.jpg]]
 
+Brief description:
+* CNT: Event counter configuration
+* OVF: overflow bitmask. A bit set to 1 indicates the associated event counter overflowed. PMC0.fr indicates that the whole PMU was frozen by an overflowing counter.
+* IARC: filter event collection to a range of instruction addresses. Events happening while instructions are outside that range will be ignored.
+* OM: filter event collection to specific instruction op-codes.
+* MPEC: filter event collection to specific memory events.
+* IEAR: gather a trace sample for specific instruction events into the EAR.
+* DEAR: gather a trace sample specific data event into the EAR.
+* BTB: collect a trace stack of branches into the ETB buffer.
+
 == External links ==
 * Wikipedia [[ http://en.wikipedia.org/wiki/Itanium | Intel Itanium ]]
 * Wikipedia [[ http://en.wikipedia.org/wiki/Montecito_(processor) | Montecito processor ]]
