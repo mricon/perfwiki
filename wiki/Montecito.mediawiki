@@ -27,6 +27,10 @@ The PMU also has an [b]EAR[/b], event address registers which are special PMCs &
 
 [[File:Montecito pmu list.PNG]]
 
+Montecito control registers go beyond controlling event counters. The following picture shows the bit field configuration for the control registers.
+
+[[File:Montecito_pmc.jpg]]
+
 == External links ==
 * Wikipedia [[ http://en.wikipedia.org/wiki/Itanium | Intel Itanium ]]
 * Wikipedia [[ http://en.wikipedia.org/wiki/Montecito_(processor) | Montecito processor ]]
