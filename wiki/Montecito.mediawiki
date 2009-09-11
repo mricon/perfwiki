@@ -23,7 +23,7 @@ The Itanium PMU is a synchronized subsystem with a global state, where all count
 
 The PMU can filter events through multiple mechanisms to focus on specific areas. It can filter by privilege level with a counter's plm bitmaks. It can filter by instruction op-codes, by virtual address range using the debug registers.
 
-The PMU also has an [b]EAR[/b], event address registers which are special PMCs & PMDs to collect address traces and memory latencies; and the ETB, the event trace buffer, to collect branch history.
+The PMU also has an '''EAR''', event address registers which are special PMCs & PMDs to collect address traces and memory latencies; and the ETB, the event trace buffer, to collect branch history.
 
 [[File:Montecito pmu list.PNG]]
 
@@ -32,7 +32,7 @@ Montecito control registers go beyond controlling event counters. The following 
 [[File:Montecito_pmc.jpg]]
 
 Brief description:
-* CNT: Event counter configuration
+* CNT: regular performance counters configuration
 * OVF: overflow bitmask. A bit set to 1 indicates the associated event counter overflowed. PMC0.fr indicates that the whole PMU was frozen by an overflowing counter.
 * IARC: filter event collection to a range of instruction addresses. Events happening while instructions are outside that range will be ignored.
 * OM: filter event collection to specific instruction op-codes.
