@@ -74,3 +74,21 @@ For more examples of how 'perf' can be used see [[perf examples]].
 * Performance Counters for Linux
 ** [[PCL internals | PCL core kernel internals]]
 ** [[perf internals | perf tool internals]]
+
+== Notes ==
+
+* INSTALLATION:
+** in order to get the documentation installed you'll need these packages:
+** I used on RHEL5: yum install asciidoc xmlto
+*** asciidoc
+*** tetex-fonts
+*** tetex-dvips
+*** dialog
+*** tetex
+*** tetex-latex
+*** xmltex
+*** passivetex
+*** w3m
+*** xmlto
+** Don't forget to go into tools/perf and do 'make install-man'
+** without doing the above, you won't be able to run 'perf help <command>'
