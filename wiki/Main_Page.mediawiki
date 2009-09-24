@@ -72,6 +72,7 @@ For more examples of how 'perf' can be used see [[perf examples]].
 ** [[Nehalem | Intel(TM) x86 Nehalem PMU]]
 ** [[Montecito | Intel(TM) Itanium(TM) 2 PMU]]
 * Performance Counters for Linux
+** [[PCLstruct| PCL core kernel data structures]]
 ** [[PCL internals | PCL core kernel internals]]
 ** [[perf internals | perf tool internals]]
 
