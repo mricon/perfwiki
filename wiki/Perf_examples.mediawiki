@@ -2,10 +2,11 @@
 title: Perf examples
 ---
 
-First, discovery/enumeration of available counters can be done via 
-'perf list':
+First, discovery/enumeration of available counters can be done via 'perf
+list'. (For the tracepoint events you will need to have debugfs mounted
+first, e.g. <tt>mount -t debugfs none /dbg</tt>):
 
-titan:~> perf list
+ titan:~> perf list
   [...]
   kmem:kmalloc                             [Tracepoint event]
   kmem:kmem_cache_alloc                    [Tracepoint event]
