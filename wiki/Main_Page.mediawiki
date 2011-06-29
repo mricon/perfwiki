@@ -5,91 +5,31 @@ title: Main Page
 <b><big><i><center>...More than just counters...</center></i></big></b>
 
 
-<big>'''Performance Counters for Linux Wiki'''</big>
+== <tt>perf:</tt> Linux profiling with performance counters ==
 
-This is the wiki page for the perfcounters subsystem in Linux.
+=== Introduction ===
 
-Performance counters are special hardware registers available on most modern 
-CPUs. These registers count the number of certain types of hw events: such 
-as instructions executed, cache-misses suffered, or branches mispredicted - 
-without slowing down the kernel or applications. These registers can also 
-trigger interrupts when a threshold number of events have passed - and can 
-thus be used to profile the code that runs on that CPU. 
+This is the wiki page for the <tt>perf</tt> performance counters subsystem in Linux.
+Performance counters are CPU hardware registers that 
+count hardware events such 
+as instructions executed, cache-misses suffered, or branches mispredicted. They form
+a basis for profiling applications to trace dynamic control flow and identify hotspots. 
  
-The Linux Performance Counter subsystem provides rich abstractions over these 
-hardware capabilities. It provides per task, per CPU and per-workload counters,
-counter groups, and it provides sampling capabilities on top of those - and more.
+<tt>perf</tt> provides rich generalized abstractions over hardware specific
+capabilities. Among others, it provides per task, per CPU and per-workload counters,
+counter groups, and sampling capabilities on top of those.
+The userspace <tt>perf tools</tt> present a simple to use interface with commands like
 
-It also provides abstraction for 'software events' - such as minor/major page faults, task migrations, task context-switches and tracepoints.
+* <tt>[[Tutorial#Counting_with_perf_stat| perf stat</tt>]]: obtain event counts
+* <tt>[[Tutorial#Sampling_with_perf_record | perf record</tt>]]: record events for later reporting
+* <tt>[[Tutorial#Sample_analysis_with_perf_report | perf report</tt>]]: break down events by process, function, etc.
+* <tt>[[Tutorial#Source_level_analysis_with_perf_annotate | perf annotate</tt>]]: annotate assembly or source code with event counts
+* <tt>[[Tutorial#Live_analysis_with_perf_top | perf top</tt>]]: see live event count 
 
-There is a new tool ('perf') that makes full use of this new kernel subsystem. It can be used to optimize, validate and measure applications, workloads or the full system.
+To learn more, see the examples in the <tt>[[Tutorial]]</tt>.
 
-'perf' is hosted in the upstream kernel repository and can be found under: tools/perf/
+== Wiki Contents  ==
 
-== Getting Started ==
-
-Once you have installed 'perf' on your system, the simplest way to start profiling an userspace program is to use the "perf record" and "perf report" command as follows:
-
- $ <b>perf record -f -- git gc</b>
- &nbsp;
- Counting objects: 1283571, done.
- Compressing objects: 100% (206724/206724), done.
- Writing objects: 100% (1283571/1283571), done.
- Total 1283571 (delta 1070675), reused 1281443 (delta 1068566)
- [ perf record: Captured and wrote 31.054 MB perf.data (~1356768 samples) ]
- &nbsp;
- $ <b>perf report --sort comm,dso,symbol</b> | head -10
- # Samples: 1355726
- #
- # Overhead          Command                            Shared Object  Symbol
- # ........  ...............  .......................................  ......
- #
-     31.53%              git  /usr/bin/git                             [.] 0x0000000009804f
-     13.41%        git-prune  /usr/bin/git-prune                       [.] 0x000000000ad06d
-     10.05%              git  /lib/tls/i686/cmov/libc-2.8.90.so        [.] _nl_make_l10nflist
-      5.36%        git-prune  /usr/lib/libz.so.1.2.3.3                 [.] 0x00000000009d51
-      4.48%              git  /lib/tls/i686/cmov/libc-2.8.90.so        [.] memcpy
-
-For more examples of how 'perf' can be used see [[perf examples]].
-
-== TODO list ==
-
-=== Perf tools ===
-
-* Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
-* Implement a perf cmp (profile comparison between two perf.data)
-* Implement a perf view (GUI)
-* Enhance perf trace:
-** Handle the cpu field
-** Handle the timestamp
-** Use the in-perf ip -> symbol resolving
-** Use the in-perf pid -> cmdline resolving
-** Implement multidimensional sorting by field name
-
-== Internals ==
-
-* Performance Monitoring Units (PMUs)
-** [[Nehalem | Intel(TM) x86 Nehalem PMU]]
-** [[Montecito | Intel(TM) Itanium(TM) 2 PMU]]
-* Performance Counters for Linux
-** [[PCLstruct| PCL core kernel data structures]]
-** [[PCL internals | PCL core kernel internals]]
-** [[perf internals | perf tool internals]]
-
-== Notes ==
-
-* INSTALLATION:
-** in order to get the documentation installed you'll need these packages:
-** I used on RHEL5: yum install asciidoc xmlto
-*** asciidoc
-*** tetex-fonts
-*** tetex-dvips
-*** dialog
-*** tetex
-*** tetex-latex
-*** xmltex
-*** passivetex
-*** w3m
-*** xmlto
-** Don't forget to go into tools/perf and do 'make install-man'
-** without doing the above, you won't be able to run 'perf help <command>'
+* [[Tutorial]]
+* [[Todo]]
+* [[HardwareReference]]
