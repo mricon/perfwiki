@@ -2,8 +2,6 @@
 title: Tutorial
 ---
 
-= Linux profiling with Perf =
-
 __TOC__
 
 ==  Introduction ==
