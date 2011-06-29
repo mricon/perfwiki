@@ -2,10 +2,8 @@
 title: Main Page
 ---
 
-<b><big><i><center>...More than just counters...</center></i></big></b>
-
-
 == <tt>perf:</tt> Linux profiling with performance counters ==
+''...More than just counters...''
 
 === Introduction ===
 
@@ -17,7 +15,8 @@ a basis for profiling applications to trace dynamic control flow and identify ho
  
 <tt>perf</tt> provides rich generalized abstractions over hardware specific
 capabilities. Among others, it provides per task, per CPU and per-workload counters,
-counter groups, and sampling capabilities on top of those.
+sampling on top of these and source code event annotation.
+
 The userspace <tt>perf tools</tt> present a simple to use interface with commands like
 
 * <tt>[[Tutorial#Counting_with_perf_stat| perf stat</tt>]]: obtain event counts
@@ -28,7 +27,7 @@ The userspace <tt>perf tools</tt> present a simple to use interface with command
 
 To learn more, see the examples in the <tt>[[Tutorial]]</tt>.
 
-== Wiki Contents  ==
+=== Wiki Contents  ===
 
 * [[Tutorial]]
 * [[Todo]]
