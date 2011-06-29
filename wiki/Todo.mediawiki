@@ -1,0 +1,15 @@
+---
+title: Todo
+---
+
+=== Perf tools ===
+
+* Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
+* Implement a perf cmp (profile comparison between two perf.data)
+* Implement a perf view (GUI)
+* Enhance perf trace:
+** Handle the cpu field
+** Handle the timestamp
+** Use the in-perf ip -> symbol resolving
+** Use the in-perf pid -> cmdline resolving
+** Implement multidimensional sorting by field name
