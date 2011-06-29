@@ -1,0 +1,13 @@
+---
+title: HardwareReference
+---
+
+The capabilities of perf depends on the features of the CPU. The following list the features of common modern architectures.
+
+* Performance Monitoring Units (PMUs)
+** [[Nehalem | Intel(TM) x86 Nehalem PMU]]
+** [[Montecito | Intel(TM) Itanium(TM) 2 PMU]]
+* Performance Counters for Linux
+** [[PCLstruct| PCL core kernel data structures]]
+** [[PCL internals | PCL core kernel internals]]
+** [[perf internals | perf tool internals]]
