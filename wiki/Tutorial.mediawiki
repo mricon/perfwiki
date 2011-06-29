@@ -558,8 +558,7 @@ LC_NUMERIC=en_US.UTF8 perf stat -B -e cycles:u,instructions:u dd if=/dev/zero of
 </pre>
 
 ====  Machine readable output ====
-
- <tt>perf stat</tt> can also print counts in a format that can easily be imported
+<tt>perf stat</tt> can also print counts in a format that can easily be imported
 into a spreadsheet or parsed by scripts. The <tt>-x</tt> option alters the format of the output and allows users to pass a field
 delimiter. This makes is easy to produce CSV-style output:
 <pre>
