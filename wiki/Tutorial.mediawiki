@@ -174,8 +174,9 @@ counted.
 PMU hardware events are CPU specific and documented by the CPU vendor. The <tt>perf</tt> tool, if linked against the <tt>libpfm4</tt>
 library, provides some short description of the events. For a listing of PMU hardware events for Intel and AMD
 processors, see
-   * Intel PMU event tables: Appendix A of manual [http://www.intel.com/Assets/PDF/manual/253669.pdf here]
-   * AMD PMU event table: section 3.14 of manual [http://support.amd.com/us/Processor_TechDocs/31116.pdf here]
+
+* Intel PMU event tables: Appendix A of manual [http://www.intel.com/Assets/PDF/manual/253669.pdf here]
+* AMD PMU event table: section 3.14 of manual [http://support.amd.com/us/Processor_TechDocs/31116.pdf here]
 
 ==  Counting with <tt>perf stat</tt> ==
 For any of the supported events, perf can keep a running count during process execution.
@@ -242,27 +243,30 @@ are accepted. To measure at both user and kernel level use <tt>cycles:uk</tt>. I
 is no colon separator between the modifiers.
 
 To measure a PMU event and pass unit masks and modifiers:
-%RED%
 <pre>
 perf stat -e inst_retired:any_p:u:c=1:i dd if=/dev/zero of=/dev/null count=100000
 </pre>
-%ENDCOLOR%
 In this example, we are measuring the number of cycles at the user level in which
 less (i) than 1 (c=1) instruction is retired per cycles. Note that for actual events, the modifiers depends on the underlying PMU model.
 All modifiers can be combined at will.
 Here is a simple table to summarize the most common modifiers for Intel and
 AMD x86 processors.
 
-{|
+{| border="1"
 ! Modifiers
 ! Type
 ! Description
 ! Example
-|- |u             | boolean | monitor at priv level 3, 2, 1 (user)| event:u=1 or event:u
-|- |k             | boolean | monitor at priv level 0 (kernel)     | event:k=1 or event:k
-|- |c             | integer | threshold monitoring: number of cycles when n or more occurrences of event occur | event:c=2
-|- |i             | boolean | invert the test of threshold: number of cycles in which less than n occurrences of the event occur| event:c=2:i
-|- |e             | boolean | edge detect, increment the counter only when the condition goes from false -> true | event:e or event:e=1
+|- 
+|u             || boolean || monitor at priv level 3, 2, 1 (user)|| event:u=1 or event:u
+|- 
+|k             || boolean || monitor at priv level 0 (kernel)     || event:k=1 or event:k
+|- 
+|c             || integer || threshold monitoring: number of cycles when n or more occurrences of event occur || event:c=2
+|- 
+|i             || boolean || invert the test of threshold: number of cycles in which less than n occurrences of the event occur|| event:c=2:i
+|- 
+|e             || boolean || edge detect, increment the counter only when the condition goes from false -> true || event:e or event:e=1
 |}
 
 ====  Hardware events ====
@@ -319,12 +323,14 @@ a tool are stored sequentially in the list.
 To avoid scaling (in the presence of only one active perf_event user), one can try and reduce the number of
 events. The following table provides the number of counters for a few common processors:
 
-{|
+{| border="1"
 !Processor
 !Generic counters
 !Fixed counters
-|+ |Intel Core  | 2 | 3
-|+ |Intel Nehalem| 4 | 3
+|-
+|Intel Core  || 2 || 3
+|- 
+|Intel Nehalem|| 4 || 3
 |}
 
 Generic counters can measure any events. Fixed counters can only measure one event. Some counters
@@ -394,17 +400,17 @@ with ratio of std-dev/mean is printed.
 
 The <tt>perf</tt> tool can be used to count events on a per-thread, per-process, per-cpu
 or system-wide basis.
-In *per-thread* mode, the counter only monitors the execution of a designated thread.
+In ''per-thread'' mode, the counter only monitors the execution of a designated thread.
 When the thread is scheduled out, monitoring stops. When a thread migrated from one
 processor to another, counters are saved on the current processor and are restored
 on the new one.
 
-The per-process mode is a variant of per-thread where '''all''' threads of the process
+The ''per-process'' mode is a variant of per-thread where '''all''' threads of the process
 are monitored. Counts and samples are aggregated at the process level.
 The perf_events interface allows for automatic inheritance on <tt>fork()</tt> and <tt>pthread_create()</tt>.
 By default, the perf tool '''activates''' inheritance.
 
-In per-cpu mode, all threads running on the designated processors are monitored. Counts and
+In ''per-cpu'' mode, all threads running on the designated processors are monitored. Counts and
 samples are thus aggregated per CPU. An event is only monitoring one CPU at a time. To monitor
 across multiple processors, it is necessary to create multiple events.  The perf tool can aggregate
 counts and samples across multiple processors. It can also monitor only a subset of the processors.
@@ -495,11 +501,9 @@ perf stat -e cycles -p 2262 sleep 2
 What determines the duration of the measurement is the command to execute. Even though we are
 attaching to a process, we can still pass the name of a command. It is used to time the measurement.
 Without it, <tt>perf</tt> monitors until it is killed.
-
 Also note that when attaching to a process, all threads of the process are monitored. Furthermore,
 given that inheritance is on by default, child processes or threads will also be monitored. To turn
 this off, you must use the <tt>-i</tt> option.
-
 It is possible to attach a specific thread within a process. By thread, we mean kernel visible thread.
 In other words, a thread visible by the <tt>ps</tt> or <tt>top</tt> commands. To attach to a thread, the <tt>-t</tt>
 option must be used. We look at <tt>rsyslogd</tt>, because it always runs on Ubuntu 11.04, with
@@ -528,7 +532,7 @@ to be pinned to a specific CPU, it is best to use the cpu-wide mode.
 
 
 ===  Options controlling output ===
-=perf stat= can modify output to suit different needs.
+<tt>perf stat</tt> can modify output to suit different needs.
 
 ====  Pretty printing large numbers ====
 
@@ -608,8 +612,8 @@ stored in each sample designates the place where the program was
 interrupted to process the PMU interrupt, not the place where the counter actually overflows, i.e.,
 where it was at the end of the sampling period. In some case, the distance between those two points
 may be several dozen instructions or more if there were taken branches. When the program cannot
-make forward progress, those two locations are indeed identical. *For this reason, care must be taken
-when interpreting profiles*.
+make forward progress, those two locations are indeed identical. ''For this reason, care must be taken
+when interpreting profiles''.
 
 ====  Default event: cycle counting ====
 
@@ -628,8 +632,9 @@ when it calls <tt>mwait()</tt>.
 ====  Period and rate ====
 
 The perf_events interface allows two modes to express the sampling period:
-   * the number of occurrences of the event (period)
-   * the average rate of samples/sec (frequency)
+
+* the number of occurrences of the event (period)
+* the average rate of samples/sec (frequency)
 
 The <tt>perf</tt> tool defaults to the average rate. It is set to 1000Hz, or 1000 samples/sec. That means
 that the kernel is dynamically adjusting the sampling period to achieve the target average rate.
@@ -744,11 +749,12 @@ The third column shows the name of the ELF image where the samples came from.  I
 linked, then this may show the name of a shared library. When the samples come from the kernel, then
 the pseudo ELF image name <tt>[kernel.kallsyms]</tt> is used. The fourth column indicates the privilege level
 at which the sample was taken, i.e. when the program was running when it was interrupted:
-   * [.] : user level
-   * [k]: kernel level
-   * [g]: guest kernel level (virtualization)
-   * [u]: guest os user space
-   * [H]: hypervisor
+
+* [.] : user level
+* [k]: kernel level
+* [g]: guest kernel level (virtualization)
+* [u]: guest os user space
+* [H]: hypervisor
 
 The final column shows the symbol name.
 
@@ -862,7 +868,7 @@ perf annotate -d ./noploop
 The first column reports the percentage of samples for function ==noploop()== captured for at that instruction.
 As explained earlier, you should interpret this information carefully.
 
-=perf annotate= can generate sourcecode level information if the application is compiled with <tt>-ggdb</tt>. The following
+<tt>perf annotate</tt> can generate sourcecode level information if the application is compiled with <tt>-ggdb</tt>. The following
 snippet shows the much more informative output for the same execution of <tt>noploop</tt> when compiled with this debugging
 information.
 <pre>
@@ -995,9 +1001,10 @@ on that CPU does the event effectively measure. This approach enforces sampling 
 mitigates sampling overhead. At the end of the run, the tool aggregates all the samples into a single output file.
 
 In case perf aborts with 'too many open files' error, there are a few solutions:
-   * increase the number of per-process open files using ulimit -n. Caveat: you must be root
-   * limit the number of events you measure in one run
-   * limit the number of CPU you are measuring
+
+* increase the number of per-process open files using ulimit -n. Caveat: you must be root
+* limit the number of events you measure in one run
+* limit the number of CPU you are measuring
 
 ====  increasing open file limit ====
 
@@ -1042,8 +1049,10 @@ f22f8e683907b95384c5799b40daa455e44e4076 /lib/i386-linux-gnu/libc-2.13.so
 
 At the end of each run, the <tt>perf record</tt> command updates a <tt>build-id</tt> cache, with new entries for ELF images with samples.
 The cache contains:
+
 * <tt>build-id</tt> for ELF images with samples
 * copies of the ELF images with samples
+
 Given  that <tt>build-id</tt> are immutable, they uniquely identify a binary. If a binary is recompiled, a new <tt>build-id</tt> is generated
 and a new copy of the ELF images is saved in the cache.
 The cache is saved on disk in a directory which is by default $HOME/.debug. There is a global configuration file ==/etc/perfconfig==
