@@ -78,7 +78,7 @@ perf stat -h
 The <tt>perf</tt> tool supports a list of measurable events.  The tool
 and underlying kernel interface can measure events coming from different
 sources. For instance, some event are pure kernel counters, in this case they are
-called '''software events'''. Examples include: context-switches, minor-fault.
+called '''software events'''. Examples include: context-switches, minor-faults.
 
 Another source of events is the processor itself and its Performance Monitoring
 Unit (PMU). It provides a list of events to measure micro-architectural events
@@ -146,8 +146,7 @@ List of pre-defined events (to be used in -e):
  branch-loads                               [Hardware cache event]
  branch-load-misses                         [Hardware cache event]
 
- rNNN (see 'perf list --help' on how to encode it) [Raw hardware
-event descriptor]
+ rNNN (see 'perf list --help' on how to encode it) [Raw hardware event descriptor]
 
  mem:<addr>[:access]                        [Hardware breakpoint]
 
