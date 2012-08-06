@@ -338,7 +338,6 @@ perf stat -B -e cycles,cycles ./noploop 1
  Performance counter stats for './noploop 1':
 
     2,812,305,464 cycles
-    2,812,305,464 cycles
     2,812,304,340 cycles
 
        1.302481065  seconds time elapsed
@@ -351,7 +350,6 @@ perf stat -B -e cycles,cycles,cycles ./noploop 1
 
  Performance counter stats for './noploop 1':
 
-    2,809,946,289 cycles                    (scaled from 74.98%)
     2,809,725,593 cycles                    (scaled from 74.98%)
     2,810,797,044 cycles                    (scaled from 74.97%)
     2,809,315,647 cycles                    (scaled from 75.09%)
