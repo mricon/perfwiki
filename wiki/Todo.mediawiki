@@ -29,4 +29,6 @@ title: Todo
 * Make the instruction augmentation in the annotate browser platform specific.
 ** Right now they are x86 specific but are in the common code.
 
-* Cherry pick the plugin support in libtraceevent
+* Cherry pick the plugin support in libtraceevent.
+
+* Add build id support in PERF_RECORD_MMAP, so that we can support long running sessions where update of components may take place.
