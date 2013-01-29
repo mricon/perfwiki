@@ -17,3 +17,6 @@ title: Todo
 * The feature tests performed only when a file that needs those tests, or at least only when some .c or .h file will be rebuilt
 
 * Packages needed for the build should be checked before we start building object files, such as bison (bpetkov)
+
+* Forward port the page fault tracepoints and use it in 'trace':
+** http://git.kernel.org/?p=linux/kernel/git/acme/linux.git;a=commitdiff;h=d53b11976093b6d8afeb8181db53aaffc754920d;hp=32ba4abf60ae1b710d22a75725491815de649bc5
