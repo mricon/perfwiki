@@ -32,3 +32,5 @@ title: Todo
 * Cherry pick the plugin support in libtraceevent.
 
 * Add build id support in PERF_RECORD_MMAP, so that we can support long running sessions where update of components may take place.
+
+* Allow automatic downloading of DSOs with richer symtabs and DWARF info from debuginfo servers such as darkserver (https://fedoraproject.org/wiki/Darkserver).
