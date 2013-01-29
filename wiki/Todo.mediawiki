@@ -13,3 +13,5 @@ title: Todo
 ** Use the in-perf ip -> symbol resolving
 ** Use the in-perf pid -> cmdline resolving
 ** Implement multidimensional sorting by field name
+
+* The feature tests performed only when a file that needs those tests, or at least only when some .c or .h file will be rebuilt
