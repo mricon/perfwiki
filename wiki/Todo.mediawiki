@@ -25,3 +25,6 @@ title: Todo
 
 * Use Kconfig to allow selecting features and build minimal version of perf, e.g. one with just 'record' for use in embedded platforms.
 ** David Ahern prototyped this, dig those patches and update them.
+
+* Make the instruction augmentation in the annotate browser platform specific.
+** Right now they are x86 specific but are in the common code.
