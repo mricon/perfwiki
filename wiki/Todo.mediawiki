@@ -24,3 +24,4 @@ title: Todo
 * Use the highest precision level available by default, e.g.: cycles:pp
 
 * Use Kconfig to allow selecting features and build minimal version of perf, e.g. one with just 'record' for use in embedded platforms.
+** David Ahern prototyped this, dig those patches and update them.
