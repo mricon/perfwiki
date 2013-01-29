@@ -34,3 +34,5 @@ title: Todo
 * Add build id support in PERF_RECORD_MMAP, so that we can support long running sessions where update of components may take place.
 
 * Allow automatic downloading of DSOs with richer symtabs and DWARF info from debuginfo servers such as darkserver (https://fedoraproject.org/wiki/Darkserver).
+
+* Limit the size of the build id cache (~/.debug), in a way similar to how ccache manages its cache.
