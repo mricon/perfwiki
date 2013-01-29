@@ -28,3 +28,5 @@ title: Todo
 
 * Make the instruction augmentation in the annotate browser platform specific.
 ** Right now they are x86 specific but are in the common code.
+
+* Cherry pick the plugin support in libtraceevent
