@@ -20,3 +20,5 @@ title: Todo
 
 * Forward port the page fault tracepoints and use it in 'trace':
 ** http://git.kernel.org/?p=linux/kernel/git/acme/linux.git;a=commitdiff;h=d53b11976093b6d8afeb8181db53aaffc754920d;hp=32ba4abf60ae1b710d22a75725491815de649bc5
+
+* Use the highest precision level available by default, e.g.: cycles:pp
