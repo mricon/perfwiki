@@ -6,7 +6,7 @@ title: Todo
 
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
 * Implement a perf cmp (profile comparison between two perf.data) (DONE, its called 'perf diff')
-* Implement a perf view (GUI)
+* Implement a perf view (GUI) (Partially done, see 'perf report --gtk')
 * Enhance perf trace:
 ** Handle the cpu field
 ** Handle the timestamp
