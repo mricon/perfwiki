@@ -36,3 +36,6 @@ title: Todo
 * Allow automatic downloading of DSOs with richer symtabs and DWARF info from debuginfo servers such as darkserver (https://fedoraproject.org/wiki/Darkserver).
 
 * Limit the size of the build id cache (~/.debug), in a way similar to how ccache manages its cache.
+
+* Adopt Vince Weaver's suite of tests in 'perf test'.
+** http://www.eece.maine.edu/~vweaver/projects/perf_events/validation/
