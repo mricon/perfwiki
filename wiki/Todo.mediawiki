@@ -2,10 +2,7 @@
 title: Todo
 ---
 
-=== Perf tools ===
-
-
-* The feature tests performed only when a file that needs those tests, or at least only when some .c or .h file will be rebuilt
+* The feature tests should be performed only when a file that needs those tests, or at least only when some .c or .h file will be rebuilt
 
 * Packages needed for the build should be checked before we start building object files, such as bison (bpetkov)
 
