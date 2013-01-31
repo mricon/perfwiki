@@ -4,15 +4,6 @@ title: Todo
 
 === Perf tools ===
 
-* Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
-* Implement a perf cmp (profile comparison between two perf.data) (DONE, its called 'perf diff')
-* Implement a perf view (GUI) (Partially done, see 'perf report --gtk')
-* Enhance perf trace:
-** Handle the cpu field
-** Handle the timestamp
-** Use the in-perf ip -> symbol resolving
-** Use the in-perf pid -> cmdline resolving
-** Implement multidimensional sorting by field name
 
 * The feature tests performed only when a file that needs those tests, or at least only when some .c or .h file will be rebuilt
 
@@ -40,5 +31,16 @@ title: Todo
 * Adopt Vince Weaver's suite of tests in 'perf test'.
 ** http://www.eece.maine.edu/~vweaver/projects/perf_events/validation/
 
-* Add reference counters to the dso, thread, structures, so that in tools like 'top' we can remove unused threads from the dead_threads list and also
-  unload symbol tables not referenced by any maps.
+* Add reference counters to the dso and thread structs, so that in tools like 'top' we can remove unused threads from the dead_threads list and also unload symbol tables not referenced by any maps.
+
+=== Old entries ===
+
+* Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
+* Implement a perf cmp (profile comparison between two perf.data) (DONE, its called 'perf diff')
+* Implement a perf view (GUI) (Partially done, see 'perf report --gtk')
+* Enhance perf trace:
+** Handle the cpu field
+** Handle the timestamp
+** Use the in-perf ip -> symbol resolving
+** Use the in-perf pid -> cmdline resolving
+** Implement multidimensional sorting by field name
