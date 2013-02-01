@@ -30,6 +30,8 @@ title: Todo
 
 * Add reference counters to the dso and thread structs, so that in tools like 'top' we can remove unused threads from the dead_threads list and also unload symbol tables not referenced by any maps.
 
+* Accumulate callchain info in order to get cumulative period info like 'sysprof'.
+
 === Old entries ===
 
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
