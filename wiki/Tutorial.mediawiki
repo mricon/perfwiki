@@ -90,7 +90,7 @@ The perf_events interface also provides a small set of common hardware
 events monikers. On each processor, those events get mapped
 onto an actual events provided by the CPU, if they exists, otherwise the event
 cannot be used. Somewhat confusingly, these are also called '''hardware events'''
-and '''hardware cache events'''. Central problem of different students is their worry of using some new issues like papers writing services! We do not need to be scared to buy [http://marvelousessays.com college research paper] in the web! Innovations can really help us! 
+and '''hardware cache events'''.
 
 Finally, there are also '''tracepoint events''' which are implemented by the kernel <tt>ftrace</tt>
 infrastructure. Those are '''only''' available with the 2.6.3x and newer kernels.
