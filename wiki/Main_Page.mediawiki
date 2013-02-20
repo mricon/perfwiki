@@ -35,4 +35,4 @@ To learn more, see the examples in the <tt>[[Tutorial]]</tt>.
 * [[perf_events kernel ABI]]
 
 === References/Useful links ===
-* <tt>[[http://indico.cern.ch/materialDisplay.py?contribId=20&sessionId=4&materialId=slides&confId=141309]] Perf presentation from CERN
+* <tt>[[http://indico.cern.ch/materialDisplay.py?contribId=20&sessionId=4&materialId=slides&confId=141309 | Roberto Vitillo's presentation on Perf events]]
