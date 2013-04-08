@@ -34,6 +34,9 @@ title: Todo
 * Accumulate callchain info in order to get cumulative period info like 'sysprof'.
 
 * [https://bugzilla.kernel.org/show_bug.cgi?id=55561 Add --sort addr]
+
+* Systemtap SDT suppport in 'perf probe'
+** http://sourceware.org/systemtap/wiki/UserSpaceProbeImplementation
 === Old entries ===
 
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
