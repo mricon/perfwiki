@@ -578,7 +578,7 @@ The <tt>perf</tt> tool can be used to collect profiles on per-thread, per-proces
 
 There are several commands associated with sampling: <tt>record</tt>, <tt>report</tt>, <tt>annotate</tt>.
 You must first collect the samples using <tt>perf record</tt>. This generates an output
-file called <tt>perf.data</tt>. That file can then be analyzed, possibly an another machine, using
+file called <tt>perf.data</tt>. That file can then be analyzed, possibly on another machine, using
 the <tt>perf report</tt> and <tt>perf annotate</tt> commands. The model is fairly similar to that of
 OProfile.
 
