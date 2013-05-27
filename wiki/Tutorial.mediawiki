@@ -1069,6 +1069,57 @@ report
 No permission to collect system-wide stats.
 </pre>
 
+== Other Scenarios ==
+
+===Profiling sleep times===
+
+This feature shows where and how long a program is sleeping or waiting something.
+
+The first step is collecting data. We need to collect sched_stat and sched_switch events. Sched_stat events are not enough, because they are generated in the context  of a task, which wakes up a target task (e.g. releases a lock). We need the same event but with a call-chain of the target task. This call-chain can be extracted from a previous sched_switch event.
+
+The second step is merging sched_start and sched_switch events. It can be done with help of "perf inject -s".
+
+ $ ./perf record -e sched:sched_stat_sleep -e sched:sched_switch  -e sched:sched_process_exit -g -o ~/perf.data.raw ~/foo
+ $ ./perf inject -v -s -i ~/perf.data.raw -o ~/perf.data
+ $ ./perf report --stdio --show-total-period -i ~/perf.data
+ # Overhead        Period  Command      Shared Object          Symbol
+ # ........  ............  .......  .................  ..............
+ #
+   100.00%     502408738      foo  [kernel.kallsyms]  [k] __schedule
+                |
+                --- __schedule
+                    schedule
+                   |          
+                   |--79.85%-- schedule_hrtimeout_range_clock
+                   |          schedule_hrtimeout_range
+                   |          poll_schedule_timeout
+                   |          do_select
+                   |          core_sys_select
+                   |          sys_select
+                   |          system_call_fastpath
+                   |          __select
+                   |          __libc_start_main
+                   |          
+                    --20.15%-- do_nanosleep
+                              hrtimer_nanosleep
+                              sys_nanosleep
+                              system_call_fastpath
+                              __GI___libc_nanosleep
+                              __libc_start_main
+
+ $cat foo.c
+ ...
+           for (i = 0; i <  10; i++) {
+                   ts1.tv_sec = 0;
+                   ts1.tv_nsec = 10000000;
+                   nanosleep(&ts1, NULL);
+ 
+                   tv1.tv_sec = 0;
+                   tv1.tv_usec = 40000;
+                   select(0, NULL, NULL, NULL,&tv1);
+           }
+ ...
+
 == Other Resources ==
 
 === Linux sourcecode ===
