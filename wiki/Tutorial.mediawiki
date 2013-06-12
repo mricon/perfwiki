@@ -1000,7 +1000,7 @@ In case perf aborts with 'too many open files' error, there are a few solutions:
 
 ====  increasing open file limit ====
 
-The superuser can override the per-process open file limit using the ==ulimit== shell builtin command:
+The superuser can override the per-process open file limit using the <tt>ulimit</tt> shell builtin command:
 <pre>
 ulimit -a
 [...]
