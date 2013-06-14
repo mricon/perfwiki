@@ -2,6 +2,8 @@
 title: Todo
 ---
 
+* Enable callchains for guests (used by perf kvm). At least doing this for the guest kernel should be very possible.
+
 * The feature tests should be performed only when a file that needs those tests, or at least only when some .c or .h file will be rebuilt
 ** An initial step would be for 'make install-doc' not to run the feature tests, there it is not needed at all.
 
