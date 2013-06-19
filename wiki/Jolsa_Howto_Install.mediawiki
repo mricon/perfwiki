@@ -36,7 +36,7 @@ Running Transaction
   Verifying  : perf-3.8.13-100.fc17.x86_64                                                                                    1/1 
 
 Installed:
-  perf.x86_64 0:3.8.13-100.fc17                                                                                                   
+  perf.x86_64 0:3.8.13-100.fc17
 
 Complete!
 $
