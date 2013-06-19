@@ -70,3 +70,6 @@ perf/core branch
 * <tt>[[jolsa_Features_NonArchitectural_Events| nonarchitectural event </tt>]] - nonarchitectural event specification
 * <tt>[[jolsa_Features_Data_File_Merge| data file merge </tt>]] - merge data files by time
 * <tt>[[jolsa_Features_Togle_Event| toggle event </tt>]] - run event on another event sample
+
+== Contact ==
+Jiri Olsa <jolsa at redhat dot com>
