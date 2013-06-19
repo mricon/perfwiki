@@ -39,5 +39,8 @@ Installed:
   perf.x86_64 0:3.8.13-100.fc17
 
 Complete!
-$
+
+$ which perf
+/bin/perf
+
 </pre>
