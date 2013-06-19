@@ -25,10 +25,13 @@ perf/core branch
 </pre>
 
 == Docs ==
+
 * <tt>[[jolsa_Docs_Counting| counting explained</tt>]]
 * <tt>[[jolsa_Docs_Sampling| sampling explained</tt>]]
 * <tt>[[jolsa_Docs_Sampling| diff explained</tt>]]
+* <tt>[[jolsa_Docs_FileFormat| file format description</tt>]]
 
+=== Commands ===
 * <tt>[[jolsa_Docs_Perf_Stat| perf stat</tt>]]
 * <tt>[[jolsa_Docs_Perf_Stat| perf record</tt>]]
 * <tt>[[jolsa_Docs_Perf_Stat| perf report</tt>]]
