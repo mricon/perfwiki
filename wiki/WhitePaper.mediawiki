@@ -4,6 +4,23 @@ title: WhitePaper
 
 == Introduction ==
 
+
 == Counting ==
 
 == Sampling ==
+
+== Features ==
+
+* <tt>[[jolsa_Features_CPU_Hotplug| cpu hotplug</tt>]] - follow cpu hotplug in perf record
+* <tt>[[jolsa_Features_Stat_Formulas| stat formulas</tt>]] - formulas support over perf stat
+* <tt>[[jolsa_Features_Precise| precise</tt>]] - precise level detection
+* <tt>[[jolsa_Features_Kbuild| kbuild</tt>]] - kernel kbuild support
+* <tt>[[jolsa_Features_GroupSampling| group sampling </tt>]] - group leader sampling
+* <tt>[[jolsa_Features_MultiDiff| multi diff </tt>]] - diff multiple files
+* <tt>[[jolsa_Features_Post_DWARF_Unwind| post DWARF unwind </tt>]] - callchains DWARF unwind
+* <tt>[[jolsa_Features_Tests| tests </tt>]] - how to run/create tests
+* <tt>[[jolsa_Features_Mmap| mmap details </tt>]] - report mmap details
+* <tt>[[jolsa_Features_Record_Multiple_Files| multiple data files </tt>]] - record into multiple data files
+* <tt>[[jolsa_Features_Record_Top_Data_File| top data file </tt>]] - store top data into data file
+* <tt>[[jolsa_Features_NonArchitectural_Events| nonarchitectural event </tt>]] - nonarchitectural event specification
+* <tt>[[jolsa_Features_Data_File_Merge| data file merge </tt>]] - merge data files by time
