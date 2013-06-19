@@ -1,0 +1,34 @@
+---
+title: Jolsa Howto Install Sources
+---
+
+== Sources ==
+
+Clone any kernel source git tree:
+<pre>
+# linus git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+# tip   git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git
+# acme  git://git.kernel.org/pub/scm/linux/kernel/git/acme/linux
+# jolsa git://git.kernel.org/pub/scm/linux/kernel/git/jolsa/perf.git
+
+$ git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+</pre>
+
+== Dependencies ==
+
+Packages you need fto vompile perf (Fedora based):
+* <tt> binutils-devel
+
+<pre>
+$ sudo yum install ...
+</pre>
+
+== Build & Install ==
+
+<pre>
+$ cd linux-2.6.git/tools/perf
+$ make
+$ make install
+</pre>
+
+== Binaries ==
