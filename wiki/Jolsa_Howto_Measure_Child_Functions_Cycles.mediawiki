@@ -70,7 +70,7 @@ $ perf record -g -- ./ex
 * and say we want to report parent symbol with '''-p krava_g'''
 <pre>
 $ perf report -p krava_g
-Samples: 19K of event 'cycles', Event count (approx.): 17010569690                                                                         
+Samples: 19K of event 'cycles', Event count (approx.): 17010569690
 +  22.39%  ex  ex                 [.] krava_d                              [other]
 +  20.11%  ex  ex                 [.] krava_c                              [other]
 +  20.00%  ex  ex                 [.] krava_b                              [other]
