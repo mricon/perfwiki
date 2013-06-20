@@ -48,7 +48,7 @@ perf/core branch
 
 * <tt>[[jolsa_Howto_Install| install perf package</tt>]]
 * <tt>[[jolsa_Howto_Install_Sources| install perf from sources</tt>]]
-* <tt>[[jolsa_Howto_Measure_Single_Function_Cycles| measure function cycles</tt>]] - measure single function cycles
+* <tt>[[jolsa_Howto_Measure_Child_Functions_Cycles| measure child functions cycles</tt>]] - measure child functions cycles by parent
 
 == Features ==
 
