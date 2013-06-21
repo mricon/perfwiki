@@ -1,0 +1,17 @@
+---
+title: Jolsa Docs Event
+---
+
+= EVENT =
+To get list of all supported events:
+<pre>
+$ perf list
+</pre>
+
+= TYPES =
+
+== HARDWARE ==
+
+== SOFTWARE ==
+
+== TRACEPOINTS ==
