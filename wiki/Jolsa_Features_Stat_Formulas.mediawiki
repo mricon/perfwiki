@@ -102,7 +102,7 @@ branch {
 $ perf stat -e formula-cpi ls
 </pre>
 
-=== Example ===
+== Example ==
 * krava.conf
 <pre>
 cpi {
