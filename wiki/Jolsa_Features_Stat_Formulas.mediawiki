@@ -3,9 +3,10 @@ title: Jolsa Features Stat Formulas
 ---
 
 == Description ==
+This feature adds the possibility to define specific counters
+by using arithmetic formulas and use them via '''stat''' command.
 
-Adding formula object to interface formula definitions like:
-
+* Formula config file looks like:
 <pre>
 set {
      events {
