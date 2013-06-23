@@ -167,5 +167,3 @@ $ ./perf stat -f ./krava.conf -e formula-cpi yes > /dev/null
         0.00000352 branch-miss-rate         
         0.00002017 branch-miss-ratio        
 </pre>
-
-== Description ==
