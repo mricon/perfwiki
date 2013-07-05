@@ -1141,4 +1141,4 @@ be able to run <tt>perf help <command></tt>.
 
 ----
 
-This guide is adapted from a tutorial by Stephane Eranian at Google, with contributions from Eric Gouriou, Tipp Moseley and Willem de Bruijn. The original content imported into wiki.perf.google.com is made available under the [http://creativecommons.org/licenses/by-sa/3.0/ CreativeCommons attribution sharealike 3.0 license].
+This guide is adapted from a tutorial by Stephane Eranian at Google, with contributions from Eric Gouriou, Tipp Moseley and Willem de Bruijn. The original content imported into wiki.perf.google.com is made available under the [http://creativecommons.org/licenses/by-sa/3.0/ CreativeCommons attribution sharealike 3.0 license]. [http://www.facebook.com/lipo8byrichylab LIPO 8]
