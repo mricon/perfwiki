@@ -17,7 +17,7 @@ connect binaries with its debuginfo counterparts.
 The result is that for binaries with separated debuginfo you'll not
 see annotations in '''perf'''.
 
-== WORKAROUND ==
+=== WORKAROUND ===
 
 There's a following workaround, that merges debuginfo back to the
 binary. Such binary will display proper annotations in perf.
