@@ -29,6 +29,7 @@ Packages you need to compile perf with all features (Fedora based):
 * numa-libs-devel
 * python-devel
 * perl-devel
+* perl-ExtUtils-Embed
 * numactl-devel
 * asciidoc
 * xmlto
