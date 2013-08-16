@@ -55,12 +55,11 @@ perf/core branch
 
 === Merged ===
 * <tt>[[jolsa_Features_Post_DWARF_Unwind| post DWARF unwind </tt>]] - callchains DWARF unwind
-
-=== To be merged  ===
 * <tt>[[jolsa_Features_GroupSampling| group sampling </tt>]] - group leader sampling
 * <tt>[[jolsa_Features_MultiDiff| multi diff </tt>]] - diff multiple files
 
 === To be done  ===
+* <tt>[[jolsa_Features_Multiple_File_Storage| multiple file storage</tt>]] - allow to store record data into multiple files
 * <tt>[[jolsa_Features_CPU_Hotplug| cpu hotplug</tt>]] - follow cpu hotplug in perf record
 * <tt>[[jolsa_Features_Stat_Formulas| stat formulas</tt>]] - formulas support over perf stat
 * <tt>[[jolsa_Features_Precise| precise</tt>]] - precise level detection
