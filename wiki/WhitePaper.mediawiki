@@ -65,7 +65,6 @@ perf/core branch
 * <tt>[[jolsa_Features_Precise| precise</tt>]] - precise level detection
 * <tt>[[jolsa_Features_Kbuild| kbuild</tt>]] - kernel kbuild support
 * <tt>[[jolsa_Features_Mmap| mmap details </tt>]] - report mmap details
-* <tt>[[jolsa_Features_Record_Multiple_Files| multiple data files </tt>]] - record into multiple data files
 * <tt>[[jolsa_Features_Record_Top_Data_File| top data file </tt>]] - store top data into data file
 * <tt>[[jolsa_Features_NonArchitectural_Events| nonarchitectural event </tt>]] - nonarchitectural event specification
 * <tt>[[jolsa_Features_Data_File_Merge| data file merge </tt>]] - merge data files by time
