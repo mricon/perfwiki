@@ -1,0 +1,10 @@
+---
+title: Jolsa Features Multiple File Storage
+---
+
+== Description ==
+This feature adds the possibility to store perf record data
+into multiple files.
+
+* new version of perf.data file was added (v3)
+* -M/--multi <spec> option was added into perf record
