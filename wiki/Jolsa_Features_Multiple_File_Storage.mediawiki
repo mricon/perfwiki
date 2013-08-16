@@ -63,3 +63,6 @@ into multiple files.
 
 * move file storing into special thread inorder not to abuse main polling thread
 * keep live COMM/MMAP info to save some time when creating new file and limit the race window described above
+
+=== Branch ===
+* perf/file*
