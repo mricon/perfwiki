@@ -4,13 +4,13 @@ title: Jolsa Features Togle Event
 
 
 == Branch ==
-* perf/core_toggle*
+* perf/core_toggle
 
 == Description ==
-Adding perf interface that allows to create 'toggle' events,
+Adding perf interface that allows to create '''toggle''' events,
 which can enable or disable another event. Whenever the toggle
 event is triggered (has overflow), it toggles another event
-state and either starts or stops it.
+state and either '''starts or stops''' it.
 
 The goal is to be able to create toggling tracepoint events
 to enable and disable HW counters, but the interface is generic
@@ -25,16 +25,20 @@ The interface to create a toggle event is similar as the one
 for defining event group. Use perf syscall with:
 
 <pre>
+int sys_perf_event_open(struct perf_event_attr *attr,
+                        pid_t pid, int cpu, int group_fd,
+                        unsigned long flags)
+
 flags    - PERF_FLAG_TOGGLE_ON or PERF_FLAG_TOGGLE_OFF
 group_fd - event (or group) fd to be toggled
 </pre>
     
-Created event will toggle ON(start) or OFF(stop) the event
+Created event will toggle '''ON(start)''' or '''OFF(stop)''' the event
 specified via group_fd.
     
 Obviously this way it's not possible for toggle event to
 be part of group other than group leader. This is where
-you need to use PERF_EVENT_IOC_SET_TOGGLE ioctl.
+you need to use '''PERF_EVENT_IOC_SET_TOGGLE ioctl'''.
 
 This ioctl has 2 goals:
 * allowing the toggle event being part of the group
@@ -59,7 +63,7 @@ err        -  0 when successful
 === Perf Tool ===
 The support for toggling events is added into record and stat commands.
     
-The toggling events are defined via on/off terms, assigned with the name
+The toggling events are defined via '''on/off terms''', assigned with the name
 of the event they should toggle.
 
 Toggling events are define within -e option using on/off terms, like
@@ -68,8 +72,8 @@ Toggling events are define within -e option using on/off terms, like
 </pre>
 
 Meaning:
-* irq_entry *toggles on* (starts) cycles, and irq_exit *toggled off* (stops) cycles.
-* cycles is started as *paused*
+* irq_entry '''toggles on''' (starts) cycles, and irq_exit '''toggled off''' (stops) cycles.
+* cycles is started as '''paused'''
 
 ==== Example - using k(ret)probes ====
 
