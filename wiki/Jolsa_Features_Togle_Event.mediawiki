@@ -2,7 +2,74 @@
 title: Jolsa Features Togle Event
 ---
 
+
+== Branch ==
+* perf/core_toggle*
+
 == Description ==
+Adding perf interface that allows to create 'toggle' events,
+which can enable or disable another event. Whenever the toggle
+event is triggered (has overflow), it toggles another event
+state and either starts or stops it.
+
+The goal is to be able to create toggling tracepoint events
+to enable and disable HW counters, but the interface is generic
+enough to be used for any kind of event.
+
+== Interface ==
+
+There are changes for both kernel and perf tool part.
+
+=== Kernel ===
+The interface to create a toggle event is similar as the one
+for defining event group. Use perf syscall with:
+
+<pre>
+flags    - PERF_FLAG_TOGGLE_ON or PERF_FLAG_TOGGLE_OFF
+group_fd - event (or group) fd to be toggled
+</pre>
+    
+Created event will toggle ON(start) or OFF(stop) the event
+specified via group_fd.
+    
+Obviously this way it's not possible for toggle event to
+be part of group other than group leader. This is where
+you need to use PERF_EVENT_IOC_SET_TOGGLE ioctl.
+
+This ioctl has 2 goals:
+* allowing the toggle event being part of the group
+* allowing to define toggle setting after event is created
+    
+<pre>
+u64 args[2] = { toggled_fd, flag };
+err = ioctl(fd, PERF_EVENT_IOC_SET_TOGGLE, args);
+</pre>
+    
+Where:
+<pre>
+toggled_fd - is file description of the event we want to toggle
+flag       - is one of PERF_FLAG_TOGGLE_ON|PERF_FLAG_TOGGLE_OFF
+err        -  0 when successful
+             -1 otherwise with errno:
+                EBUSY  - event has already toggled event defined
+                EFAULT - could not copy user data
+                EINVAL - wrong data
+</pre>
+
+=== Perf Tool ===
+The support for toggling events is added into record and stat commands.
+    
+The toggling events are defined via on/off terms, assigned with the name
+of the event they should toggle.
+
+Toggling events are define within -e option using on/off terms, like
+<pre>
+-e 'cycles,irq_entry/on=cycles/,irq_exit/off=cycles/'
+</pre>
+
+Meaning:
+* irq_entry *toggles on* (starts) cycles, and irq_exit *toggled off* (stops) cycles.
+* cycles is started as *paused*
 
 ==== Example - using k(ret)probes ====
 
@@ -89,14 +156,3 @@ Following stat session measure cycles, instructions and cache-misses within krav
 
      0.000557504 seconds time elapsed
 </pre>
-
-== Interface ==
-
-=== Kernel ===
-
-=== Perf Tool ===
-
-== Examples ==
-
-== Branch ==
-* perf/core_toggle*
