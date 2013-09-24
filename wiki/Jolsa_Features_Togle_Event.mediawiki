@@ -4,8 +4,90 @@ title: Jolsa Features Togle Event
 
 == Description ==
 
-* example:
+==== Example - using k(ret)probes ====
+
+* Define toggle(on/off) events:
 <pre>
+# perf probe -a fork_entry=do_fork
+# perf probe -a fork_exit=do_fork%return
+</pre>
+
+* Following record session samples only within do_fork function:
+<pre>
+# perf record -g -e '{cycles,cache-misses}:k,probe:fork_entry/on=cycles/,probe:fork_exit/off=cycles/' \ 
+  perf bench sched messaging
+</pre>
+
+* Following stat session measure cycles within do_fork function:
+<pre>
+# perf stat -e '{cycles,cache-misses}:k,probe:fork_entry/on=cycles/,probe:fork_exit/off=cycles/' \ 
+  perf bench sched messaging
+
+# Running sched/messaging benchmark...
+# 20 sender and receiver processes per group
+# 1 groups == 40 processes run
+
+     Total time: 0.073 [sec]
+
+ Performance counter stats for './perf bench sched messaging -g 1':
+
+        20,935,464 cycles                    #    0.000 GHz
+            18,897 cache-misses
+                40 probe:fork_entry
+                40 probe:fork_exit
+
+       0.086319682 seconds time elapsed
+
+</pre>
+
+==== Example - using u(ret)probes ====
+
+* Sample program:
+<pre>
+void krava(void)
+{
+        asm volatile ("nop; nop");
+}
+
+int main(void)
+{
+        krava();
+        return 0;
+}
+</pre>
+
+* Define toggle(on/off) events:
+<pre>
+# perf probe -x ./ex entry=krava
+# perf probe -x ./ex exit=krava%return
+</pre>
+
+* Following stat session measure instructions within krava function:
+<pre>
+# perf stat -e instructions:u,probe_ex:entry/on=instructions/,probe_ex:exit/off=instructions/ ./ex
+
+    Performance counter stats for './ex':
+
+                 9 instructions:u            #    0.00  insns per cycle 
+                 1 probe_ex:entry
+                 1 probe_ex:exit
+
+       0.000556743 seconds time elapsed
+</pre>
+
+Following stat session measure cycles, instructions and cache-misses within krava function:
+<pre>
+# perf stat -e '{cycles,instructions,cache-misses}:u,probe_ex:entry/on=cycles/,probe_ex:exit/off=cycles/' ./ex
+
+     Performance counter stats for './ex':
+
+           2,068 cycles                    #    0.000 GHz
+               9 instructions              #    0.00  insns per cycle 
+               0 cache-misses
+               1 probe_ex:entry
+               1 probe_ex:exit
+
+     0.000557504 seconds time elapsed
 </pre>
 
 == Interface ==
