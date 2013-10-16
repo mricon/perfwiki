@@ -65,4 +65,4 @@ into multiple files.
 * keep live COMM/MMAP info to save some time when creating new file and limit the race window described above
 
 === Branch ===
-* perf/file*
+* perf/core_file*
