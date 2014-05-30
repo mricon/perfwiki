@@ -24,6 +24,7 @@ The userspace <tt>perf tools</tt> present a simple to use interface with command
 * <tt>[[Tutorial#Sample_analysis_with_perf_report | perf report</tt>]]: break down events by process, function, etc.
 * <tt>[[Tutorial#Source_level_analysis_with_perf_annotate | perf annotate</tt>]]: annotate assembly or source code with event counts
 * <tt>[[Tutorial#Live_analysis_with_perf_top | perf top</tt>]]: see live event count 
+* <tt>[[Tutorial#Benchmarking_with_perf_bench | perf bench</tt>]]: run different kernel microbenchmarks
 
 To learn more, see the examples in the <tt>[[Tutorial]]</tt>.
 
