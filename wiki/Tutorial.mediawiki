@@ -967,6 +967,42 @@ Showing cycles for noploop
 
 </pre>
 
+== Benchmarking with <tt>perf bench</tt> ==
+
+The <tt>perf bench</tt> command includes a number of multi-threaded microbenchmarks
+to exercise different subsystems in the Linux kernel and system calls. This allows
+hackers to easily stress and measure the impact of changes, and therefore help mitigate
+performance regressions.
+
+It also serves as a general benchmark framework, enabling developers to easily create
+test cases and transparently integrate and make use of the rich perf tool subsystem.
+
+===  sched: Scheduler and IPC benchmarks ===
+
+=== mem: Memory access benchmarks ===
+
+=== numa: NUMA scheduling and MM benchmarks ===
+
+=== futex: Futex stressing benchmarks ===
+
+Deals with finer grained aspects of the kernel's implementation of futexes. It is mostly 
+useful for kernel hacking. It currently supports wakeup and requeue/wait operations, as 
+well as stressing the hashing scheme for both private and shared futexes. An example run
+for nCPU threads, each handling 1024 futexes measuring the hashing logic:
+
+<pre>
+$ perf bench futex hash
+# Running 'futex/hash' benchmark:
+Run summary [PID 17428]: 4 threads, each operating on 1024 [private] futexes for 10 secs.
+
+[thread  0] futexes: 0x2775700 ... 0x27766fc [ 3343462 ops/sec ]
+[thread  1] futexes: 0x2776920 ... 0x277791c [ 3679539 ops/sec ]
+[thread  2] futexes: 0x2777ab0 ... 0x2778aac [ 3589836 ops/sec ]
+[thread  3] futexes: 0x2778c40 ... 0x2779c3c [ 3563827 ops/sec ]
+
+Averaged 3544166 operations/sec (+- 2.01%), total secs = 10
+</pre>
+
 ==  Troubleshooting and Tips ==
 
 This section lists a number of tips to avoid common pitfalls when using perf.
