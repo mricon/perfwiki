@@ -977,7 +977,19 @@ performance regressions.
 It also serves as a general benchmark framework, enabling developers to easily create
 test cases and transparently integrate and make use of the rich perf tool subsystem.
 
-===  sched: Scheduler and IPC benchmarks ===
+===  sched: Scheduler benchmarks ===
+
+Measures <tt>pipe(2)</tt> and <tt>socketpair(2)</tt> operations between multiple tasks.
+Allows the measurement of thread versus process context switch performance.
+
+<pre>
+$perf bench sched messaging -g 64
+# Running 'sched/messaging' benchmark:
+# 20 sender and receiver processes per group
+# 64 groups == 2560 processes run
+
+     Total time: 1.549 [sec]
+</pre>
 
 === mem: Memory access benchmarks ===
 
