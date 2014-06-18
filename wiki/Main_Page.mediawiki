@@ -15,7 +15,7 @@ Performance counters are CPU hardware registers that count hardware events such 
 
 Tracepoints are instrumentation points placed at logical locations in code, such as for system calls, TCP/IP events, file system operations, etc. These have negligible overhead when not in use, and can be enabled by the <tt>perf</tt> command to collect information including timestamps and stack traces. <tt>perf</tt> can also dynamically create tracepoints using the kprobes and uprobes frameworks, for kernel and userspace dynamic tracing. The possibilities with these are endless.
 
-The userspace <tt>perf</tt> command present a simple to use interface with commands like
+The userspace <tt>perf</tt> command present a simple to use interface with commands like:
 
 * <tt>[[Tutorial#Counting_with_perf_stat| perf stat</tt>]]: obtain event counts
 * <tt>[[Tutorial#Sampling_with_perf_record | perf record</tt>]]: record events for later reporting
@@ -24,7 +24,7 @@ The userspace <tt>perf</tt> command present a simple to use interface with comma
 * <tt>[[Tutorial#Live_analysis_with_perf_top | perf top</tt>]]: see live event count 
 * <tt>[[Tutorial#Benchmarking_with_perf_bench | perf bench</tt>]]: run different kernel microbenchmarks
 
-To learn more, see the examples in the <tt>[[Tutorial]]</tt>.
+To learn more, see the examples in the [[Tutorial]].
 
 === Wiki Contents  ===
 
