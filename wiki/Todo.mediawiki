@@ -39,6 +39,12 @@ title: Todo
 
 * Systemtap SDT suppport in 'perf probe'
 ** http://sourceware.org/systemtap/wiki/UserSpaceProbeImplementation
+
+* Move build-id trimming from perf-record to perf-archive:
+** Just write the build-id for all DSOs, without trying to process all samples at perf-record time to find out which DSOs had samples and thus should be included in the perf.data build-id header
+** At perf archive time, process all samples and trim the result, so that the tarball is smaller.
+** Perhaps even an heuristic to figure out if the savings would be worth the trouble of processing all samples, i.e. look at the build-id table and do the math to figure out the sum of file sizes, if it is below some threshold, don't process the samples, just pack those files straight away, doing the sample processing only if it is more than that threshold.
+
 === Old entries ===
 
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
