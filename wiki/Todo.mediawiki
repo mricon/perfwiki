@@ -45,6 +45,8 @@ title: Todo
 ** At perf archive time, process all samples and trim the result, so that the tarball is smaller.
 ** Perhaps even an heuristic to figure out if the savings would be worth the trouble of processing all samples, i.e. look at the build-id table and do the math to figure out the sum of file sizes, if it is below some threshold, don't process the samples, just pack those files straight away, doing the sample processing only if it is more than that threshold.
 
+* Implement --initial-delay, already available in 'perf stat', on 'perf trace'.
+
 === Old entries ===
 
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
