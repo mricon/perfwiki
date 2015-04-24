@@ -47,8 +47,9 @@ title: Todo
 
 * Implement --initial-delay, already available in 'perf stat', on 'perf trace'.
 
-=== Old entries ===
+* Fix 'perf top --stdio -g' to limit the number of lines displayed, as it is not considering the callchains, perhaps we need to wire this up with the logic for '--max-stack', that is already available for 'perf top'. The problem is that it scrolls the screen, we can't see the top entries.
 
+=== Old entries ===
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
 * Implement a perf cmp (profile comparison between two perf.data) (DONE, its called 'perf diff')
 * Implement a perf view (GUI) (Partially done, see 'perf report --gtk')
