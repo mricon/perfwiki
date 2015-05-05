@@ -721,17 +721,15 @@ perf report
 
 # Events: 1K cycles
 #
-# Overhead          Command                   Shared Object
-                    Symbol
-# ........  ...............  ..............................
-.....................................
+# Overhead          Command                   Shared Object  Symbol
+# ........  ...............  ..............................  .....................................
 #
-   28.15%      firefox-bin  libxul.so                       [.] 0xd10b45
-    4.45%          swapper  [kernel.kallsyms]               [k] mwait_idle_with_hints
-    4.26%          swapper  [kernel.kallsyms]               [k] read_hpet
-    2.13%      firefox-bin  firefox-bin                     [.] 0x1e3d
-    1.40%  unity-panel-ser  libglib-2.0.so.0.2800.6         [.] 0x886f1
-    [...]
+    28.15%      firefox-bin  libxul.so                       [.] 0xd10b45
+     4.45%          swapper  [kernel.kallsyms]               [k] mwait_idle_with_hints
+     4.26%          swapper  [kernel.kallsyms]               [k] read_hpet
+     2.13%      firefox-bin  firefox-bin                     [.] 0x1e3d
+     1.40%  unity-panel-ser  libglib-2.0.so.0.2800.6         [.] 0x886f1
+     [...]
 </pre>
 
 The column 'Overhead' indicates the percentage of the overall samples collected in the corresponding function.
@@ -760,16 +758,16 @@ perf report --sort=dso
 # Overhead                   Shared Object
 # ........  ..............................
 #
-   38.08%  [kernel.kallsyms]
-   28.23%  libxul.so
-    3.97%  libglib-2.0.so.0.2800.6
-    3.72%  libc-2.13.so
-    3.46%  libpthread-2.13.so
-    2.13%  firefox-bin
-    1.51%  libdrm_intel.so.1.0.0
-    1.38%  dbus-daemon
-    1.36%  [drm]
-    [...]
+    38.08%  [kernel.kallsyms]
+    28.23%  libxul.so
+     3.97%  libglib-2.0.so.0.2800.6
+     3.72%  libc-2.13.so
+     3.46%  libpthread-2.13.so
+     2.13%  firefox-bin
+     1.51%  libdrm_intel.so.1.0.0
+     1.38%  dbus-daemon
+     1.36%  [drm]
+     [...]
 </pre>
 
 
@@ -800,15 +798,15 @@ perf report
 
 # Events: 354  cycles
 #
-# Overhead          Command               Shared Object                     Symbol
-# ........  ...............  ....................................................................
+# Overhead          Command               Shared Object  Symbol
+# ........  ...............  ..........................  ......................................
 #
-   13.20%          swapper  [kernel.kallsyms]           [k] read_hpet
-    7.53%          swapper  [kernel.kallsyms]           [k] mwait_idle_with_hints
-    4.40%    perf_2.6.38-8  [kernel.kallsyms]           [k] _raw_spin_unlock_irqrestore
-    4.07%    perf_2.6.38-8  perf_2.6.38-8               [.] 0x34e1b
-    3.88%    perf_2.6.38-8  [kernel.kallsyms]           [k] format_decode
-    [...]
+    13.20%          swapper  [kernel.kallsyms]           [k] read_hpet
+     7.53%          swapper  [kernel.kallsyms]           [k] mwait_idle_with_hints
+     4.40%    perf_2.6.38-8  [kernel.kallsyms]           [k] _raw_spin_unlock_irqrestore
+     4.07%    perf_2.6.38-8  perf_2.6.38-8               [.] 0x34e1b
+     3.88%    perf_2.6.38-8  [kernel.kallsyms]           [k] format_decode
+     [...]
 </pre>
 
 When the symbol is printed as an hexadecimal address, this is because the ELF image does not
