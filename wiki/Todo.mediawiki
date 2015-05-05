@@ -51,6 +51,8 @@ title: Todo
 
 * What I want is that if I am on bar*(), it annotates bar*(), no samples just the call site (obtained from the callchain) dissassembly. This is useful because in many cases there maybe multiple call sites within a function and there maybe inlines in between. Hard to track down if you cannot figure out the surrounding addresses of the call site. (Request made by Stephane Eranian)
 
+* Check for control+C, Q, when processing events in 'perf report', so that we can exit the tool when processing big files (acme)
+
 === Old entries ===
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
 * Implement a perf cmp (profile comparison between two perf.data) (DONE, its called 'perf diff')
