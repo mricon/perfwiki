@@ -45,6 +45,8 @@ title: Todo
 ** At perf archive time, process all samples and trim the result, so that the tarball is smaller.
 ** Perhaps even an heuristic to figure out if the savings would be worth the trouble of processing all samples, i.e. look at the build-id table and do the math to figure out the sum of file sizes, if it is below some threshold, don't process the samples, just pack those files straight away, doing the sample processing only if it is more than that threshold.
 
+* Resolve samples in callchains to DSOs and stash its build ids in the perf.data file header (acme)
+
 * Implement --initial-delay, already available in 'perf stat', on 'perf trace'.
 
 * Fix 'perf top --stdio -g' to limit the number of lines displayed, as it is not considering the callchains, perhaps we need to wire this up with the logic for '--max-stack', that is already available for 'perf top'. The problem is that it scrolls the screen, we can't see the top entries.
