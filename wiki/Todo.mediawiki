@@ -57,6 +57,8 @@ title: Todo
 
 * Adopt the kernel ERR_PTR() macro to avoid passing pointer addresses to return pointers from functions, instead use return pointer or return ERR_PTR(ENOENT), for instance, see include/linux/err.h in the kernel sources. (acme)
 
+* Adopt the Hints warnings provided by 'perf trace' for permission checks in the other tools (acme)
+
 === Old entries ===
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
 * Implement a perf cmp (profile comparison between two perf.data) (DONE, its called 'perf diff')
