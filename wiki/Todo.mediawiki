@@ -59,6 +59,8 @@ title: Todo
 
 * Adopt the Hints warnings provided by 'perf trace' for permission checks in the other tools (acme)
 
+* Make pressing 'V' multiple times to go on cycling thru various verbosity levels in 'perf top', so that info that is present in 'perf top -v' can be obtained without having to restart the tool (acme).
+
 === Old entries ===
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
 * Implement a perf cmp (profile comparison between two perf.data) (DONE, its called 'perf diff')
