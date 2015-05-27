@@ -61,6 +61,8 @@ title: Todo
 
 * Make pressing 'V' multiple times to go on cycling thru various verbosity levels in 'perf top', so that info that is present in 'perf top -v' can be obtained without having to restart the tool (acme).
 
+* 'perf top' should be, just like the other tools (trace, stat, record), be able to start a workload to observe it. I.e. 'perf top -e probe_perf:map__get,probe_perf:map__put perf top' should work.
+
 === Old entries ===
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
 * Implement a perf cmp (profile comparison between two perf.data) (DONE, its called 'perf diff')
