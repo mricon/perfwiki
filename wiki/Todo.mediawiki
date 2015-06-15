@@ -63,6 +63,8 @@ title: Todo
 
 * 'perf top' should be, just like the other tools (trace, stat, record), able to start a workload to observe it. I.e. 'perf top -e probe_perf:map__get,probe_perf:map__put perf top' should work.
 
+* When viewing multiple events (say, perf top -e cycles,instructions) in non-grouped mode (the default) list the events sorted by number of samples, nowadays I think it retains the evlist linked list order, i.e. how the user specified it in the command line. (From a conversation between acme and fbl)
+
 === Old entries ===
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
 * Implement a perf cmp (profile comparison between two perf.data) (DONE, its called 'perf diff')
