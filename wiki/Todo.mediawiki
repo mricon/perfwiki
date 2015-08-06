@@ -67,6 +67,8 @@ title: Todo
 
 * Don't stop the build tests when some devel package required for one of the tests is not present, just skip that test, warning the user about it. I.e. in 'make -C tools/perf build-test' (acme)
 
+* Record which 'make build-test' tests fail the most, and then run it in order of previous failures. Recording it in each test machine helps running the tests that fails the most on specific build environment, i.e. some distro may fail more frequently some tests than others. Do this for 'perf test' as well. And make it a command line selectable behaviour, as sometimes we're not interested in those, just checking if something _else_ that usually passes, stopped passing.
+
 === Old entries ===
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
 * Implement a perf cmp (profile comparison between two perf.data) (DONE, its called 'perf diff')
