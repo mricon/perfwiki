@@ -69,6 +69,8 @@ title: Todo
 
 * Record which 'make build-test' tests fail the most, and then run it in order of previous failures. Recording it in each test machine helps running the tests that fails the most on specific build environment, i.e. some distro may fail more frequently some tests than others. Do this for 'perf test' as well. And make it a command line selectable behaviour, as sometimes we're not interested in those, just checking if something _else_ that usually passes, stopped passing.
 
+* Check if the objdump call in annotate worked or not, providing a popup window telling it didn't work, to test, just uninstall binutils or otherwise remove objdump from the path (acme)
+
 === Old entries ===
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
 * Implement a perf cmp (profile comparison between two perf.data) (DONE, its called 'perf diff')
