@@ -71,6 +71,10 @@ title: Todo
 
 * Check if the objdump call in annotate worked or not, providing a popup window telling it didn't work, to test, just uninstall binutils or otherwise remove objdump from the path (acme)
 
+* Introduce perf_evlist__strerror_create_maps() to provide more informative error messages for when a thread specified via -p in top/record doesn't exist, etc. (acme)
+
+* Validade the CPU before passing to the kernel, i.e. 'perf top -C 10000' returns -EINVAL at sys_perf_event_open for something we could have validated beforehand (acme)
+
 === Old entries ===
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
 * Implement a perf cmp (profile comparison between two perf.data) (DONE, its called 'perf diff')
