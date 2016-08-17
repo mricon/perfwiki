@@ -75,6 +75,8 @@ title: Todo
 
 * Improve error message for 'perf record --call-graph dwarf' on an old kernel, say 3.9 on fedora 17, it should use perf_missing_features to notice that the perf_event_attr members needed for DWARF callchains are not present instead of plain telling that an invalid option was used (acme)
 
+* Use '-e msr/smi/' in 'perf trace' if available, will be nice in a 'strace' like tool to show that in addition to syscalls, by default.
+
 === Old entries ===
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
 * Implement a perf cmp (profile comparison between two perf.data) (DONE, its called 'perf diff')
