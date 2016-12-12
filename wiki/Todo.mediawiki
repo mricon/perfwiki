@@ -75,6 +75,8 @@ title: Todo
 
 * Use '-e msr/smi/' in 'perf trace' if available, will be nice in a 'strace' like tool to show that in addition to syscalls, by default.
 
+* Improve git pre-commit hook script to check for OPTION() with -- in its name, to fix bugs like [https://git.kernel.org/cgit/linux/kernel/git/acme/linux.git/commit/?id=ad16511b0e40 ad16511b0e40] ("perf mem: Add -U/-K (--all-user/--all-kernel) options")
+
 === Old entries ===
 * Factorize the multidimensional sorting between perf report and annotate (will be used by perf trace)
 * Implement a perf cmp (profile comparison between two perf.data) (DONE, its called 'perf diff')
