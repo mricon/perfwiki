@@ -74,6 +74,8 @@ title: Todo
 
 * Improve git pre-commit hook script to check for OPTION() with -- in its name, to fix bugs like [https://git.kernel.org/cgit/linux/kernel/git/acme/linux.git/commit/?id=ad16511b0e40 ad16511b0e40] ("perf mem: Add -U/-K (--all-user/--all-kernel) options") (acme)
 
+* Use __printf(a, b) to annotate applicable functions, see tools/include/compiler-gcc.h and source code in the kernel tree to see examples (acme).
+
 === Old entries ===
 * Make the instruction augmentation in the annotate browser platform specific.
 ** Right now they are x86 specific but are in the common code. [https://git.kernel.org/cgit/linux/kernel/git/tip/tip.git/commit/?id=786c1b51844d858041166057c0c79e93c2015013 DONE]
