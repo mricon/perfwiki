@@ -76,6 +76,8 @@ title: Todo
 
 * Use __printf(a, b) to annotate applicable functions, see tools/include/compiler-gcc.h and source code in the kernel tree to see examples (acme).
 
+* Accessing symtabs in containers from the host, watch [http://www.youtube.com/watch?v=bK9A5ODIgac&t=23m46s Brendan's talk (link to the moment he describes it)] to see the description of the problem and how to fix it (acme)
+
 === Old entries ===
 * Make the instruction augmentation in the annotate browser platform specific.
 ** Right now they are x86 specific but are in the common code. [https://git.kernel.org/cgit/linux/kernel/git/tip/tip.git/commit/?id=786c1b51844d858041166057c0c79e93c2015013 DONE]
