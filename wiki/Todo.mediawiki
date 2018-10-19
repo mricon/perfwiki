@@ -78,6 +78,7 @@ title: Todo
 
 * Accessing symtabs in containers from the host, watch [http://www.youtube.com/watch?v=bK9A5ODIgac&t=23m46s Brendan's talk (link to the moment he describes it)] to see the description of the problem and how to fix it (acme)
 
+* perf probe tab completion, considering -x for a userspace binary or without it for kernel symbols, to allow this to work: $ perf probe -x ~/bin/perf -L trace__<TAB>
 === Old entries ===
 * Make the instruction augmentation in the annotate browser platform specific.
 ** Right now they are x86 specific but are in the common code. [https://git.kernel.org/cgit/linux/kernel/git/tip/tip.git/commit/?id=786c1b51844d858041166057c0c79e93c2015013 DONE]
