@@ -32,6 +32,7 @@ To learn more, see the examples in the [[Tutorial]].
 * [[Todo]]
 * [[HardwareReference]]
 * [[perf_events kernel ABI]]
+* [[perf tools support for Intel&reg; Processor Trace]]
 
 === References/Useful links ===
 * [http://indico.cern.ch/materialDisplay.py?contribId=20&sessionId=4&materialId=slides&confId=141309 Roberto Vitillo's presentation on Perf events]
