@@ -1,0 +1,1759 @@
+---
+title: Perf tools support for Intel® Processor Trace
+---
+
+== Introduction ==
+
+=== What is Intel&reg; Processor Trace ===
+	
+Intel processors (Broadwell or newer, or Apollo Lake or newer) have a performance analysis and debugging feature called Intel&reg; Processor Trace, or Intel&reg; PT for short. Intel PT essentially provides '''''control flow tracing''''', and you can get all the technical details in the Intel Processor Trace chapter in the Intel SDM (http://www.intel.com/sdm).
+
+'''''Control flow tracing''''' is different from other kinds of performance analysis and debugging.  It provides fine-grained information on branches taken in a program, but that means there can be a vast amount of trace data.  Such an enormous amount of trace data creates a number of challenges, but it raises the central question: how to reduce the amount of trace data that needs to be captured.  That inverts the way performance analysis is normally done.  Instead of taking a test case and creating a trace of it, you need first to create a test case that is suitable for tracing.
+
+==== Reducing and handling the massive amount of trace data ====
+
+Intel PT can potentially produce hundreds of megabytes of trace data per CPU per second.  That can be at a faster rate than it can be recorded to file (resulting in trace data loss), and sometimes faster even than can be recording to memory (resulting in overflow packets).
+
+<tt>perf</tt> tools support output to memory buffers.  CPU overhead is low, but memory bandwidth consumption can be significant.  <tt>perf</tt> tools do not support output of Intel PT to '''Intel&reg; Trace Hub'''.
+
+Here are some ways for reducing and handling the massive amount of trace data:
+
+===== Shorten the tracing time =====
+
+Whereas statistical sampling can generally handle arbitrarily large test cases, to reduce the massive amount Intel PT trace data, test cases need to be created that provide a small representative set of operations to trace.
+
+===== Kernel-only tracing =====
+
+Typically, the kernel does not do particularly CPU intensive operations, making it possible to trace for longer periods.  Tracing the kernel-only can be useful for analyzing latencies.
+
+===== Snapshots =====
+
+<tt>perf</tt> tools support the ability to make snapshots of Intel PT trace.  A snapshot can be made at any time during recording by sending signal USR2 to <tt>perf</tt>.  The snapshot size is configurable.
+
+===== Sampling =====
+
+<tt>perf</tt> tools support adding Intel PT traces (up to 60 KiB per sample) onto samples of other events.  The makes it possible, for example, to get extended call chains or branch stacks.
+
+===== Address filtering =====
+
+<tt>perf</tt> tools support specifying Intel PT address filters, refer to the <tt>--filter</tt> option of [http://www.man7.org/linux/man-pages/man1/perf-record.1.html <tt>perf record</tt>].
+
+===== Process only a fraction of the data collected =====
+
+It is possible to decode only a fraction of a recorded trace by setting time ranges (<tt>--time</tt> option of <tt>perf script</tt> or <tt>perf report</tt>) or specifying CPUs (<tt>--cpu</tt> option of <tt>perf script</tt> or <tt>perf report</tt>).
+
+==== Intel PT in context ====
+
+The following paragraphs provide some context for Intel PT:
+
+===== Intel PT vs Performance Counters =====
+
+Normal performance analysis is done using performance counters and performance monitoring events.  Counters can be used to provide overall statistics, which is what the <tt>[[Tutorial#Counting_with_perf_stat|perf stat</tt>]] tool does, or to provide statistical sampling which is what <tt>[[Tutorial#Sampling_with_perf_record|perf record</tt>]] / <tt>[[Tutorial#Sample_analysis_with_perf_report|perf report</tt>]] do.
+
+There are lots and lots of different performance events, not to mention software events, probes and tracepoints.
+
+By comparison, Intel PT fills a niche.  People unfamiliar with normal performance analysis and debugging, perhaps should not start their learning with Intel PT.
+
+===== Intel PT vs Function Profiling =====
+
+Function profiling records function entry and exit, but usually requires programs to be re-compiled for that purpose.  It has the advantages of flexible filtering and sophisticated tools.
+
+Intel PT can be used to provide a call trace without re-compiling a program, and can trace both user space and kernel space, but with the challenges of massive trace data described above.
+
+===== Intel PT vs Last Branch Record (LBR) =====
+
+LBR can store branches, filtering different branch types, and providing finer timing than Intel PT.  LBR can provide additional information that Intel PT does not, such as branch prediction "misses".  Intel PT, however, can record significantly longer branch traces.
+
+===== Intel PT vs Branch Trace Store (BTS) =====
+
+BTS could be considered the predecessor to Intel PT.  It records taken branches and other changes in control flow such as interrupts and exceptions, but it has much greater overhead than Intel PT, and does not provide timing information.
+
+==== Intel PT miscellaneous abilities ====
+
+Intel PT also has some miscellaneous abilities.
+
+===== Virtualization =====
+
+Although Intel PT can trace through VM Entries / Exits, <tt>perf</tt> tools do not have support for that.
+
+KVM has support for using Intel PT from within guests since linux kernel v5.0.
+
+===== Intel&reg; Transactional Synchronization Extensions (Intel&reg; TSX) =====
+
+Intel PT traces transactions including aborted transactions.  That is Intel PT will show the instructions in the incomplete transaction and the subsequent transaction abort.
+
+===== Power events and C-States =====
+
+Some Intel Atom&reg; processors support reporting C-state changes.  All Intel PT implementations support reporting of CPU frequency changes.
+
+===== PEBS-via-PT =====
+
+Some Intel Atom&reg; processors support recording adaptive PEBS records into the Intel PT trace.
+
+===== PTWRITE =====
+
+Hardware that supports it can write directly to the Intel PT trace using an instruction,  'ptwrite'.
+
+=== Can I use Intel PT ===
+
+Because Intel PT is a hardware feature, you need hardware that supports it, and also a Linux kernel that has support. Support was added to Linux in version 4.2 and nowadays, most Linux distributions have a kernel more recent than that, so the simple way to tell whether you can use Intel PT is to check whether the directory /sys/devices/intel_pt exists.
+
+=== Other tools ===
+
+It is not necessary to use <tt>perf</tt> to use Intel PT. Here are some other tools.
+
+==== GDB ====
+
+Get Intel PT branch traces within the GNU Debugger [http://sourceware.org/gdb/current/onlinedocs/gdb/Process-Record-and-Replay.html#index-Intel-Processor-Trace GDB]
+
+Note GDB needs to be built with libipt (can be checked with "ldd `which gdb` | grep ipt"), unfortunately many are still not, but there is an Intel version of GDB in Intel&reg; System Studio for linux.
+
+==== Fuzzers ====
+
+Some feedback-driven fuzzers (such as [http://honggfuzz.dev/ honggfuzz]) utilize Intel PT.
+
+==== libipt ====
+
+[http://github.com/intel/libipt libipt] is an Intel&reg; Processor Trace decoder library that lets you build your own tools.
+
+==== Intel&reg; VTune&trade; ====
+
+[http://software.intel.com/en-us/get-started-with-vtune-linux-os Intel&reg; VTune&trade;] Profiler for Linux.
+
+==== SATT ====
+
+[http://github.com/intel/satt SATT Software Analyze Trace Tool]
+This tool requires building and installing a custom kernel module
+
+=== Other resources ===
+
+[http://halobates.de/blog/p/410 Cheat sheet for Intel Processor Trace with Linux perf and gdb]
+
+[http://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/tools/perf/Documentation/perf-intel-pt.txt perf Intel PT man page source]
+
+[http://lwn.net/Articles/648154/ LWN article: Adding Processor Trace support to Linux]
+
+== Getting set up ==
+
+<tt>perf</tt> tools are packaged based on the kernel version, which means the version of <tt>perf</tt> provided by Linux distributions is always quite old, whereas updates to Intel PT support are happening all the time. That means, for the latest Intel PT features, we really need to download and build that latest <tt>perf</tt>.
+
+For other purposes, <tt>perf</tt> on modern Linux is usually fine.
+
+=== Downloading and building the latest perf tools ===
+
+The example below is for a Debian-based system, specifically Ubuntu 20.04 in this case.  We will need 4G of disk space.
+
+<tt>git</tt> is needed:
+<pre>
+$ sudo apt-get install git
+</pre>
+<tt>perf</tt> is in the Linux source tree so get that:
+<pre>
+$ cd
+$ mkdir git
+$ cd git
+$ git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+</pre>
+Get the minimum tools to build it:
+<pre>
+$ sudo apt-get install build-essential flex bison
+</pre>
+It should be possible to build <tt>perf</tt> at this stage but it will be missing essential features.  Add some more development libraries:
+<pre>
+$ sudo apt-get install libelf-dev libnewt-dev libdw-dev libaudit-dev libiberty-dev libunwind-dev libcap-dev libzstd-dev libnuma-dev libssl-dev python3-dev python3-distutils binutils-dev gcc-multilib liblzma-dev
+</pre>
+To build <tt>perf</tt> (with script bindings for python3 instead of python2) and put it in <tt>~/bin/perf</tt> :
+<pre>
+$ cd ~/git/linux
+$ PYTHON=python3 make -C tools/perf install
+</pre>
+To use <tt>~/bin/perf</tt>, ~/bin must be in $PATH.  In Ubuntu, that is added automatically when a user logs in if the ~/bin directory exists (refer ~/.bashrc). If it is not in $PATH, log out and in again.  We can echo $PATH to check:
+<pre>
+$ echo $PATH
+/home/user/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+$ which perf
+/home/user/bin/perf
+</pre>
+
+==== Permissions and limits ====
+
+Typically regular userids do not have permission to trace the kernel or other processes.  It is '''essential''' to understand [http://www.kernel.org/doc/html/latest/admin-guide/perf-security.html '''Perf Events and tool security'''].
+
+Intel PT benefits from large buffers which is controlled by the RLIMIT_MEMLOCK limit or the perf_event_mlock_kb setting or the CAP_IPC_LOCK capability.  For kernel tracing with Intel PT, <tt>perf</tt> benefits from access to /proc/kcore.
+
+The examples on this page use <tt>perf</tt> with extra privileges.
+
+==== Adding capabilities to <tt>perf</tt> ====
+
+To give <tt>perf</tt> extra privileges (refer to [http://www.kernel.org/doc/html/latest/admin-guide/perf-security.html Perf Events and tool security]), we can add capabilities to the perf executable.  Note these capabilities are not inherited by programs started by perf.
+
+First, we can create a new group and add ourself.  This only needs to be done once.
+<pre>
+$ sudo groupadd perf_users
+$ sudo usermod -a -G perf_users $(whoami)
+</pre>
+We will need to logout and login again to pick up the new <tt>perf_users</tt> group.
+
+Now we can add capabilities, making <tt>perf</tt> executable by only <tt>root</tt> and <tt>perf_users</tt>.
+<pre>
+$ sudo chown root ~/bin/perf
+$ sudo chgrp perf_users ~/bin/perf
+$ sudo chmod 550 ~/bin/perf
+$ sudo setcap "cap_ipc_lock,cap_sys_ptrace,cap_sys_admin,cap_syslog=ep" ~/bin/perf
+$ getcap ~/bin/perf
+~/bin/perf = cap_ipc_lock,cap_sys_ptrace,cap_sys_admin,cap_syslog+ep
+</pre>
+
+When not using <tt>perf</tt>, we can remove the capabilities:
+<pre>
+$ sudo setcap -r ~/bin/perf
+</pre>
+
+=== Updating perf tools ===
+
+To fetch and update the tools again in the future, we can do the following:
+<pre>
+$ cd ~/git/linux
+$ git pull
+$ rm tools/perf/PERF-VERSION-FILE
+$ make -C tools/perf install
+</pre>
+
+=== Getting debug packages ===
+
+Debug packages are necessary to map addresses to function names.  Ubuntu provides -dbg and -dbgsym style packages, refer
+[http://wiki.ubuntu.com/Debug%20Symbol%20Packages Debug Symbol Packages - Ubuntu Wiki].
+
+== Example: Tracing your own code : Hello World ==
+
+Before we start, if we haven't done it already, we will need to install [http://intelxed.github.io/ Intel X86 Encoder Decoder (XED)]
+<pre>
+$ cd ~/git
+$ git clone https://github.com/intelxed/mbuild.git mbuild
+$ git clone https://github.com/intelxed/xed
+$ cd xed
+$ ./mfile.py --share
+$ ./mfile.py examples
+$ sudo ./mfile.py --prefix=/usr/local install
+$ sudo ldconfig
+$ find . -type f -name xed
+./obj/wkit/examples/obj/xed
+$ cp ./obj/wkit/examples/obj/xed /usr/local/bin
+</pre>
+
+Then, we can start with a trivial "Hello World" program:
+<pre>
+$ cat hello.c 
+#include <stdio.h>
+
+int main()
+{
+        printf("Hello World!\n");
+        return 0;
+}
+</pre>
+
+We can compile it with debugging information:
+<pre>
+$ gcc -g -o hello hello.c
+</pre>
+
+We can use <tt>'''perf record'''</tt> with options:
+* <tt>'''-e'''</tt> to select which events, i.e. the following:
+* <tt>'''intel_pt/cyc,noretcomp/u'''</tt> to get Intel PT with cycle-accurate mode. We can add <tt>'''noretcomp'''</tt> to get a timing information at RET instructions.
+* <tt>'''--filter 'filter main @ ./hello' '''</tt> specifies an address filter to trace only main()
+* <tt>'''./hello'''</tt> is the workload.
+<pre>
+$ perf record -e intel_pt/cyc,noretcomp/u --filter 'filter main @ ./hello' ./hello
+Hello World!
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.012 MB perf.data ]
+</pre>
+
+We can display an instruction trace with source line information and source code:
+<pre>
+$ perf script --insn-trace --xed -F+srcline,+srccode
+           hello 20444 [003] 28111.955861407:      5635beeae149 main+0x0 (/home/ahunter/git/linux/hello)
+  hello.c:4             nop %edi, %edx
+|4        {
+           hello 20444 [003] 28111.955861407:      5635beeae14d main+0x4 (/home/ahunter/git/linux/hello)
+  hello.c:4             pushq  %rbp
+           hello 20444 [003] 28111.955861407:      5635beeae14e main+0x5 (/home/ahunter/git/linux/hello)
+  hello.c:4             mov %rsp, %rbp
+           hello 20444 [003] 28111.955861407:      5635beeae151 main+0x8 (/home/ahunter/git/linux/hello)
+  hello.c:5             leaq  0xeac(%rip), %rdi
+|5              printf("Hello World!\n");
+           hello 20444 [003] 28111.955861407:      5635beeae158 main+0xf (/home/ahunter/git/linux/hello)
+  hello.c:5             callq  0xfffffffffffffef8
+           hello 20444 [003] 28111.955902827:      5635beeae15d main+0x14 (/home/ahunter/git/linux/hello)
+  hello.c:6             mov $0x0, %eax
+|6              return 0;
+           hello 20444 [003] 28111.955902827:      5635beeae162 main+0x19 (/home/ahunter/git/linux/hello)
+  hello.c:7             popq  %rbp
+|7        }
+           hello 20444 [003] 28111.955902938:      5635beeae163 main+0x1a (/home/ahunter/git/linux/hello)
+  hello.c:7             retq  
+</pre>
+
+We can tidy that up a bit with awk:
+<pre>
+$ perf script --insn-trace --xed -F-dso,+srcline,+srccode | awk '/hello / {printf("\n%-85s",$0)} /hello.c:/ {ln=$0;gsub("\t","  ",ln);printf("%-58s",ln)} /^\|/ {printf("%s",$0)}' 
+
+           hello 20444 [003] 28111.955861407:      5635beeae149 main+0x0               hello.c:4     nop %edi, %edx                            |4        {
+           hello 20444 [003] 28111.955861407:      5635beeae14d main+0x4               hello.c:4     pushq  %rbp                               
+           hello 20444 [003] 28111.955861407:      5635beeae14e main+0x5               hello.c:4     mov %rsp, %rbp                            
+           hello 20444 [003] 28111.955861407:      5635beeae151 main+0x8               hello.c:5     leaq  0xeac(%rip), %rdi                   |5               printf("Hello World!\n");
+           hello 20444 [003] 28111.955861407:      5635beeae158 main+0xf               hello.c:5     callq  0xfffffffffffffef8                 
+           hello 20444 [003] 28111.955902827:      5635beeae15d main+0x14              hello.c:6     mov $0x0, %eax                            |6               return 0;
+           hello 20444 [003] 28111.955902827:      5635beeae162 main+0x19              hello.c:7     popq  %rbp                                |7        }
+           hello 20444 [003] 28111.955902938:      5635beeae163 main+0x1a              hello.c:7     retq
+</pre>
+
+== Example: Tracing short-running commands ==
+
+It is possible to trace short-running commands entirely.  A very simple example is a trace of 'ls -l'.
+
+First, we can get some debug symbols e.g.
+<pre>
+$ find-dbgsym-packages `which ls`
+coreutils-dbgsym libpcre2-8-0-dbgsym libselinux1-dbgsym
+$ sudo apt-get install coreutils-dbgsym libpcre2-8-0-dbgsym libselinux1-dbgsym libc6-dbg
+</pre>
+
+The trace is more interesting if we can drop all file system caches which will force the test case to do I/O instead of reading from a cache.  For how to use /proc/sys/vm/drop_caches, refer to the /proc/sys/vm/drop_caches section in the manual page for [http://man7.org/linux/man-pages/man5/proc.5.html /proc].
+<pre>
+$ sudo bash -c 'echo 3 > /proc/sys/vm/drop_caches'
+</pre>
+
+This example includes kernel tracing, which requires administrator privileges.
+
+We can use <tt>'''perf record'''</tt> with options:
+* <tt>'''--kcore'''</tt> to copy kernel object code from the /proc/kcore image (helps avoid decoding errors due to kernel self-modifying code)
+* <tt>'''-e'''</tt> to select which events, i.e. the following:
+* <tt>'''intel_pt/cyc/'''</tt> to get Intel PT with cycle-accurate mode
+* <tt>'''ls -l'''</tt> is the workload to trace
+<pre>
+$ sudo perf record --kcore -e intel_pt/cyc/ ls -l
+total 832
+drwxrwxr-x  27 user user   4096 Jun  2 11:11 arch
+drwxrwxr-x   3 user user   4096 Jun  4 08:40 block
+drwxrwxr-x   2 user user   4096 May 23 15:47 certs
+-rw-rw-r--   1 user user    496 May 23 15:47 COPYING
+-rw-rw-r--   1 user user  99752 Jun  2 11:11 CREDITS
+drwxrwxr-x   4 user user   4096 Jun  2 11:11 crypto
+drwxrwxr-x  79 user user   4096 Jun  4 08:40 Documentation
+drwxrwxr-x 140 user user   4096 May 23 15:47 drivers
+drwxrwxr-x  79 user user   4096 Jun  4 08:40 fs
+drwxrwxr-x  10 user user   4096 Jun  4 08:39 heads
+drwxrwxr-x   3 user user   4096 Jun  4 17:11 hold
+drwxrwxr-x  30 user user   4096 Jun  2 12:37 include
+drwxrwxr-x   2 user user   4096 Jun  4 08:40 init
+drwxrwxr-x   2 user user   4096 Jun  4 08:40 ipc
+-rw-rw-r--   1 user user   1327 May 23 15:47 Kbuild
+-rw-rw-r--   1 user user    595 May 23 15:47 Kconfig
+drwxrwxr-x  18 user user   4096 Jun  4 08:40 kernel
+drwxrwxr-x  20 user user  12288 Jun  4 08:40 lib
+drwxrwxr-x   6 user user   4096 May 23 15:47 LICENSES
+-rw-rw-r--   1 user user 556326 Jun  4 08:40 MAINTAINERS
+-rw-rw-r--   1 user user  61844 Jun  2 11:11 Makefile
+drwxrwxr-x   3 user user   4096 Jun  4 08:40 mm
+drwxrwxr-x  72 user user   4096 Jun  4 08:40 net
+drwx------   3 user user   4096 Jun  4 17:30 perf.data
+-rw-rw-r--   1 user user    727 May 23 15:47 README
+drwxrwxr-x  30 user user   4096 Jun  2 11:11 samples
+drwxrwxr-x  16 user user   4096 Jun  4 08:40 scripts
+drwxrwxr-x  13 user user   4096 Jun  4 08:40 security
+drwxrwxr-x  26 user user   4096 May 23 15:47 sound
+drwxrwxr-x  37 user user   4096 Jun  4 12:11 tools
+drwxrwxr-x   3 user user   4096 May 23 15:47 usr
+drwxrwxr-x   4 user user   4096 May 23 15:47 virt
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 1.041 MB perf.data ]
+</pre>
+
+Rather than look at the trace directly, we will instead create a GUI call graph.  To do that we will use 2 python scripts.  The first, <tt>'''export-to-sqlite.py'''</tt> will export the trace data to a SQLite3 database.  The second <tt>'''exported-sql-viewer.py'''</tt> will create a GUI call graph.
+
+We can install support for the script <tt>'''export-to-sqlite.py'''</tt>, using python3 (remember we built perf with python3 support not python2) as follows:
+<pre>
+sudo apt-get install sqlite3 python3-pyside2.qtsql libqt5sql5-psql
+</pre>
+Refer to the script [http://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/tools/perf/scripts/python/export-to-sqlite.py itself] for more information. 
+
+Then we can perform the export:
+<pre>
+$ perf script --itrace=bep -s ~/libexec/perf-core/scripts/python/export-to-sqlite.py ls-example.db branches calls
+2020-06-04 17:30:59.646366 Creating database ...
+2020-06-04 17:30:59.656860 Writing records...
+2020-06-04 17:31:21.215702 Adding indexes
+2020-06-04 17:31:21.408810 Dropping unused tables
+2020-06-04 17:31:21.427048 Done
+</pre>
+
+We can install support for the script <tt>'''exported-sql-viewer.py'''</tt>, using python3 (remember we built perf with python3 support not python2) as follows:
+<pre>
+$ sudo apt-get install python3-pyside2.qtcore python3-pyside2.qtgui python3-pyside2.qtsql python3-pyside2.qtwidgets
+</pre>
+
+We can see the call graph, running the script as below, and selecting 'Reports' then 'Context-Sensitive Call Graph'
+<pre>
+$ python3 ~/libexec/perf-core/scripts/python/exported-sql-viewer.py ls-example.db
+</pre>
+
+We can drill down the trace to see where most of the time is spent.  In this case, waiting on I/O in the lstat system call.
+<pre>
+Call Path                                                                         Object         Count   Time (ns)   Time (%)   Insn Cnt   Insn Cnt (%)   Cyc Cnt   Cyc Cnt (%)    IPC   Branch Count   Branch Count (%)
+▶ perf
+▼ ls
+  ▼ 41672:41672
+    ▶ setup_new_exec                                                              [kernel]           1         290        0.0        727            0.0      1230           0.0   0.59             68                0.0
+    ▶ native_sched_clock                                                          [kernel]           1           0        0.0          0            0.0         0           0.0      0              1                0.0
+    ▶ sched_clock                                                                 [kernel]           1           0        0.0          0            0.0         0           0.0      0              1                0.0
+    ▶ sched_clock_cpu                                                             [kernel]           1           0        0.0          0            0.0         0           0.0      0              1                0.0
+    ▶ local_clock                                                                 [kernel]           1           0        0.0         48            0.0        49           0.0   0.98              1                0.0
+    ▶ __perf_event_header__init_id.isra.0                                         [kernel]           1           1        0.0         21            0.0         5           0.0   4.20              3                0.0
+    ▶ perf_event_comm_output                                                      [kernel]           1         123        0.0        506            0.0       517           0.0   0.98             73                0.0
+    ▶ perf_iterate_ctx                                                            [kernel]           1          65        0.0        199            0.0       273           0.0   0.73             23                0.0
+    ▶ perf_iterate_sb                                                             [kernel]           1           0        0.0          7            0.0         3           0.0   2.33              1                0.0
+    ▶ perf_event_comm                                                             [kernel]           1           0        0.0          9            0.0         8           0.0   1.13              1                0.0
+    ▶ __set_task_comm                                                             [kernel]           1           0        0.0          7            0.0         2           0.0   3.50              1                0.0
+    ▶ load_elf_binary                                                             [kernel]           1      454912        2.3     143405            1.6    255719           2.5   0.56          16318                1.6
+    ▶ search_binary_handler                                                       [kernel]           1          11        0.0         28            0.0        46           0.0   0.61              6                0.0
+    ▶ __do_execve_file.isra.0                                                     [kernel]           1         554        0.0        357            0.0      2319           0.0   0.15             38                0.0
+    ▶ __x64_sys_execve                                                            [kernel]           1           0        0.0          6            0.0        17           0.0   0.35              1                0.0
+    ▶ do_syscall_64                                                               [kernel]           1        5635        0.0       3227            0.0     23637           0.2   0.14            438                0.0
+    ▶ entry_SYSCALL_64_after_hwframe                                              [kernel]           1         217        0.0         48            0.0       906           0.0   0.05              4                0.0
+    ▼ _start                                                                      ld-2.31.so         1    19015524       97.6    8862084           98.4   9861482          97.2   0.90         980661               98.3
+      ▶ page_fault                                                                [kernel]           1        3259        0.0       5925            0.1     13626           0.1   0.43            510                0.1
+      ▶ _dl_start                                                                 ld-2.31.so         1      956115        5.0     915528           10.3   1665766          16.9   0.55          94430                9.6
+      ▶ _dl_init                                                                  ld-2.31.so         1      298497        1.6     283430            3.2    600916           6.1   0.47          28996                3.0
+      ▼ _start                                                                    ls                 1    17757387       93.4    7657198           86.4   7580061          76.9   1.01         856721               87.4
+        ▶ page_fault                                                              [kernel]           1        2073        0.0       7214            0.1      8685           0.1   0.83            566                0.1
+        ▼ __libc_start_main                                                       libc-2.31.so       1    17754971      100.0    7649972           99.9   7569935          99.9   1.01         856153               99.9
+          ▶ __cxa_atexit                                                          libc-2.31.so       1        1836        0.0       5944            0.1      7699           0.1   0.77            503                0.1
+          ▶ __libc_csu_init                                                       ls                 1        3685        0.0      12103            0.2     15466           0.2   0.78            971                0.1
+          ▶ _setjmp                                                               libc-2.31.so       1         176        0.0         32            0.0       797           0.0   0.04              4                0.0
+          ▼ main                                                                  ls                 1    17584228       99.0    7263996           95.0   7282964          96.2   1.00         815563               95.3
+            ▶ set_program_name                                                    ls                 1        1980        0.0       2590            0.0      8318           0.1   0.31            306                0.0
+            ▶ unknown                                                             ls                 1       79537        0.5     219668            3.0    332415           4.6   0.66          24704                3.0
+            ▶ unknown                                                             ls                 1         446        0.0        297            0.0      1866           0.0   0.16             35                0.0
+            ▶ unknown                                                             ls                 1         199        0.0        449            0.0       831           0.0   0.54             47                0.0
+            ▶ atexit                                                              ls                 1          80        0.0          9            0.0       122           0.0   0.07              8                0.0
+            ▶ unknown                                                             ls                 1        3420        0.0        829            0.0     14809           0.2   0.06            105                0.0
+            ▶ set_quoting_style                                                   ls                 1           0        0.0          0            0.0         0           0.0      0              1                0.0
+            ▶ unknown                                                             ls                 7        1023        0.0       3125            0.0      4292           0.1   0.73            501                0.1
+            ▶ unknown                                                             ls                 1         512        0.0        488            0.0      2134           0.0   0.23             60                0.0
+            ▶ unknown                                                             ls                 2        3091        0.0       6780            0.1     12494           0.2   0.54            642                0.1
+            ▶ human_options                                                       ls                 1         445        0.0       1325            0.0      1868           0.0   0.71            217                0.0
+            ▶ get_quoting_style                                                   ls                 1           0        0.0          0            0.0         0           0.0      0              1                0.0
+            ▶ clone_quoting_options                                               ls                 2         444        0.0        548            0.0      1862           0.0   0.29             58                0.0
+            ▶ set_char_quoting                                                    ls                 1           0        0.0          0            0.0         0           0.0      0              1                0.0
+            ▶ argmatch                                                            ls                 1         360        0.0        211            0.0      1489           0.0   0.14             28                0.0
+            ▶ hard_locale                                                         ls                 1         135        0.0         85            0.0       664           0.0   0.13              8                0.0
+            ▶ unknown                                                             ls                 2       14056        0.1      49612            0.7     58942           0.8   0.84           4687                0.6
+            ▶ abformat_init                                                       ls                 1       11578        0.1      58235            0.8     48048           0.7   1.21           6651                0.8
+            ▶ tzalloc                                                             ls                 1          62        0.0        224            0.0       255           0.0   0.88             19                0.0
+            ▶ xmalloc                                                             ls                 1        1642        0.0       2187            0.0      6877           0.1   0.32            214                0.0
+            ▶ clear_files                                                         ls                 1         107        0.0         22            0.0       450           0.0   0.05              2                0.0
+            ▶ queue_directory                                                     ls                 1         184        0.0        453            0.0       773           0.0   0.59             65                0.0
+            ▼ print_dir                                                           ls                 1    17464204       99.3    6916440           95.2   6782904          93.1   1.02         777118               95.3
+              ▶ unknown                                                           ls                 1         121        0.0         39            0.0       509           0.0   0.08              2                0.0
+              ▶ unknown                                                           ls                 1        5298        0.0      12006            0.2     22207           0.3   0.54           1169                0.2
+              ▶ clear_files                                                       ls                 1           0        0.0          0            0.0         0           0.0      0              2                0.0
+              ▶ unknown                                                           ls                43       19841        0.1      54011            0.8     81698           1.2   0.66           5943                0.8
+              ▼ gobble_file.constprop.0                                           ls                32    10586230       60.6    4486659           64.9   4423411          65.2   1.01         496893               63.9
+                ▶ needs_quoting                                                   ls                32        5639        0.1      17998            0.4     23544           0.5   0.76           2421                0.5
+                ▶ unknown                                                         ls                96         732        0.0       2983            0.1      3359           0.1   0.89            290                0.1
+                ▼ unknown                                                         ls                32     8836035       83.5    3477158           77.5   2937626          66.4   1.18         382210               76.9
+                  ▼ __lxstat64                                                    libc-2.31.so      32     8835858      100.0    3475998          100.0   2935941          99.9   1.18         382178              100.0
+                    ▼ entry_SYSCALL_64                                            [kernel]          32     8828726       99.9    3466363           99.7   2905440          99.0   1.19         380853               99.7
+                      ▼ do_syscall_64                                             [kernel]          32     8825966      100.0    3464667          100.0   2894453          99.6   1.20         380757              100.0
+                        ▼ __x64_sys_newlstat                                      [kernel]          32     8816599       99.9    3462903           99.9   2866632          99.0   1.21         380458               99.9
+                          ▼ __do_sys_newlstat                                     [kernel]          32     8816391      100.0    3460695           99.9   2854386          99.6   1.21         380330              100.0
+                            ▼ vfs_statx                                           [kernel]          32     8814939      100.0    3453687           99.8   2848318          99.8   1.21         379722               99.8
+                              ▼ user_path_at_empty                                [kernel]          32     8806551       99.9    3436824           99.5   2816689          98.9   1.22         377734               99.5
+                                ▶ getname_flags                                   [kernel]          32        3471        0.0      13785            0.4     16445           0.6   0.84           1542                0.4
+                                ▼ filename_lookup                                 [kernel]          32     8803067      100.0    3422884           99.6   2800182          99.4   1.22         376096               99.6
+                                  ▼ path_lookupat.isra.0                          [kernel]          32     8801121      100.0    3417967           99.9   2792250          99.7   1.22         375552               99.9
+                                    ▶ path_init                                   [kernel]          32         603        0.0       3784            0.1      2854           0.1   1.33            192                0.1
+                                    ▶ link_path_walk.part.0                       [kernel]          32         708        0.0       5794            0.2      3316           0.1   1.75            422                0.1
+                                    ▼ walk_component                              [kernel]          32     8798631      100.0    3404427           99.6   2780753          99.6   1.22         374125               99.6
+                                      ▶ lookup_fast                               [kernel]          32        4016        0.0       7158            0.2     16248           0.6   0.44            663                0.2
+                                      ▼ lookup_slow                               [kernel]          31     8793533       99.9    3392561           99.7   2760139          99.3   1.23         372807               99.6
+                                        ▶ down_read                               [kernel]          31         240        0.0       1009            0.0       499           0.0   2.02            186                0.0
+                                        ▼ __lookup_slow                           [kernel]          31     8792986      100.0    3390994          100.0   2758348          99.9   1.23         372466               99.9
+                                          ▶ d_alloc_parallel                      [kernel]          31        5966        0.1      13928            0.4     21691           0.8   0.64           1375                0.4
+                                          ▼ ext4_lookup                           [kernel]          31     8786755       99.9    3376539           99.6   2736392          99.2   1.23         370998               99.6
+                                            ▶ ext4_fname_prepare_lookup           [kernel]          31           0        0.0          0            0.0         0           0.0      0            124                0.0
+                                            ▶ __ext4_find_entry                   [kernel]          31       11669        0.1      59063            1.7     49644           1.8   1.19           5687                1.5
+                                            ▶ kfree                               [kernel]          62         426        0.0       1888            0.1      2724           0.1   0.69            124                0.0
+                                            ▶ __brelse                            [kernel]          31         115        0.0        117            0.0       117           0.0   1.00             31                0.0
+                                            ▼ __ext4_iget                         [kernel]          31     8770362       99.8    3301339           97.8   2663781          97.3   1.24         363327               97.9
+                                              ▶ iget_locked                       [kernel]          31       12625        0.1      28525            0.9     54273           2.0   0.53           3083                0.8
+                                              ▼ __ext4_get_inode_loc              [kernel]          31     8744348       99.7    3219494           97.5   2553678          95.9   1.26         353658               97.3
+                                                ▶ ext4_get_group_desc             [kernel]          31         717        0.0       2139            0.1      3006           0.1   0.71             62                0.0
+                                                ▶ ext4_inode_table                [kernel]          46          86        0.0          0            0.0         0           0.0      0             46                0.0
+                                                ▶ __getblk_gfp                    [kernel]          31       23459        0.3      77443            2.4     98450           3.9   0.79           8842                2.5
+                                                ▶ _cond_resched                   [kernel]          30          43        0.0         12            0.0        23           0.0   0.52            120                0.0
+                                                ▶ blk_start_plug                  [kernel]          15           0        0.0          0            0.0         0           0.0      0             30                0.0
+                                                ▶ ext4_itable_unused_count        [kernel]          15         198        0.0          0            0.0         0           0.0      0             15                0.0
+                                                ▶ __breadahead                    [kernel]         474      505000        5.8    2835900           88.1   2111610          82.7   1.34         310764               87.9
+                                                ▶ submit_bh                       [kernel]          15        4421        0.1      27069            0.8     18098           0.7   1.50           2720                0.8
+                                                ▶ blk_finish_plug                 [kernel]          15       42049        0.5     172041            5.3    175937           6.9   0.98          16287                4.6
+                                                ▼ __wait_on_buffer                [kernel]          15     8167641       93.4     102309            3.2    143500           5.6   0.71          13445                3.8
+                                                  ▶ _cond_resched                 [kernel]          15         231        0.0        559            0.5      1122           0.8   0.50             60                0.4
+                                                  ▼ out_of_line_wait_on_bit       [kernel]          15     8167384      100.0     101705           99.4    142275          99.1   0.71          13340               99.2
+                                                    ▼ __wait_on_bit               [kernel]          15     8167361      100.0     101630           99.9    142183          99.9   0.71          13310               99.8
+                                                      ▶ prepare_to_wait           [kernel]          15         812        0.0       1211            1.2      2828           2.0   0.43            105                0.8
+                                                      ▼ bit_wait_io               [kernel]          15     8166063      100.0      99755           98.2    137321          96.6   0.73          13055               98.1
+                                                        ▼ io_schedule             [kernel]          15     8165721      100.0      98826           99.1    135309          98.5   0.73          12980               99.4
+                                                          ▶ io_schedule_prepare   [kernel]          15         461        0.0        375            0.4      1944           1.4   0.19             30                0.2
+                                                          ▶ schedule              [kernel]          15     8165090      100.0      98301           99.5    132656          98.0   0.74          12905               99.4
+                                                      ▶ finish_wait               [kernel]          15           0        0.0          0            0.0         0           0.0      0             45                0.3
+                                              ▶ crypto_shash_update               [kernel]          62         966        0.0       6204            0.2     12343           0.5   0.50            620                0.2
+                                              ▶ ext4_inode_csum.isra.0            [kernel]          31        3712        0.0      19437            0.6     15561           0.6   1.25           2697                0.7
+                                              ▶ make_kuid                         [kernel]          31         467        0.0          0            0.0         0           0.0      0            186                0.1
+                                              ▶ make_kgid                         [kernel]          31         186        0.0       4470            0.1      2661           0.1   1.68            186                0.1
+                                              ▶ make_kprojid                      [kernel]          31         306        0.0       1343            0.0      1313           0.0   1.02            186                0.1
+                                              ▶ set_nlink                         [kernel]          31         245        0.0       1017            0.0      1117           0.0   0.91             93                0.0
+                                              ▶ ext4_set_inode_flags              [kernel]          31         568        0.0       2213            0.1      2181           0.1   1.01            124                0.0
+                                              ▶ _raw_read_lock                    [kernel]          31         534        0.0         93            0.0       200           0.0   0.47             31                0.0
+                                              ▶ ext4_ext_check_inode              [kernel]          31        2147        0.0       9174            0.3     12353           0.5   0.74            654                0.2
+                                              ▶ __brelse                          [kernel]          31          73        0.0        557            0.0       670           0.0   0.83             31                0.0
+                                              ▶ unlock_new_inode                  [kernel]          31         608        0.0       1339            0.0      1578           0.1   0.85            248                0.1
+                                              ▶ ext4_set_aops                     [kernel]           7          95        0.0        384            0.0       397           0.0   0.97             21                0.0
+                                            ▶ d_splice_alias                      [kernel]          31        3328        0.0      10072            0.3     12639           0.5   0.80           1178                0.3
+                                        ▶ up_read                                 [kernel]          31         283        0.0          0            0.0         0           0.0      0             31                0.0
+                                      ▶ follow_managed                            [kernel]          31           0        0.0          0            0.0         0           0.0      0             31                0.0
+                                      ▶ dput                                      [kernel]          31         656        0.0       1890            0.1      2576           0.1   0.73            279                0.1
+                                    ▶ complete_walk                               [kernel]          32         312        0.0        432            0.0      1605           0.1   0.27             77                0.0
+                                    ▶ terminate_walk                              [kernel]          32         515        0.0       1170            0.0      2130           0.1   0.55            352                0.1
+                                  ▶ restore_nameidata                             [kernel]          32         530        0.0        720            0.0      2693           0.1   0.27             96                0.0
+                                  ▶ putname                                       [kernel]          32        1107        0.0        277            0.0       713           0.0   0.39            256                0.1
+                              ▶ vfs_getattr                                       [kernel]          32        4552        0.1       7924            0.2     18723           0.7   0.42            853                0.2
+                              ▶ path_put                                          [kernel]          32        3010        0.0       3250            0.1      5836           0.2   0.56           1007                0.3
+                            ▶ cp_new_stat                                         [kernel]          32         740        0.0       5834            0.2      2933           0.1   1.99            512                0.1
+                        ▶ fpregs_assert_state_consistent                          [kernel]          32         103        0.0        523            0.0       575           0.0   0.91             81                0.0
+                        ▶ switch_fpu_return                                       [kernel]          15         422        0.0          0            0.0         0           0.0      0             45                0.0
+                    ▶ irq_entries_start                                           [kernel]           1        6062        0.1       9283            0.3     25448           0.9   0.36           1260                0.3
+                ▶ rpl_lgetfilecon                                                 ls                32       45398        0.4     105988            2.4    191418           4.3   0.55          12026                2.4
+                ▶ unknown                                                         ls                32         257        0.0        288            0.0      1077           0.0   0.27             64                0.0
+                ▶ file_has_acl                                                    ls                32       47974        0.5     154946            3.5    199782           4.5   0.78          17666                3.6
+                ▶ human_readable                                                  ls                64        5859        0.1      17717            0.4     24550           0.6   0.72           1224                0.2
+                ▶ gnu_mbswidth                                                    ls                96        2885        0.0      12761            0.3     12586           0.3   1.01           1776                0.4
+                ▶ format_user_width                                               ls                32      511932        4.8     360256            8.0    669309          15.1   0.54          39985                8.0
+                ▶ getgroup                                                        ls                32     1120258       10.6     313835            7.0    321667           7.3   0.98          35905                7.2
+                ▶ umaxtostr                                                       ls                32         251        0.0        926            0.0       612           0.0   1.51             47                0.0
+                ▶ xstrdup                                                         ls                32        2645        0.0       8339            0.2     11308           0.3   0.74            986                0.2
+                ▶ page_fault                                                      [kernel]           2        2942        0.0       3786            0.1     12322           0.3   0.31            388                0.1
+              ▶ process_signals                                                   ls                42         248        0.0        688            0.0      1285           0.0   0.54            126                0.0
+              ▶ unknown                                                           ls                 1        3143        0.0       7469            0.1     13138           0.2   0.57            651                0.1
+              ▶ sort_files                                                        ls                 1        9564        0.1      47816            0.7     40449           0.6   1.18           4631                0.6
+              ▶ unknown                                                           ls                 1     4465654       25.6    1375195           19.9   1259338          18.6   1.09         155028               19.9
+              ▶ unknown                                                           ls                 2        4339        0.0       1922            0.0      6816           0.1   0.28            182                0.0
+              ▶ unknown                                                           ls                 2         122        0.0         61            0.0       290           0.0   0.21              6                0.0
+              ▶ unknown                                                           ls                 2       11181        0.1       4541            0.1     17820           0.3   0.25            561                0.1
+              ▶ human_readable                                                    ls                 1         641        0.0        258            0.0      1040           0.0   0.25             20                0.0
+              ▶ print_current_files                                               ls                 1     2356845       13.5     925664           13.4    913979          13.5   1.01         111603               14.4
+            ▶ unknown                                                             ls                 3         383        0.0        167            0.0       610           0.0   0.27             15                0.0
+          ▶ exit                                                                  libc-2.31.so       1      164956        0.9     367844            4.8    262690           3.5   1.40          39106                4.6
+</pre>
+
+== Example: Tracing power events ==
+
+Intel PT can record changes in CPU frequency.
+
+This example includes kernel tracing, which requires administrator privileges.
+
+To trace power events, we can use <tt>perf record</tt> with options:
+* <tt>'''-a'''</tt> to trace system wide i.e. all tasks, all CPUs
+* <tt>'''-e'''</tt> to select which events, i.e. the following 2:
+* <tt>'''intel_pt/branch=0/'''</tt> to get Intel PT but without control flow (branch) information
+* <tt>'''power:cpu_idle'''</tt> to get the Intel CPU Idle driver tracepoint
+* <tt>'''sleep 1'''</tt> is the workload.  The tracing will stop when the workload finishes, so this is simply a way of tracing for about 1 second.
+Note, although only 2 events have been selected, we could add anything else we are interested in.
+
+<pre>
+$ sudo perf record -a -e intel_pt/branch=0/,power:cpu_idle sleep 1
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.894 MB perf.data ]
+</pre>
+To list the power events, use <tt>perf script</tt> with options:
+* <tt>'''--itrace=ep'''</tt> to show errors (e) and power events (p)
+* <tt>'''-F-ip'''</tt> to prevent showing the address i.e. instruction pointer (ip) register
+* <tt>'''--ns'''</tt> to show the timestamp to nanoseconds instead of the default microseconds
+The output shows the 10-character task command string, PID, CPU, timestamp, and event:
+<pre>
+$ perf script --itrace=ep -F-ip --ns | head 
+            perf  4355 [000] 11253.350232603:                cbr:  cbr: 42 freq: 4219 MHz (156%)    
+         swapper     0 [000] 11253.350253949:     power:cpu_idle: state=6 cpu_id=0
+            perf  4355 [001] 11253.350293104:                cbr:  cbr: 42 freq: 4219 MHz (156%)    
+         swapper     0 [001] 11253.350311546:     power:cpu_idle: state=8 cpu_id=1
+            perf  4355 [002] 11253.350350478:                cbr:  cbr: 42 freq: 4219 MHz (156%)    
+         swapper     0 [002] 11253.350369240:     power:cpu_idle: state=8 cpu_id=2
+            perf  4355 [003] 11253.350407645:                cbr:  cbr: 42 freq: 4219 MHz (156%)    
+         swapper     0 [003] 11253.350424940:     power:cpu_idle: state=6 cpu_id=3
+            perf  4355 [004] 11253.350464191:                cbr:  cbr: 42 freq: 4219 MHz (156%)    
+         swapper     0 [004] 11253.350482739:     power:cpu_idle: state=8 cpu_id=4
+</pre>
+To limit the output to a particular CPU, the <tt>'''-C'''</tt> option can be used e.g. for CPU 1
+<pre>
+$ perf script --itrace=ep -F-ip --ns -C 1 | head 
+            perf  4355 [001] 11253.350293104:                cbr:  cbr: 42 freq: 4219 MHz (156%)    
+         swapper     0 [001] 11253.350311546:     power:cpu_idle: state=8 cpu_id=1
+         swapper     0 [001] 11253.569359111:                cbr:  cbr: 26 freq: 2612 MHz ( 96%)    
+         swapper     0 [001] 11253.569364879:     power:cpu_idle: state=4294967295 cpu_id=1
+         swapper     0 [001] 11253.569424754:     power:cpu_idle: state=8 cpu_id=1
+         swapper     0 [001] 11253.644214090:                cbr:  cbr: 23 freq: 2310 MHz ( 85%)    
+         swapper     0 [001] 11253.644220472:     power:cpu_idle: state=4294967295 cpu_id=1
+         konsole  2033 [001] 11253.644436892:                cbr:  cbr: 20 freq: 2009 MHz ( 74%)    
+         swapper     0 [001] 11253.645046629:     power:cpu_idle: state=2 cpu_id=1
+         swapper     0 [001] 11253.645074374:     power:cpu_idle: state=4294967295 cpu_id=1
+</pre>
+
+== Example: Tracing the NMI handler ==
+
+It is straight forward for Intel PT to trace the NMI handler using snapshot mode.
+
+This example includes kernel tracing, which requires administrator privileges.
+
+We can use <tt>'''perf record'''</tt> with options:
+* <tt>'''-a'''</tt> to trace system wide i.e. all tasks, all CPUs
+* <tt>'''--kcore'''</tt> to copy kernel object code from the /proc/kcore image (helps avoid decoding errors due to kernel self-modifying code)
+* <tt>'''-Se'''</tt> to make a snapshot when the workload ends
+* <tt>'''-e'''</tt> to select which events, i.e. the following:
+* <tt>'''intel_pt/cyc/k'''</tt> to get Intel PT with cycle-accurate mode, tracing the kernel only
+* <tt>'''--'''</tt> is a separator, indicating that the rest of the options belong to the workload
+
+To get NMIs, the workload itself is another <tt>'''perf record'''</tt> with options:
+* <tt>'''-o junk'''</tt> to output to a file named 'junk', since we are not interested in it, and it needs to be different from the first <tt>'''perf record'''</tt>
+* <tt>'''-a'''</tt> to trace system wide i.e. all tasks, all CPUs
+* <tt>'''-e'''</tt> to select which events, i.e. the following:
+* <tt>'''cycles'''</tt> to sample based on the CPU cycles counter
+* <tt>'''--freq 100000'''</tt> to specify the sampling frequency (100kHz) which ensures that PEBS samples will cause NMIs (to avoid "large" PEBS)
+* <tt>'''sleep 0.001'''</tt> is the workload.  The tracing will stop when the workload finishes, so this is simply a way of tracing for about 1 millisecond.
+<pre>
+$ sudo perf record -a --kcore -Se -e intel_pt/cyc/k -- perf record -o junk -a -e cycles --freq 100000 sleep 0.001
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.915 MB junk (9 samples) ]
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 11.467 MB perf.data ]
+</pre>
+
+We can see a call trace showing only the NMI handler with instructions-per-cycle (IPC) infomation:
+<pre>
+$ perf script --call-trace --graph-function nmi -F+ipc,-dso
+            perf  7148 [000] 18161.939140991: nmi          	 IPC: 0.01 (48/2416) 
+            perf  7148 [000] 18161.939140995:     paranoid_entry                           	 IPC: 0.19 (4/21) 
+            perf  7148 [000] 18161.939141087:     do_nmi                                   	 IPC: 0.18 (70/383) 
+            perf  7148 [000] 18161.939141183:         printk_nmi_enter                    
+            perf  7148 [000] 18161.939141226:         rcu_nmi_enter                       
+            perf  7148 [000] 18161.939141226:             rcu_dynticks_curr_cpu_in_eqs    
+            perf  7148 [000] 18161.939141229:         default_do_nmi                       	 IPC: 0.12 (77/594) 
+            perf  7148 [000] 18161.939141229:             nmi_handle                      
+            perf  7148 [000] 18161.939141229:                 sched_clock                 
+            perf  7148 [000] 18161.939141229:                     native_sched_clock      
+            perf  7148 [000] 18161.939141229:                 __x86_indirect_thunk_rax    
+            perf  7148 [000] 18161.939141229:                     __x86_indirect_thunk_rax
+            perf  7148 [000] 18161.939141722:                         sched_clock          	 IPC: 0.07 (79/991) 
+            perf  7148 [000] 18161.939141722:                             native_sched_clock                              
+            perf  7148 [000] 18161.939141722:                         __x86_indirect_thunk_rax                            
+            perf  7148 [000] 18161.939141722:                             __x86_indirect_thunk_rax                        
+            perf  7148 [000] 18161.939141728:                                 intel_bts_disable_local                      	 IPC: 0.05 (65/1093) 
+            perf  7148 [000] 18161.939141894:                                 __intel_pmu_disable_all                      	 IPC: 0.01 (8/694) 
+            perf  7148 [000] 18161.939141894:                                     native_write_msr                        
+            perf  7148 [000] 18161.939141894:                                     intel_pmu_pebs_disable_all              
+            perf  7148 [000] 18161.939141943:                                 intel_pmu_drain_bts_buffer                   	 IPC: 0.15 (33/207) 
+            perf  7148 [000] 18161.939141943:                                 intel_bts_interrupt                         
+            perf  7148 [000] 18161.939142030:                                 native_read_msr                              	 IPC: 0.17 (63/362) 
+            perf  7148 [000] 18161.939142030:                                 intel_pmu_lbr_read                          
+            perf  7148 [000] 18161.939142030:                                 native_write_msr                            
+            perf  7148 [000] 18161.939142193:                                 handle_pmi_common                           
+            perf  7148 [000] 18161.939142193:                                     find_first_bit                          
+            perf  7148 [000] 18161.939142220:                                     intel_pmu_save_and_restart              
+            perf  7148 [000] 18161.939142220:                                         x86_perf_event_update               
+            perf  7148 [000] 18161.939142230:                                             native_read_pmc                 
+            perf  7148 [000] 18161.939142230:                                         x86_perf_event_set_period           
+            perf  7148 [000] 18161.939142262:                                             native_write_msr                 	 IPC: 0.21 (210/969) 
+            perf  7148 [000] 18161.939142362:                                             perf_event_update_userpage      
+            perf  7148 [000] 18161.939142362:                                                 calc_timer_values           
+            perf  7148 [000] 18161.939142362:                                                     sched_clock_cpu         
+            perf  7148 [000] 18161.939142362:                                                         sched_clock         
+            perf  7148 [000] 18161.939142362:                                                             native_sched_clock                              
+            perf  7148 [000] 18161.939142376:                                                 __x86_indirect_thunk_rax                                    
+            perf  7148 [000] 18161.939142376:                                                     __x86_indirect_thunk_rax                                
+            perf  7148 [000] 18161.939142395:                                                 arch_perf_update_userpage                                    	 IPC: 0.30 (170/556) 
+            perf  7148 [000] 18161.939142395:                                                     using_native_sched_clock                                
+            perf  7148 [000] 18161.939142395:                                                     sched_clock_stable                                      
+            perf  7148 [000] 18161.939142395:                                                     cyc2ns_read_begin                                       
+            perf  7148 [000] 18161.939142403:                                                     cyc2ns_read_end                                          	 IPC: 2.00 (74/37) 
+            perf  7148 [000] 18161.939142411:                                     perf_event_overflow                      	 IPC: 1.56 (50/32) 
+            perf  7148 [000] 18161.939142411:                                         __perf_event_overflow               
+            perf  7148 [000] 18161.939142411:                                             __perf_event_account_interrupt  
+            perf  7148 [000] 18161.939142411:                                                 sched_clock_cpu             
+            perf  7148 [000] 18161.939142411:                                                     sched_clock             
+            perf  7148 [000] 18161.939142411:                                                         native_sched_clock  
+            perf  7148 [000] 18161.939142516:                                             __x86_indirect_thunk_rax         	 IPC: 0.19 (87/440) 
+            perf  7148 [000] 18161.939142516:                                                 __x86_indirect_thunk_rax    
+            perf  7148 [000] 18161.939142599:                                                     perf_prepare_sample      	 IPC: 0.08 (30/346) 
+            perf  7148 [000] 18161.939142599:                                                         perf_misc_flags     
+            perf  7148 [000] 18161.939142936:                                                             __x86_indirect_thunk_rax                        
+            perf  7148 [000] 18161.939142936:                                                                 __x86_indirect_thunk_rax                    
+            perf  7148 [000] 18161.939143202:                                                         __perf_event_header__init_id.isra.0                  	 IPC: 0.02 (74/2522) 
+            perf  7148 [000] 18161.939143203:                                                             perf_event_pid_type                              	 IPC: 3.80 (19/5) 
+            perf  7148 [000] 18161.939143203:                                                                 __task_pid_nr_ns                            
+            perf  7148 [000] 18161.939143205:                                                             perf_event_pid_type                              	 IPC: 3.90 (39/10) 
+            perf  7148 [000] 18161.939143205:                                                                 __task_pid_nr_ns                            
+            perf  7148 [000] 18161.939143210:                                                             __x86_indirect_thunk_rax                         	 IPC: 3.41 (58/17) 
+            perf  7148 [000] 18161.939143210:                                                                 __x86_indirect_thunk_rax                    
+            perf  7148 [000] 18161.939143211:                                                                     sched_clock_cpu                          	 IPC: 2.25 (9/4) 
+            perf  7148 [000] 18161.939143211:                                                                         sched_clock                         
+            perf  7148 [000] 18161.939143211:                                                                             native_sched_clock              
+            perf  7148 [000] 18161.939143227:                                                         perf_instruction_pointer                             	 IPC: 0.97 (66/68) 
+            perf  7148 [000] 18161.939143227:                                                             __x86_indirect_thunk_rax                        
+            perf  7148 [000] 18161.939143227:                                                                 __x86_indirect_thunk_rax                    
+            perf  7148 [000] 18161.939143359:                                                     perf_output_begin_forward                                	 IPC: 0.11 (65/554) 
+            perf  7148 [000] 18161.939143895:                                                     perf_output_sample                                       	 IPC: 0.03 (78/2240) 
+            perf  7148 [000] 18161.939143895:                                                         perf_output_copy                                    
+            perf  7148 [000] 18161.939143895:                                                             memcpy                                          
+            perf  7148 [000] 18161.939143923:                                                         perf_output_copy                                    
+            perf  7148 [000] 18161.939143923:                                                             memcpy                                          
+            perf  7148 [000] 18161.939144052:                                                         perf_output_copy                                    
+            perf  7148 [000] 18161.939144052:                                                             memcpy                                          
+            perf  7148 [000] 18161.939144064:                                                         perf_output_copy                                     	 IPC: 0.23 (169/708) 
+            perf  7148 [000] 18161.939144064:                                                             memcpy                                          
+            perf  7148 [000] 18161.939144076:                                                         perf_output_copy                                     	 IPC: 0.98 (49/50) 
+            perf  7148 [000] 18161.939144076:                                                             memcpy                                          
+            perf  7148 [000] 18161.939144174:                                                         perf_output_copy                                    
+            perf  7148 [000] 18161.939144174:                                                             memcpy                                          
+            perf  7148 [000] 18161.939144207:                                                     perf_output_end                                          	 IPC: 0.20 (99/489) 
+            perf  7148 [000] 18161.939144207:                                                         perf_output_put_handle                              
+            perf  7148 [000] 18161.939144245:                                     find_next_bit                            	 IPC: 0.41 (89/215) 
+            perf  7148 [000] 18161.939144260:                                 native_read_msr                              	 IPC: 0.55 (36/65) 
+            perf  7148 [000] 18161.939144284:                                 __intel_pmu_enable_all.constprop.0           	 IPC: 0.16 (16/99) 
+            perf  7148 [000] 18161.939144284:                                     intel_pmu_pebs_enable_all               
+            perf  7148 [000] 18161.939144284:                                     intel_pmu_lbr_enable_all                
+            perf  7148 [000] 18161.939144301:                                     native_write_msr                         	 IPC: 0.51 (37/72) 
+            perf  7148 [000] 18161.939144301:                                 intel_bts_enable_local                      
+            perf  7148 [000] 18161.939144408:                                 __x86_indirect_thunk_rax                     	 IPC: 0.06 (31/446) 
+            perf  7148 [000] 18161.939144408:                                     __x86_indirect_thunk_rax                
+            perf  7148 [000] 18161.939144420:                                         native_write_msr                     	 IPC: 0.34 (10/29) 
+            perf  7148 [000] 18161.939144457:                         sched_clock                                          	 IPC: 0.17 (31/179) 
+            perf  7148 [000] 18161.939144457:                             native_sched_clock                              
+            perf  7148 [000] 18161.939144467:                         perf_sample_event_took                              
+            perf  7148 [000] 18161.939144580:                 sched_clock                                                  	 IPC: 0.10 (53/512) 
+            perf  7148 [000] 18161.939144580:                     native_sched_clock                                      
+            perf  7148 [000] 18161.939144590:                 sched_clock                                                 
+            perf  7148 [000] 18161.939144590:                     native_sched_clock                                      
+            perf  7148 [000] 18161.939144616:                 __x86_indirect_thunk_rax                                     	 IPC: 0.45 (68/149) 
+            perf  7148 [000] 18161.939144616:                     __x86_indirect_thunk_rax                                
+            perf  7148 [000] 18161.939144681:                         nmi_cpu_backtrace                                    	 IPC: 0.04 (11/275) 
+            perf  7148 [000] 18161.939144954:                 sched_clock                                                  	 IPC: 0.02 (26/1141) 
+            perf  7148 [000] 18161.939144954:                     native_sched_clock                                      
+            perf  7148 [000] 18161.939144967:         rcu_nmi_exit                         	 IPC: 1.10 (61/55) 
+            perf  7148 [000] 18161.939144985:         printk_nmi_exit                     
+     migration/0    12 [000] 18161.939155684: nmi      	 IPC: 0.06 (54/805) 
+</pre>
+
+Note, that was for a v5.4.33 based kernel i.e.
+<pre>
+$ uname -a
+Linux 5.4.0-33-generic #37-Ubuntu SMP Thu May 21 12:53:59 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux
+</pre>
+
+== Example: Tracing __switch_to() ==
+
+It is straight forward for Intel PT to trace __switch_to(), the kernel function that switches tasks.
+
+Before we start, if we haven't done it already, we will need to install [http://intelxed.github.io/ Intel X86 Encoder Decoder (XED)]
+<pre>
+$ cd ~/git
+$ git clone https://github.com/intelxed/mbuild.git mbuild
+$ git clone https://github.com/intelxed/xed
+$ cd xed
+$ ./mfile.py --share
+$ ./mfile.py examples
+$ sudo ./mfile.py --prefix=/usr/local install
+$ sudo ldconfig
+$ find . -type f -name xed
+./obj/wkit/examples/obj/xed
+$ cp ./obj/wkit/examples/obj/xed /usr/local/bin
+</pre>
+
+This example includes kernel tracing, which requires administrator privileges.
+
+We can use <tt>'''perf record'''</tt> with options:
+* <tt>'''-a'''</tt> to trace system wide i.e. all tasks, all CPUs
+* <tt>'''--kcore'''</tt> to copy kernel object code from the /proc/kcore image (helps avoid decoding errors due to kernel self-modifying code)
+* <tt>'''-e'''</tt> to select which events, i.e. the following:
+* <tt>'''intel_pt/cyc,noretcomp/k'''</tt> to get Intel PT with cycle-accurate mode. We add <tt>'''noretcomp'''</tt> to get a Intel PT TIP packet from RET instructions, which has the side-effect of also getting a CYC timing packet, and consequently enables calculating IPC at that point.
+* <tt>'''--filter 'filter __switch_to ,filter native_load_tls' '''</tt> specifies address filters to trace only __switch_to() and native_load_tls()
+* <tt>'''--'''</tt> is a separator, indicating that the rest of the options belong to the workload
+* <tt>'''sleep 1'''</tt> is the workload.  The tracing will stop when the workload finishes, so this is simply a way of tracing for about 1 second.
+<pre>
+$ sudo perf record -a --kcore -e intel_pt/cyc,noretcomp/k --filter 'filter __switch_to ,filter native_load_tls' -- sleep 1
+</pre>
+
+We can get an instruction trace with instructions-per-cycle (IPC) information for CPU 0, as follows:
+<pre>
+$ perf script --insn-trace --xed -C0 -F-dso,-comm,-tid,+flags,+ipc | head -130
+[000]  2336.210811381:                        ffffffff9f02fdd0 __switch_to+0x0 		pushq  %rbp
+[000]  2336.210811381:                        ffffffff9f02fdd1 __switch_to+0x1 		movq  %gs:0x16bc0, %rax
+[000]  2336.210811381:                        ffffffff9f02fdda __switch_to+0xa 		mov %rsp, %rbp
+[000]  2336.210811381:                        ffffffff9f02fddd __switch_to+0xd 		pushq  %r15
+[000]  2336.210811381:                        ffffffff9f02fddf __switch_to+0xf 		leaq  0x1340(%rsi), %r15
+[000]  2336.210811381:                        ffffffff9f02fde6 __switch_to+0x16 		pushq  %r14
+[000]  2336.210811381:                        ffffffff9f02fde8 __switch_to+0x18 		leaq  0x1340(%rdi), %r14
+[000]  2336.210811381:                        ffffffff9f02fdef __switch_to+0x1f 		pushq  %r13
+[000]  2336.210811381:                        ffffffff9f02fdf1 __switch_to+0x21 		mov %rdi, %r13
+[000]  2336.210811381:                        ffffffff9f02fdf4 __switch_to+0x24 		pushq  %r12
+[000]  2336.210811381:                        ffffffff9f02fdf6 __switch_to+0x26 		mov %rsi, %r12
+[000]  2336.210811381:                        ffffffff9f02fdf9 __switch_to+0x29 		pushq  %rbx
+[000]  2336.210811381:                        ffffffff9f02fdfa __switch_to+0x2a 		sub $0x10, %rsp
+[000]  2336.210811381:                        ffffffff9f02fdfe __switch_to+0x2e 		movq  (%rax), %rdx
+[000]  2336.210811381:                        ffffffff9f02fe01 __switch_to+0x31 		movl  %gs:0x60fe0548(%rip), %ebx
+[000]  2336.210811381:                        ffffffff9f02fe08 __switch_to+0x38 		and $0x40, %dh
+[000]  2336.210811382:   jcc                  ffffffff9f02fe0b __switch_to+0x3b 		jz 0xffffffff9f0300cd 	 IPC: 2.83 (17/6) 
+[000]  2336.210811382:                        ffffffff9f0300cd __switch_to+0x2fd 		testb  $0x20, 0x26(%rax)
+[000]  2336.210811382:   jcc                  ffffffff9f0300d1 __switch_to+0x301 		jnz 0xffffffff9f02fe11
+[000]  2336.210811382:                        ffffffff9f0300d7 __switch_to+0x307 		leaq  0x1400(%rdi), %rcx
+[000]  2336.210811382:                        ffffffff9f0300de __switch_to+0x30e 		nopl  %eax, (%rax,%rax,1)
+[000]  2336.210811382:                        ffffffff9f0300e3 __switch_to+0x313 		movl  0x181715e(%rip), %r9d
+[000]  2336.210811382:                        ffffffff9f0300ea __switch_to+0x31a 		leaq  0x1440(%r13), %rdi
+[000]  2336.210811382:                        ffffffff9f0300f1 __switch_to+0x321 		test %r9d, %r9d
+[000]  2336.210811382:   jcc                  ffffffff9f0300f4 __switch_to+0x324 		jz 0xffffffff9f030235
+[000]  2336.210811382:                        ffffffff9f0300fa __switch_to+0x32a 		mov $0xffffffff, %eax
+[000]  2336.210811382:                        ffffffff9f0300ff __switch_to+0x32f 		mov %eax, %edx
+[000]  2336.210811382:                        ffffffff9f030101 __switch_to+0x331 		xsaves64 (%rdi)
+[000]  2336.210811382:                        ffffffff9f030105 __switch_to+0x335 		xor %eax, %eax
+[000]  2336.210811382:                        ffffffff9f030107 __switch_to+0x337 		test %eax, %eax
+[000]  2336.210811382:   jcc                  ffffffff9f030109 __switch_to+0x339 		jnz 0xffffffff9f03022e
+[000]  2336.210811382:                        ffffffff9f03010f __switch_to+0x33f 		testb  $0xe0, 0x1640(%r13)
+[000]  2336.210811382:   jcc                  ffffffff9f030117 __switch_to+0x347 		jnz 0xffffffff9f030207
+[000]  2336.210811382:                        ffffffff9f03011d __switch_to+0x34d 		movl  %ebx, 0x1400(%r13)
+[000]  2336.210811382:                        ffffffff9f030124 __switch_to+0x354 		nopl  %eax, (%rax,%rax,1)
+[000]  2336.210811382:   jmp                  ffffffff9f030129 __switch_to+0x359 		jmp 0xffffffff9f02fe11
+[000]  2336.210811382:                        ffffffff9f02fe11 __switch_to+0x41 		mov %fs, %ax
+[000]  2336.210811382:                        ffffffff9f02fe14 __switch_to+0x44 		movw  %ax, 0x1364(%r13)
+[000]  2336.210811382:                        ffffffff9f02fe1c __switch_to+0x4c 		mov %gs, %ax
+[000]  2336.210811382:                        ffffffff9f02fe1f __switch_to+0x4f 		cmpw  $0x0, 0x1364(%r13)
+[000]  2336.210811382:                        ffffffff9f02fe28 __switch_to+0x58 		movw  %ax, 0x1366(%r13)
+[000]  2336.210811382:   jcc                  ffffffff9f02fe30 __switch_to+0x60 		jnz 0xffffffff9f0301a3
+[000]  2336.210811382:                        ffffffff9f02fe36 __switch_to+0x66 		cmpw  $0x0, 0x1366(%r13)
+[000]  2336.210811428:   jcc                  ffffffff9f02fe3f __switch_to+0x6f 		jnz 0xffffffff9f030185 	 IPC: 0.13 (27/195) 
+[000]  2336.210811428:                        ffffffff9f02fe45 __switch_to+0x75 		mov %ebx, %esi
+[000]  2336.210811428:                        ffffffff9f02fe47 __switch_to+0x77 		mov %r15, %rdi
+[000]  2336.210811428:   call                 ffffffff9f02fe4a __switch_to+0x7a 		callq  0xffffffff9f0786c0
+[000]  2336.210811428:                        ffffffff9f0786c0 native_load_tls+0x0 		movq  (%rdi), %rdx
+[000]  2336.210811428:                        ffffffff9f0786c3 native_load_tls+0x3 		mov %esi, %esi
+[000]  2336.210811428:                        ffffffff9f0786c5 native_load_tls+0x5 		mov $0x9000, %rax
+[000]  2336.210811428:                        ffffffff9f0786cc native_load_tls+0xc 		addq  -0x5fbbb680(,%rsi,8), %rax
+[000]  2336.210811428:                        ffffffff9f0786d4 native_load_tls+0x14 		movq  %rdx, 0x60(%rax)
+[000]  2336.210811428:                        ffffffff9f0786d8 native_load_tls+0x18 		movq  0x8(%rdi), %rdx
+[000]  2336.210811428:                        ffffffff9f0786dc native_load_tls+0x1c 		movq  %rdx, 0x68(%rax)
+[000]  2336.210811428:                        ffffffff9f0786e0 native_load_tls+0x20 		movq  0x10(%rdi), %rdx
+[000]  2336.210811428:                        ffffffff9f0786e4 native_load_tls+0x24 		movq  %rdx, 0x70(%rax)
+[000]  2336.210811429:   return               ffffffff9f0786e8 native_load_tls+0x28 		retq   	 IPC: 3.25 (13/4) 
+[000]  2336.210811429:                        ffffffff9f02fe4f __switch_to+0x7f 		data16 nop
+[000]  2336.210811429:                        ffffffff9f02fe51 __switch_to+0x81 		mov %r12, %rdi
+[000]  2336.210811429:                        ffffffff9f02fe54 __switch_to+0x84 		nopl  %eax, (%rax)
+[000]  2336.210811429:                        ffffffff9f02fe5b __switch_to+0x8b 		mov %es, %ax
+[000]  2336.210811429:                        ffffffff9f02fe5e __switch_to+0x8e 		movw  %ax, 0x20(%r14)
+[000]  2336.210811429:                        ffffffff9f02fe63 __switch_to+0x93 		movzxw  0x1360(%r12), %eax
+[000]  2336.210811429:                        ffffffff9f02fe6c __switch_to+0x9c 		mov %eax, %ebx
+[000]  2336.210811429:                        ffffffff9f02fe6e __switch_to+0x9e 		orw  0x1360(%r13), %bx
+[000]  2336.210811430:   jcc                  ffffffff9f02fe76 __switch_to+0xa6 		jnz 0xffffffff9f030195 	 IPC: 4.50 (9/2) 
+[000]  2336.210811430:                        ffffffff9f02fe7c __switch_to+0xac 		mov %ds, %ax
+[000]  2336.210811430:                        ffffffff9f02fe7f __switch_to+0xaf 		movw  %ax, 0x22(%r14)
+[000]  2336.210811430:                        ffffffff9f02fe84 __switch_to+0xb4 		movzxw  0x1362(%r12), %eax
+[000]  2336.210811430:                        ffffffff9f02fe8d __switch_to+0xbd 		mov %eax, %ebx
+[000]  2336.210811430:                        ffffffff9f02fe8f __switch_to+0xbf 		orw  0x1362(%r13), %bx
+[000]  2336.210811430:   jcc                  ffffffff9f02fe97 __switch_to+0xc7 		jnz 0xffffffff9f03019c
+[000]  2336.210811430:                        ffffffff9f02fe9d __switch_to+0xcd 		movq  0x1368(%r12), %rdx
+[000]  2336.210811430:                        ffffffff9f02fea5 __switch_to+0xd5 		movzxw  0x1364(%r13), %ecx
+[000]  2336.210811430:                        ffffffff9f02fead __switch_to+0xdd 		movzxw  0x1364(%r12), %eax
+[000]  2336.210811430:                        ffffffff9f02feb6 __switch_to+0xe6 		cmp $0x3, %ax
+[000]  2336.210811430:   jcc                  ffffffff9f02feba __switch_to+0xea 		jnbe 0xffffffff9f03016e
+[000]  2336.210811430:                        ffffffff9f02fec0 __switch_to+0xf0 		test %rdx, %rdx
+[000]  2336.210811430:   jcc                  ffffffff9f02fec3 __switch_to+0xf3 		jz 0xffffffff9f030085
+[000]  2336.210811430:   jmp                  ffffffff9f030085 __switch_to+0x2b5 		jmp 0xffffffff9f03015c
+[000]  2336.210811430:                        ffffffff9f03015c __switch_to+0x38c 		or %eax, %ecx
+[000]  2336.210811430:                        ffffffff9f03015e __switch_to+0x38e 		movzx %cx, %ecx
+[000]  2336.210811430:                        ffffffff9f030161 __switch_to+0x391 		orq  0x1368(%r13), %rcx
+[000]  2336.210811430:   jcc                  ffffffff9f030168 __switch_to+0x398 		jz 0xffffffff9f02fee2
+[000]  2336.210811430:                        ffffffff9f03016e __switch_to+0x39e 		mov %ax, %fs
+[000]  2336.210811430:   jmp                  ffffffff9f030170 __switch_to+0x3a0 		jmp 0xffffffff9f02fee2
+[000]  2336.210811430:                        ffffffff9f02fee2 __switch_to+0x112 		movq  0x1370(%r12), %r14
+[000]  2336.210811430:                        ffffffff9f02feea __switch_to+0x11a 		movzxw  0x1366(%r13), %eax
+[000]  2336.210811430:                        ffffffff9f02fef2 __switch_to+0x122 		movzxw  0x1366(%r12), %ebx
+[000]  2336.210811430:                        ffffffff9f02fefb __switch_to+0x12b 		cmp $0x3, %bx
+[000]  2336.210811430:   jcc                  ffffffff9f02feff __switch_to+0x12f 		jnbe 0xffffffff9f03014d
+[000]  2336.210811430:                        ffffffff9f02ff05 __switch_to+0x135 		test %r14, %r14
+[000]  2336.210811439:   jcc                  ffffffff9f02ff08 __switch_to+0x138 		jnz 0xffffffff9f0300a3 	 IPC: 0.67 (27/40) 
+[000]  2336.210811439:   jmp                  ffffffff9f02ff0e __switch_to+0x13e 		jmp 0xffffffff9f03013b
+[000]  2336.210811439:                        ffffffff9f03013b __switch_to+0x36b 		or %ebx, %eax
+[000]  2336.210811439:                        ffffffff9f03013d __switch_to+0x36d 		movzx %ax, %eax
+[000]  2336.210811439:                        ffffffff9f030140 __switch_to+0x370 		orq  0x1370(%r13), %rax
+[000]  2336.210811439:   jcc                  ffffffff9f030147 __switch_to+0x377 		jz 0xffffffff9f02ff29
+[000]  2336.210811439:                        ffffffff9f02ff29 __switch_to+0x159 		movq  %r12, %gs:0x60fe6c8f(%rip)
+[000]  2336.210811439:                        ffffffff9f02ff31 __switch_to+0x161 		movq  0x18(%r12), %rax
+[000]  2336.210811439:                        ffffffff9f02ff36 __switch_to+0x166 		add $0x4000, %rax
+[000]  2336.210811439:                        ffffffff9f02ff3c __switch_to+0x16c 		movq  %rax, %gs:0x60fd60c8(%rip)
+[000]  2336.210811439:                        ffffffff9f02ff44 __switch_to+0x174 		movl  0x161efa6(%rip), %ebx
+[000]  2336.210811439:                        ffffffff9f02ff4a __switch_to+0x17a 		movq  %gs:0x16bc0, %rax
+[000]  2336.210811439:                        ffffffff9f02ff53 __switch_to+0x183 		lock orb  $0x40, 0x1(%rax)
+[000]  2336.210811439:   jmp                  ffffffff9f02ff58 __switch_to+0x188 		jmp 0xffffffff9f02ff99
+[000]  2336.210811439:   jmp                  ffffffff9f02ff99 __switch_to+0x1c9 		jmp 0xffffffff9f02ffb1
+[000]  2336.210811439:                        ffffffff9f02ffb1 __switch_to+0x1e1 		movq  (%r12), %rdx
+[000]  2336.210811439:                        ffffffff9f02ffb5 __switch_to+0x1e5 		movq  (%r13), %rax
+[000]  2336.210811439:                        ffffffff9f02ffb9 __switch_to+0x1e9 		nopl  %eax, (%rax,%rax,1)
+[000]  2336.210811439:                        ffffffff9f02ffbe __switch_to+0x1ee 		and $0x2418620, %edx
+[000]  2336.210811439:                        ffffffff9f02ffc4 __switch_to+0x1f4 		and $0x2418e20, %eax
+[000]  2336.210811439:                        ffffffff9f02ffc9 __switch_to+0x1f9 		or %rax, %rdx
+[000]  2336.210811439:   jcc                  ffffffff9f02ffcc __switch_to+0x1fc 		jnz 0xffffffff9f030175
+[000]  2336.210811439:   jmp                  ffffffff9f02ffd2 __switch_to+0x202 		jmp 0xffffffff9f02ffec
+[000]  2336.210811439:   jmp                  ffffffff9f02ffec __switch_to+0x21c 		jmp 0xffffffff9f030001
+[000]  2336.210811439:   jmp                  ffffffff9f030001 __switch_to+0x231 		jmp 0xffffffff9f030073
+[000]  2336.210811439:                        ffffffff9f030073 __switch_to+0x2a3 		add $0x10, %rsp
+[000]  2336.210811439:                        ffffffff9f030077 __switch_to+0x2a7 		mov %r13, %rax
+[000]  2336.210811439:                        ffffffff9f03007a __switch_to+0x2aa 		popq  %rbx
+[000]  2336.210811439:                        ffffffff9f03007b __switch_to+0x2ab 		popq  %r12
+[000]  2336.210811439:                        ffffffff9f03007d __switch_to+0x2ad 		popq  %r13
+[000]  2336.210811439:                        ffffffff9f03007f __switch_to+0x2af 		popq  %r14
+[000]  2336.210811439:                        ffffffff9f030081 __switch_to+0x2b1 		popq  %r15
+[000]  2336.210811439:                        ffffffff9f030083 __switch_to+0x2b3 		popq  %rbp
+[000]  2336.210811468:   tr end  return       ffffffff9f030084 __switch_to+0x2b4 		retq   	 IPC: 0.27 (33/122) 
+[000]  2336.210817292:                        ffffffff9f02fdd0 __switch_to+0x0 		pushq  %rbp
+[000]  2336.210817292:                        ffffffff9f02fdd1 __switch_to+0x1 		movq  %gs:0x16bc0, %rax
+[000]  2336.210817292:                        ffffffff9f02fdda __switch_to+0xa 		mov %rsp, %rbp
+[000]  2336.210817292:                        ffffffff9f02fddd __switch_to+0xd 		pushq  %r15
+</pre>
+
+Note, that was for a v5.4.33 based kernel i.e.
+<pre>
+$ uname -a
+Linux 5.4.0-33-generic #37-Ubuntu SMP Thu May 21 12:53:59 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux
+</pre>
+
+We can get source line information, but first we need the kernel debug package:
+<pre>
+$ sudo apt-get install linux-image-5.4.0-33-generic-dbgsym
+</pre>
+
+We can use it, as follows, to see how much it differs from the running code:
+<pre>
+$ perf script --itrace=e --vmlinux /usr/lib/debug/boot/vmlinux-5.4.0-33-generic >/dev/null
+Warning:
+55 instruction trace errors
+</pre>
+
+Really, we should be able to use kcore for object code, and /usr/lib/debug/boot/vmlinux-5.4.0-33-generic for debug information,
+but because we can't at present, we can reduce the decoding errors, by copying from the copy of kcore into a copy of /usr/lib/debug/boot/vmlinux-5.4.0-33-generic:
+<pre>
+$ cp /usr/lib/debug/boot/vmlinux-5.4.0-33-generic vmlinux-5.4.0-33-generic-plus-kcore
+$ dd if=perf.data/kcore_dir/kcore of=vmlinux-5.4.0-33-generic-plus-kcore bs=4096 skip=1 seek=512 count=3585 conv=nocreat,notrunc
+3585+0 records in
+3585+0 records out
+14684160 bytes (15 MB, 14 MiB) copied, 0.0143739 s, 1.0 GB/s
+$ perf script --itrace=e --vmlinux vmlinux-5.4.0-33-generic-plus-kcore >/dev/null
+</pre>
+
+Note, 2 of the values above come from the readelf command below:
+* skip=1 (4096-byte block) because that is the offset of the kernel code segment in perf.data/kcore_dir/kcore i.e. 0x1000 = 1 x 4096)
+* count=3585 (4096-byte blocks) because that is the size (Filesiz) of the kernel code segment in perf.data/kcore_dir/kcore i.e. 0xe01000 = 3585 x 4096
+<pre>
+$ readelf -l switch-example-3/kcore_dir/kcore | grep -C2 LOAD
+  Type           Offset             VirtAddr           PhysAddr
+                 FileSiz            MemSiz              Flags  Align
+  LOAD           0x0000000000001000 0xffffffff9f000000 0x0000000000000000
+                 0x0000000000e01000 0x0000000000e01000  RWE    0x1000
+  LOAD           0x0000000000e02000 0xffffffffc025c000 0x0000000000000000
+                 0x0000000000c99000 0x0000000000c99000  RWE    0x1000
+</pre>
+
+The remaining value comes from the readelf command below:
+* seek=512 (4096-byte blocks) because that is the offset of the kernel code segment in vmlinux-5.4.0-33-generic-plus-kcore i.e. 0x200000 = 512 x 4096
+<pre>
+$ readelf -l vmlinux-5.4.0-33-generic-plus-kcore | grep -C2 LOAD
+  Type           Offset             VirtAddr           PhysAddr
+                 FileSiz            MemSiz              Flags  Align
+  LOAD           0x0000000000200000 0xffffffff81000000 0x0000000001000000
+                 0x00000000014d5000 0x00000000014d5000  R E    0x200000
+  LOAD           0x0000000001800000 0xffffffff82600000 0x0000000002600000
+                 0x000000000026f000 0x000000000026f000  RW     0x200000
+  LOAD           0x0000000001c00000 0x0000000000000000 0x000000000286f000
+                 0x000000000002d000 0x000000000002d000  RW     0x200000
+  LOAD           0x0000000001c9c000 0xffffffff8289c000 0x000000000289c000
+                 0x0000000000d64000 0x0000000000d64000  RWE    0x200000
+  NOTE           0x0000000001000eb4 0xffffffff81e00eb4 0x0000000001e00eb4
+</pre>
+
+Then, we can show source line information:
+<pre>
+$ perf script --vmlinux ./vmlinux-5.4.0-33-generic-plus-kcore --insn-trace --xed -C0 -F-dso,-comm,-tid,+flags,+ipc,+srcline | head
+[000]  2336.210811381:                        ffffffff9f02fdd0 __switch_to+0x0
+  process_64.c:505              pushq  %rbp
+[000]  2336.210811381:                        ffffffff9f02fdd1 __switch_to+0x1
+  current.h:15          movq  %gs:0x16bc0, %rax
+[000]  2336.210811381:                        ffffffff9f02fdda __switch_to+0xa
+  process_64.c:505              mov %rsp, %rbp
+[000]  2336.210811381:                        ffffffff9f02fddd __switch_to+0xd
+  process_64.c:505              pushq  %r15
+[000]  2336.210811381:                        ffffffff9f02fddf __switch_to+0xf
+  process_64.c:507              leaq  0x1340(%rsi), %r15
+</pre>
+
+We can tidy that up a bit with awk:
+<pre>
+$ perf script --vmlinux ./vmlinux-5.4.0-33-generic-plus-kcore --insn-trace --xed -C0 -F-dso,-comm,-tid,+flags,+ipc,+srcline | \
+> awk '/^\[/ {printf("\n%-85s",$0)} /^ / {ln=$0;gsub("\t","  ",ln);printf("%-58s",ln)}' | head
+
+[000]  2336.210811381:                        ffffffff9f02fdd0 __switch_to+0x0         process_64.c:505     pushq  %rbp                        
+[000]  2336.210811381:                        ffffffff9f02fdd1 __switch_to+0x1         current.h:15     movq  %gs:0x16bc0, %rax                
+[000]  2336.210811381:                        ffffffff9f02fdda __switch_to+0xa         process_64.c:505     mov %rsp, %rbp                     
+[000]  2336.210811381:                        ffffffff9f02fddd __switch_to+0xd         process_64.c:505     pushq  %r15                        
+[000]  2336.210811381:                        ffffffff9f02fddf __switch_to+0xf         process_64.c:507     leaq  0x1340(%rsi), %r15           
+[000]  2336.210811381:                        ffffffff9f02fde6 __switch_to+0x16        process_64.c:505     pushq  %r14                        
+[000]  2336.210811381:                        ffffffff9f02fde8 __switch_to+0x18        process_64.c:506     leaq  0x1340(%rdi), %r14           
+[000]  2336.210811381:                        ffffffff9f02fdef __switch_to+0x1f        process_64.c:505     pushq  %r13                        
+[000]  2336.210811381:                        ffffffff9f02fdf1 __switch_to+0x21        process_64.c:505     mov %rdi, %r13                     
+</pre>
+
+We can add the source code as well, but first we need the matching linux kernel source, taking care to get the right version:
+<pre>
+$ sudo apt-get install linux-source-5.4.0=5.4.0-33.37
+</pre>
+
+We can see, from below, that the source code needs to be in directory /build/linux-3STWY5:
+<pre>
+$ perf script --vmlinux ./vmlinux-5.4.0-33-generic-plus-kcore --insn-trace --xed -C0 -F-dso,-comm,-tid,+flags,+ipc,+srcline --full-source-path | awk '/^\[/ {printf("\n%-85s",$0)} /^ / {ln=$0;gsub("\t","  ",ln);printf("%-58s",ln)}' | head -4
+
+[000]  2336.210811381:                        ffffffff9f02fdd0 __switch_to+0x0         /build/linux-3STWY5/linux-5.4.0/arch/x86/kernel/process_64.c:505     pushq  %rbp
+[000]  2336.210811381:                        ffffffff9f02fdd1 __switch_to+0x1         /build/linux-3STWY5/linux-5.4.0/arch/x86/include/asm/current.h:15     movq  %gs:0x16bc0, %rax
+[000]  2336.210811381:                        ffffffff9f02fdda __switch_to+0xa         /build/linux-3STWY5/linux-5.4.0/arch/x86/kernel/process_64.c:505     mov %rsp, %rbp
+</pre>
+
+We can unpackage the source tarball into that directory, rename it, and remove the package:
+<pre>
+$ sudo mkdir -p /build/linux-3STWY5
+$ sudo tar -xjf  /usr/src/linux-source-5.4.0/linux-source-5.4.0.tar.bz2 --directory=/build/linux-3STWY5
+$ sudo mv /build/linux-3STWY5/linux-source-5.4.0 /build/linux-3STWY5/linux-5.4.0
+$ sudo apt-get remove linux-source-5.4.0
+</pre>
+
+Then, we can show source code:
+<pre>
+$ perf script --vmlinux ./vmlinux-5.4.0-33-generic-plus-kcore --insn-trace --xed -C0 -F-dso,-comm,-tid,+flags,+ipc,+srccode,+srcline | head
+[000]  2336.210811381:                        ffffffff9f02fdd0 __switch_to+0x0
+  process_64.c:505              pushq  %rbp
+|505      {
+[000]  2336.210811381:                        ffffffff9f02fdd1 __switch_to+0x1
+  current.h:15          movq  %gs:0x16bc0, %rax
+|515            if (!test_thread_flag(TIF_NEED_FPU_LOAD))
+[000]  2336.210811381:                        ffffffff9f02fdda __switch_to+0xa
+  process_64.c:505              mov %rsp, %rbp
+|505      {
+[000]  2336.210811381:                        ffffffff9f02fddd __switch_to+0xd
+</pre>
+
+We can tidy that up a bit with awk:
+<pre>
+$ perf script -i switch-example-3 --vmlinux ./vmlinux-5.4.0-33-generic-plus-kcore --insn-trace --xed -C0 -F-dso,-comm,-tid,+flags,+ipc,+srccode,+srcline | \
+> awk '/^\[/ {printf("\n%-85s",$0)} /^ / {ln=$0;gsub("\t","  ",ln);printf("%-58s",ln)} /^\|/ {printf("%s",$0)}' | head -138
+
+[000]  2336.210811381:                        ffffffff9f02fdd0 __switch_to+0x0         process_64.c:505     pushq  %rbp                        |505      {
+[000]  2336.210811381:                        ffffffff9f02fdd1 __switch_to+0x1         current.h:15     movq  %gs:0x16bc0, %rax                |515             if (!test_thread_flag(TIF_NEED_FPU_LOAD))
+[000]  2336.210811381:                        ffffffff9f02fdda __switch_to+0xa         process_64.c:505     mov %rsp, %rbp                     |505      {
+[000]  2336.210811381:                        ffffffff9f02fddd __switch_to+0xd         process_64.c:505     pushq  %r15                        
+[000]  2336.210811381:                        ffffffff9f02fddf __switch_to+0xf         process_64.c:507     leaq  0x1340(%rsi), %r15           |507             struct thread_struct *next = &next_p->thread;
+[000]  2336.210811381:                        ffffffff9f02fde6 __switch_to+0x16        process_64.c:505     pushq  %r14                        |505      {
+[000]  2336.210811381:                        ffffffff9f02fde8 __switch_to+0x18        process_64.c:506     leaq  0x1340(%rdi), %r14           |506             struct thread_struct *prev = &prev_p->thread;
+[000]  2336.210811381:                        ffffffff9f02fdef __switch_to+0x1f        process_64.c:505     pushq  %r13                        |505      {
+[000]  2336.210811381:                        ffffffff9f02fdf1 __switch_to+0x21        process_64.c:505     mov %rdi, %r13                     
+[000]  2336.210811381:                        ffffffff9f02fdf4 __switch_to+0x24        process_64.c:505     pushq  %r12                        
+[000]  2336.210811381:                        ffffffff9f02fdf6 __switch_to+0x26        process_64.c:505     mov %rsi, %r12                     
+[000]  2336.210811381:                        ffffffff9f02fdf9 __switch_to+0x29        process_64.c:505     pushq  %rbx                        
+[000]  2336.210811381:                        ffffffff9f02fdfa __switch_to+0x2a        process_64.c:505     sub $0x10, %rsp                    
+[000]  2336.210811381:                        ffffffff9f02fdfe __switch_to+0x2e        bitops.h:207     movq  (%rax), %rdx                     |515             if (!test_thread_flag(TIF_NEED_FPU_LOAD))
+[000]  2336.210811381:                        ffffffff9f02fe01 __switch_to+0x31        process_64.c:510     movl  %gs:0x60fe0548(%rip), %ebx   |510             int cpu = smp_processor_id();
+[000]  2336.210811381:                        ffffffff9f02fe08 __switch_to+0x38        process_64.c:515     and $0x40, %dh                     |515             if (!test_thread_flag(TIF_NEED_FPU_LOAD))
+[000]  2336.210811382:   jcc                  ffffffff9f02fe0b __switch_to+0x3b        process_64.c:515     jz 0x2c2    IPC: 2.83 (17/6)       
+[000]  2336.210811382:                        ffffffff9f0300cd __switch_to+0x2fd       internal.h:574     testb  $0x20, 0x26(%rax)             |516                     switch_fpu_prepare(prev_fpu, cpu);
+[000]  2336.210811382:   jcc                  ffffffff9f0300d1 __switch_to+0x301       internal.h:574     jnz 0xfffffffffffffd40               
+[000]  2336.210811382:                        ffffffff9f0300d7 __switch_to+0x307       process_64.c:508     leaq  0x1400(%rdi), %rcx           |508             struct fpu *prev_fpu = &prev->fpu;
+[000]  2336.210811382:                        ffffffff9f0300de __switch_to+0x30e       cpufeature.h:175     nopl  %eax, (%rax,%rax,1)          |516                     switch_fpu_prepare(prev_fpu, cpu);
+[000]  2336.210811382:                        ffffffff9f0300e3 __switch_to+0x313       internal.h:327     movl  0x181715e(%rip), %r9d          
+[000]  2336.210811382:                        ffffffff9f0300ea __switch_to+0x31a       internal.h:420     leaq  0x1440(%r13), %rdi             
+[000]  2336.210811382:                        ffffffff9f0300f1 __switch_to+0x321       internal.h:327     test %r9d, %r9d                      
+[000]  2336.210811382:   jcc                  ffffffff9f0300f4 __switch_to+0x324       internal.h:327     jz 0x141                             
+[000]  2336.210811382:                        ffffffff9f0300fa __switch_to+0x32a       internal.h:329     mov $0xffffffff, %eax                
+[000]  2336.210811382:                        ffffffff9f0300ff __switch_to+0x32f       internal.h:329     mov %eax, %edx                       
+[000]  2336.210811382:                        ffffffff9f030101 __switch_to+0x331       internal.h:329     xsaves64 (%rdi)                      
+[000]  2336.210811382:                        ffffffff9f030105 __switch_to+0x335       internal.h:329     xor %eax, %eax                       
+[000]  2336.210811382:                        ffffffff9f030107 __switch_to+0x337       internal.h:332     test %eax, %eax                      
+[000]  2336.210811382:   jcc                  ffffffff9f030109 __switch_to+0x339       internal.h:332     jnz 0x125                            
+[000]  2336.210811382:                        ffffffff9f03010f __switch_to+0x33f       internal.h:426     testb  $0xe0, 0x1640(%r13)           
+[000]  2336.210811382:   jcc                  ffffffff9f030117 __switch_to+0x347       internal.h:426     jnz 0xf0                             
+[000]  2336.210811382:                        ffffffff9f03011d __switch_to+0x34d       internal.h:578     movl  %ebx, 0x1400(%r13)             
+[000]  2336.210811382:                        ffffffff9f030124 __switch_to+0x354       jump_label.h:25     nopl  %eax, (%rax,%rax,1)           
+[000]  2336.210811382:   jmp                  ffffffff9f030129 __switch_to+0x359       jump_label.h:34     jmp 0xfffffffffffffce8              
+[000]  2336.210811382:                        ffffffff9f02fe11 __switch_to+0x41        process_64.c:201     mov %fs, %ax                       |523             save_fsgs(prev_p);
+[000]  2336.210811382:                        ffffffff9f02fe14 __switch_to+0x44        process_64.c:201     movw  %ax, 0x1364(%r13)            
+[000]  2336.210811382:                        ffffffff9f02fe1c __switch_to+0x4c        process_64.c:202     mov %gs, %ax                       
+[000]  2336.210811382:                        ffffffff9f02fe1f __switch_to+0x4f        process_64.c:164     cmpw  $0x0, 0x1364(%r13)           
+[000]  2336.210811382:                        ffffffff9f02fe28 __switch_to+0x58        process_64.c:202     movw  %ax, 0x1366(%r13)            
+[000]  2336.210811382:   jcc                  ffffffff9f02fe30 __switch_to+0x60        process_64.c:164     jnz 0x373                          
+[000]  2336.210811382:                        ffffffff9f02fe36 __switch_to+0x66        process_64.c:164     cmpw  $0x0, 0x1366(%r13)           
+[000]  2336.210811428:   jcc                  ffffffff9f02fe3f __switch_to+0x6f        process_64.c:164     jnz 0x346    IPC: 0.13 (27/195)    
+[000]  2336.210811428:                        ffffffff9f02fe45 __switch_to+0x75        paravirt.h:271     mov %ebx, %esi                       |529             load_TLS(next, cpu);
+[000]  2336.210811428:                        ffffffff9f02fe47 __switch_to+0x77        paravirt.h:271     mov %r15, %rdi                       
+[000]  2336.210811428:   call                 ffffffff9f02fe4a __switch_to+0x7a        paravirt.h:271     callq  0x48876                       
+[000]  2336.210811428:                        ffffffff9f0786c0 native_load_tls+0x0     desc.h:282     movq  (%rdi), %rdx                       |282                     gdt[GDT_ENTRY_TLS_MIN + i] = t->tls_array[i];
+[000]  2336.210811428:                        ffffffff9f0786c3 native_load_tls+0x3     desc.h:57     mov %esi, %esi                            |278             struct desc_struct *gdt = get_cpu_gdt_rw(cpu);
+[000]  2336.210811428:                        ffffffff9f0786c5 native_load_tls+0x5     desc.h:57     mov $0x9000, %rax                         
+[000]  2336.210811428:                        ffffffff9f0786cc native_load_tls+0xc     desc.h:57     addq  -0x5fbbb680(,%rsi,8), %rax          
+[000]  2336.210811428:                        ffffffff9f0786d4 native_load_tls+0x14    desc.h:282     movq  %rdx, 0x60(%rax)                   |282                     gdt[GDT_ENTRY_TLS_MIN + i] = t->tls_array[i];
+[000]  2336.210811428:                        ffffffff9f0786d8 native_load_tls+0x18    desc.h:282     movq  0x8(%rdi), %rdx                    
+[000]  2336.210811428:                        ffffffff9f0786dc native_load_tls+0x1c    desc.h:282     movq  %rdx, 0x68(%rax)                   
+[000]  2336.210811428:                        ffffffff9f0786e0 native_load_tls+0x20    desc.h:282     movq  0x10(%rdi), %rdx                   
+[000]  2336.210811428:                        ffffffff9f0786e4 native_load_tls+0x24    desc.h:282     movq  %rdx, 0x70(%rax)                   
+[000]  2336.210811429:   return               ffffffff9f0786e8 native_load_tls+0x28    desc.h:283     retq      IPC: 3.25 (13/4)               |283      }
+[000]  2336.210811429:                        ffffffff9f02fe4f __switch_to+0x7f        paravirt.h:271     data16 nop                           |529             load_TLS(next, cpu);
+[000]  2336.210811429:                        ffffffff9f02fe51 __switch_to+0x81        paravirt.h:611     mov %r12, %rdi                       |536             arch_end_context_switch(next_p);
+[000]  2336.210811429:                        ffffffff9f02fe54 __switch_to+0x84        paravirt.h:611     nopl  %eax, (%rax)                   
+[000]  2336.210811429:                        ffffffff9f02fe5b __switch_to+0x8b        process_64.c:552     mov %es, %ax                       |552             savesegment(es, prev->es);
+[000]  2336.210811429:                        ffffffff9f02fe5e __switch_to+0x8e        process_64.c:552     movw  %ax, 0x20(%r14)              
+[000]  2336.210811429:                        ffffffff9f02fe63 __switch_to+0x93        process_64.c:553     movzxw  0x1360(%r12), %eax         |553             if (unlikely(next->es | prev->es))
+[000]  2336.210811429:                        ffffffff9f02fe6c __switch_to+0x9c        process_64.c:553     mov %eax, %ebx                     
+[000]  2336.210811429:                        ffffffff9f02fe6e __switch_to+0x9e        process_64.c:553     orw  0x1360(%r13), %bx             
+[000]  2336.210811430:   jcc                  ffffffff9f02fe76 __switch_to+0xa6        process_64.c:553     jnz 0x31f    IPC: 4.50 (9/2)       
+[000]  2336.210811430:                        ffffffff9f02fe7c __switch_to+0xac        process_64.c:556     mov %ds, %ax                       |556             savesegment(ds, prev->ds);
+[000]  2336.210811430:                        ffffffff9f02fe7f __switch_to+0xaf        process_64.c:556     movw  %ax, 0x22(%r14)              
+[000]  2336.210811430:                        ffffffff9f02fe84 __switch_to+0xb4        process_64.c:557     movzxw  0x1362(%r12), %eax         |557             if (unlikely(next->ds | prev->ds))
+[000]  2336.210811430:                        ffffffff9f02fe8d __switch_to+0xbd        process_64.c:557     mov %eax, %ebx                     
+[000]  2336.210811430:                        ffffffff9f02fe8f __switch_to+0xbf        process_64.c:557     orw  0x1362(%r13), %bx             
+[000]  2336.210811430:   jcc                  ffffffff9f02fe97 __switch_to+0xc7        process_64.c:557     jnz 0x305                          
+[000]  2336.210811430:                        ffffffff9f02fe9d __switch_to+0xcd        process_64.c:283     movq  0x1368(%r12), %rdx           |560             x86_fsgsbase_load(prev, next);
+[000]  2336.210811430:                        ffffffff9f02fea5 __switch_to+0xd5        process_64.c:283     movzxw  0x1364(%r13), %ecx         
+[000]  2336.210811430:                        ffffffff9f02fead __switch_to+0xdd        process_64.c:284     movzxw  0x1364(%r12), %eax         
+[000]  2336.210811430:                        ffffffff9f02feb6 __switch_to+0xe6        process_64.c:236     cmp $0x3, %ax                      
+[000]  2336.210811430:   jcc                  ffffffff9f02feba __switch_to+0xea        process_64.c:236     jnbe 0x2b4                         
+[000]  2336.210811430:                        ffffffff9f02fec0 __switch_to+0xf0        process_64.c:241     test %rdx, %rdx                    
+[000]  2336.210811430:   jcc                  ffffffff9f02fec3 __switch_to+0xf3        process_64.c:241     jz 0x1c2                           
+[000]  2336.210811430:   jmp                  ffffffff9f030085 __switch_to+0x2b5       cpufeature.h:175     jmp 0xd7                           
+[000]  2336.210811430:                        ffffffff9f03015c __switch_to+0x38c       process_64.c:262     or %eax, %ecx                      
+[000]  2336.210811430:                        ffffffff9f03015e __switch_to+0x38e       process_64.c:262     movzx %cx, %ecx                    
+[000]  2336.210811430:                        ffffffff9f030161 __switch_to+0x391       process_64.c:262     orq  0x1368(%r13), %rcx            
+[000]  2336.210811430:   jcc                  ffffffff9f030168 __switch_to+0x398       process_64.c:262     jz 0xfffffffffffffd7a              
+[000]  2336.210811430:                        ffffffff9f03016e __switch_to+0x39e       segment.h:349     mov %ax, %fs                          
+[000]  2336.210811430:   jmp                  ffffffff9f030170 __switch_to+0x3a0       segment.h:356     jmp 0xfffffffffffffd72                
+[000]  2336.210811430:                        ffffffff9f02fee2 __switch_to+0x112       process_64.c:285     movq  0x1370(%r12), %r14           
+[000]  2336.210811430:                        ffffffff9f02feea __switch_to+0x11a       process_64.c:285     movzxw  0x1366(%r13), %eax         
+[000]  2336.210811430:                        ffffffff9f02fef2 __switch_to+0x122       process_64.c:286     movzxw  0x1366(%r12), %ebx         
+[000]  2336.210811430:                        ffffffff9f02fefb __switch_to+0x12b       process_64.c:236     cmp $0x3, %bx                      
+[000]  2336.210811430:   jcc                  ffffffff9f02feff __switch_to+0x12f       process_64.c:236     jnbe 0x24e                         
+[000]  2336.210811430:                        ffffffff9f02ff05 __switch_to+0x135       process_64.c:241     test %r14, %r14                    
+[000]  2336.210811439:   jcc                  ffffffff9f02ff08 __switch_to+0x138       process_64.c:241     jnz 0x19b    IPC: 0.67 (27/40)     
+[000]  2336.210811439:   jmp                  ffffffff9f02ff0e __switch_to+0x13e       cpufeature.h:175     jmp 0x22d                          
+[000]  2336.210811439:                        ffffffff9f03013b __switch_to+0x36b       process_64.c:262     or %ebx, %eax                      
+[000]  2336.210811439:                        ffffffff9f03013d __switch_to+0x36d       process_64.c:262     movzx %ax, %eax                    
+[000]  2336.210811439:                        ffffffff9f030140 __switch_to+0x370       process_64.c:262     orq  0x1370(%r13), %rax            
+[000]  2336.210811439:   jcc                  ffffffff9f030147 __switch_to+0x377       process_64.c:262     jz 0xfffffffffffffde2              
+[000]  2336.210811439:                        ffffffff9f02ff29 __switch_to+0x159       process_64.c:565     movq  %r12, %gs:0x60fe6c8f(%rip)   |565             this_cpu_write(current_task, next_p);
+[000]  2336.210811439:                        ffffffff9f02ff31 __switch_to+0x161       process_64.c:566     movq  0x18(%r12), %rax             |566             this_cpu_write(cpu_current_top_of_stack, task_top_of_stack(next_p));
+[000]  2336.210811439:                        ffffffff9f02ff36 __switch_to+0x166       process_64.c:566     add $0x4000, %rax                  
+[000]  2336.210811439:                        ffffffff9f02ff3c __switch_to+0x16c       process_64.c:566     movq  %rax, %gs:0x60fd60c8(%rip)   
+[000]  2336.210811439:                        ffffffff9f02ff44 __switch_to+0x174       internal.h:595     movl  0x161efa6(%rip), %ebx          |568             switch_fpu_finish(next_fpu);
+[000]  2336.210811439:                        ffffffff9f02ff4a __switch_to+0x17a       current.h:15     movq  %gs:0x16bc0, %rax                
+[000]  2336.210811439:                        ffffffff9f02ff53 __switch_to+0x183       bitops.h:55     lock orb  $0x40, 0x1(%rax)              
+[000]  2336.210811439:   jmp                  ffffffff9f02ff58 __switch_to+0x188       cpufeature.h:175     jmp 0x41                           
+[000]  2336.210811439:   jmp                  ffffffff9f02ff99 __switch_to+0x1c9       cpufeature.h:175     jmp 0x18                           |571             update_task_stack(next_p);
+[000]  2336.210811439:                        ffffffff9f02ffb1 __switch_to+0x1e1       process.h:16     movq  (%r12), %rdx                     |573             switch_to_extra(prev_p, next_p);
+[000]  2336.210811439:                        ffffffff9f02ffb5 __switch_to+0x1e5       process.h:17     movq  (%r13), %rax                     
+[000]  2336.210811439:                        ffffffff9f02ffb9 __switch_to+0x1e9       jump_label.h:41     nopl  %eax, (%rax,%rax,1)           
+[000]  2336.210811439:                        ffffffff9f02ffbe __switch_to+0x1ee       process.h:36     and $0x2418620, %edx                   
+[000]  2336.210811439:                        ffffffff9f02ffc4 __switch_to+0x1f4       process.h:36     and $0x2418e20, %eax                   
+[000]  2336.210811439:                        ffffffff9f02ffc9 __switch_to+0x1f9       process.h:36     or %rax, %rdx                          
+[000]  2336.210811439:   jcc                  ffffffff9f02ffcc __switch_to+0x1fc       process.h:36     jnz 0x1a9                              
+[000]  2336.210811439:   jmp                  ffffffff9f02ffd2 __switch_to+0x202       cpufeature.h:175     jmp 0x1a                           |581             if (unlikely(static_cpu_has(X86_FEATURE_XENPV) &&
+[000]  2336.210811439:   jmp                  ffffffff9f02ffec __switch_to+0x21c       cpufeature.h:175     jmp 0x15                           |586             if (static_cpu_has_bug(X86_BUG_SYSRET_SS_ATTRS)) {
+[000]  2336.210811439:   jmp                  ffffffff9f030001 __switch_to+0x231       jump_label.h:41     jmp 0x72                            |615             resctrl_sched_in();
+[000]  2336.210811439:                        ffffffff9f030073 __switch_to+0x2a3       process_64.c:618     add $0x10, %rsp                    |618      }
+[000]  2336.210811439:                        ffffffff9f030077 __switch_to+0x2a7       process_64.c:618     mov %r13, %rax                     
+[000]  2336.210811439:                        ffffffff9f03007a __switch_to+0x2aa       process_64.c:618     popq  %rbx                         
+[000]  2336.210811439:                        ffffffff9f03007b __switch_to+0x2ab       process_64.c:618     popq  %r12                         
+[000]  2336.210811439:                        ffffffff9f03007d __switch_to+0x2ad       process_64.c:618     popq  %r13                         
+[000]  2336.210811439:                        ffffffff9f03007f __switch_to+0x2af       process_64.c:618     popq  %r14                         
+[000]  2336.210811439:                        ffffffff9f030081 __switch_to+0x2b1       process_64.c:618     popq  %r15                         
+[000]  2336.210811439:                        ffffffff9f030083 __switch_to+0x2b3       process_64.c:618     popq  %rbp                         
+[000]  2336.210811468:   tr end  return       ffffffff9f030084 __switch_to+0x2b4       process_64.c:618     retq      IPC: 0.27 (33/122)       
+[000]  2336.210817292:                        ffffffff9f02fdd0 __switch_to+0x0         process_64.c:505     pushq  %rbp                        |505      {
+[000]  2336.210817292:                        ffffffff9f02fdd1 __switch_to+0x1         current.h:15     movq  %gs:0x16bc0, %rax                |515             if (!test_thread_flag(TIF_NEED_FPU_LOAD))
+[000]  2336.210817292:                        ffffffff9f02fdda __switch_to+0xa         process_64.c:505     mov %rsp, %rbp                     |505      {
+[000]  2336.210817292:                        ffffffff9f02fddd __switch_to+0xd         process_64.c:505     pushq  %r15                        
+[000]  2336.210817292:                        ffffffff9f02fddf __switch_to+0xf         process_64.c:507     leaq  0x1340(%rsi), %r15           |507             struct thread_struct *next = &next_p->thread;
+[000]  2336.210817292:                        ffffffff9f02fde6 __switch_to+0x16        process_64.c:505     pushq  %r14                        |505      {
+[000]  2336.210817292:                        ffffffff9f02fde8 __switch_to+0x18        process_64.c:506     leaq  0x1340(%rdi), %r14           |506             struct thread_struct *prev = &prev_p->thread;
+[000]  2336.210817292:                        ffffffff9f02fdef __switch_to+0x1f        process_64.c:505     pushq  %r13                        |505      {
+[000]  2336.210817292:                        ffffffff9f02fdf1 __switch_to+0x21        process_64.c:505     mov %rdi, %r13                     
+[000]  2336.210817292:                        ffffffff9f02fdf4 __switch_to+0x24        process_64.c:505     pushq  %r12                        
+[000]  2336.210817292:                        ffffffff9f02fdf6 __switch_to+0x26        process_64.c:505     mov %rsi, %r12                     
+</pre>
+
+== Example: Tracing GUI program <tt>'''kcalc'''</tt> ==
+
+Tracing a GUI program produces a very large trace.  In this case, a simple calculator program <tt>'''kcalc'''</tt> is started and immediately closed.
+
+First we can get some debug packages:
+<pre>
+$ debug_packages=$(find-dbgsym-packages $(which kcalc))
+dpkg-query: no path found matching pattern /lib/x86_64-linux-gnu/libXau.so.6
+W: Cannot find debug package for /lib/x86_64-linux-gnu/libXau.so.6 (f387ef05bc753c7843a31067224d3d3e92b7190e)
+dpkg-query: no path found matching pattern /lib/x86_64-linux-gnu/libstdc++.so.6
+W: Cannot find debug package for /lib/x86_64-linux-gnu/libstdc++.so.6 (48f1a714f64ac85caa1496bcb14275c8ff0aeace)
+dpkg-query: no path found matching pattern /lib/x86_64-linux-gnu/libogg.so.0
+W: Cannot find debug package for /lib/x86_64-linux-gnu/libogg.so.0 (861e2c0ca7f6c2ddfdffaf0ea9831e9ae84a44ac)
+$ echo $debug_packages 
+kcalc-dbgsym lib32stdc++6-10-dbg lib64stdc++6-10-dbg libbsd0-dbgsym libbz2-1.0-dbgsym libcanberra0-dbgsym libdbus-1-3-dbgsym libdbusmenu-qt5-2-dbgsym libdouble-conversion3-dbgsym libfam0-dbgsym libfreetype6-dbgsym libgcrypt20-dbgsym libgl1-dbgsym libglib2.0-0-dbgsym libglvnd0-dbgsym libglx0-dbgsym libgmp10-dbgsym libgpg-error0-dbgsym libgraphite2-3-dbgsym libharfbuzz0b-dbgsym libicu66-dbgsym libkf5archive5-dbgsym libkf5attica5-dbgsym libkf5authcore5-dbgsym libkf5codecs5-dbgsym libkf5configcore5-dbgsym libkf5configgui5-dbgsym libkf5configwidgets5-dbgsym libkf5coreaddons5-dbgsym libkf5crash5-dbgsym libkf5globalaccel5-dbgsym libkf5guiaddons5-dbgsym libkf5i18n5-dbgsym libkf5iconthemes5-dbgsym libkf5itemviews5-dbgsym libkf5notifications5-dbgsym libkf5widgetsaddons5-dbgsym libkf5windowsystem5-dbgsym libkf5xmlgui5-dbgsym libltdl7-dbgsym liblz4-1-dbgsym liblzma5-dbgsym libmpfr6-dbgsym libpcre2-16-0-dbgsym libpcre3-dbg libpng16-16-dbgsym libqt5core5a-dbgsym libqt5dbus5-dbgsym libqt5gui5-dbgsym libqt5network5-dbgsym libqt5printsupport5-dbgsym libqt5svg5-dbgsym libqt5texttospeech5-dbgsym libqt5widgets5-dbgsym libqt5x11extras5-dbgsym libqt5xml5-dbgsym libstdc++6-10-dbg libsystemd0-dbgsym libtdb1-dbgsym libvorbis0a-dbgsym libvorbisfile3-dbgsym libx11-6-dbgsym libx32stdc++6-10-dbg libxcb-keysyms1-dbgsym libxcb1-dbgsym libxdmcp6-dbg zlib1g-dbgsym
+</pre>
+
+find-dbgsym-packages fails in 3 cases because Ubuntu mixes up /lib and /usr/lib, but we can find them if we put in the correct names:
+<pre>
+$ more_debug_packages=$(find-dbgsym-packages /usr/lib/x86_64-linux-gnu/libXau.so.6 /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /usr/lib/x86_64-linux-gnu/libogg.so.0)
+$ echo $more_debug_packages 
+lib32stdc++6-10-dbg lib64stdc++6-10-dbg libogg-dbg libstdc++6-10-dbg libx32stdc++6-10-dbg libxau6-dbg
+</pre>
+
+We can try to install those:
+<pre>
+$ sudo apt-get install $debug_packages $more_debug_packages 
+[sudo] password for ahunter: 
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+Some packages could not be installed. This may mean that you have
+requested an impossible situation or if you are using the unstable
+distribution that some required packages have not yet been created
+or been moved out of Incoming.
+The following information may help to resolve the situation:
+
+The following packages have unmet dependencies:
+ lib64stdc++6-10-dbg:i386 : Depends: lib64stdc++6:i386 (>= 10-20200411-0ubuntu1) but it is not going to be installed
+                            Depends: lib64gcc-s1:i386 (>= 4.2) but it is not going to be installed
+                            Depends: libc6-amd64:i386 (>= 2.18) but it is not going to be installed
+ liblzma5-dbgsym : Depends: liblzma5 (= 5.2.4-1ubuntu1) but 5.2.4-1 is to be installed
+E: Unable to correct problems, you have held broken packages.
+</pre>
+
+But it seems the dependencies are wrong, so we leave out those ones and get the rest:
+<pre>
+$ sudo apt-get install kcalc-dbgsym lib32stdc++6-10-dbg libbsd0-dbgsym libbz2-1.0-dbgsym libcanberra0-dbgsym libdbus-1-3-dbgsym libdbusmenu-qt5-2-dbgsym libdouble-conversion3-dbgsym libfam0-dbgsym libfreetype6-dbgsym libgcrypt20-dbgsym libgl1-dbgsym libglib2.0-0-dbgsym libglvnd0-dbgsym libglx0-dbgsym libgmp10-dbgsym libgpg-error0-dbgsym libgraphite2-3-dbgsym libharfbuzz0b-dbgsym libicu66-dbgsym libkf5archive5-dbgsym libkf5attica5-dbgsym libkf5authcore5-dbgsym libkf5codecs5-dbgsym libkf5configcore5-dbgsym libkf5configgui5-dbgsym libkf5configwidgets5-dbgsym libkf5coreaddons5-dbgsym libkf5crash5-dbgsym libkf5globalaccel5-dbgsym libkf5guiaddons5-dbgsym libkf5i18n5-dbgsym libkf5iconthemes5-dbgsym libkf5itemviews5-dbgsym libkf5notifications5-dbgsym libkf5widgetsaddons5-dbgsym libkf5windowsystem5-dbgsym libkf5xmlgui5-dbgsym libltdl7-dbgsym liblz4-1-dbgsym libmpfr6-dbgsym libogg-dbg libpcre2-16-0-dbgsym libpcre3-dbg libpng16-16-dbgsym libqt5core5a-dbgsym libqt5dbus5-dbgsym libqt5gui5-dbgsym libqt5network5-dbgsym libqt5printsupport5-dbgsym libqt5svg5-dbgsym libqt5texttospeech5-dbgsym libqt5widgets5-dbgsym libqt5x11extras5-dbgsym libqt5xml5-dbgsym libstdc++6-10-dbg libsystemd0-dbgsym libtdb1-dbgsym libvorbis0a-dbgsym libvorbisfile3-dbgsym libx11-6-dbgsym libx32stdc++6-10-dbg libxau6-dbg libxcb1-dbgsym libxcb-keysyms1-dbgsym libxdmcp6-dbg zlib1g-dbgsym
+</pre>
+
+This example uses <tt>perf record</tt> with extra privileges, as described in the "Adding capabilities to <tt>perf</tt>" section.
+
+We can use <tt>'''perf record'''</tt> with options:
+* <tt>'''-m,64M'''</tt> to set the trace buffer size to 64 MiB.  This is needed to avoid trace data loss.  Note the comma is needed.  Also '''''be careful setting large buffer sizes'''''.  With per-cpu tracing (the default), one buffer per CPU will be allocated.  In our case we have 8 CPUs so that means 512 MiB.  However when tracing with per-task contexts, there will be one buffer per task, which might be far more than anticipated.
+* <tt>'''-e'''</tt> to select which events, i.e. the following:
+* <tt>'''intel_pt//u'''</tt> to get Intel PT tracing userspace only
+* <tt>'''kcalc'''</tt> is the workload.
+<pre>
+$ perf record -m,64M -e intel_pt//u kcalc
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 76.373 MB perf.data ]
+</pre>
+
+Using <tt>perf report</tt>, we can get a profile with call chains without needing any special options:
+<pre>
+$ perf report | head -156
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 0  of event 'intel_pt//u'
+# Event count (approx.): 0
+#
+# Children      Self  Command  Shared Object  Symbol
+# ........  ........  .......  .............  ......
+#
+
+
+# Samples: 0  of event 'dummy:u'
+# Event count (approx.): 0
+#
+# Children      Self  Command  Shared Object  Symbol
+# ........  ........  .......  .............  ......
+#
+
+
+# Samples: 0  of event 'dummy:u'
+# Event count (approx.): 0
+#
+# Children      Self  Command  Shared Object  Symbol
+# ........  ........  .......  .............  ......
+#
+
+
+# Samples: 1K of event 'instructions:u'
+# Event count (approx.): 1030926311
+#
+# Children      Self  Command          Shared Object                  Symbol                                                                                                                                                                                                                               
+# ........  ........  ...............  .............................  .....................................................................................................................................................................................................................................
+#
+    41.00%     0.00%  kcalc            libQt5Gui.so.5.12.8            [.] QFontDatabase::findFont
+            |
+            ---QFontDatabase::findFont
+               |          
+               |--36.29%--loadEngine
+               |          QFontconfigDatabase::fontEngine
+               |          |          
+               |           --35.82%--QFontconfigDatabase::setupFontEngine
+               |                     |          
+               |                     |--27.98%--FcFontMatch
+               |                     |          0x7f0068874c6d
+               |                     |          |          
+               |                     |           --27.62%--0x7f0068874b42
+               |                     |                     |          
+               |                     |                      --22.71%--0x7f0068874845
+               |                     |                                |          
+               |                     |                                |--15.92%--0x7f006887469f
+               |                     |                                |          |          
+               |                     |                                |          |--7.57%--0x7f006887c198
+               |                     |                                |          |          |          
+               |                     |                                |          |           --3.03%--0x7f006887be36
+               |                     |                                |          |                     |          
+               |                     |                                |          |                      --2.21%--__strchr_avx2
+               |                     |                                |          |          
+               |                     |                                |           --6.99%--0x7f006887c18b
+               |                     |                                |                     |          
+               |                     |                                |                      --2.70%--0x7f006887be36
+               |                     |                                |                                |          
+               |                     |                                |                                 --2.23%--__strchr_avx2
+               |                     |                                |          
+               |                     |                                |--1.75%--0x7f006887447b
+               |                     |                                |          FcStrCmpIgnoreCase
+               |                     |                                |          
+               |                     |                                 --1.36%--0x7f006887464f
+               |                     |          
+               |                      --7.84%--FcConfigSubstituteWithPat
+               |                                |          
+               |                                |--4.29%--0x7f00688639f7
+               |                                |          |          
+               |                                |          |--2.35%--0x7f006887c198
+               |                                |          |          |          
+               |                                |          |           --0.66%--0x7f006887be36
+               |                                |          |                     |          
+               |                                |          |                      --0.56%--__strchr_avx2
+               |                                |          |          
+               |                                |           --1.31%--0x7f006887c18b
+               |                                |                     |          
+               |                                |                      --0.51%--0x7f006887be36
+               |                                |                                __strchr_avx2
+               |                                |          
+               |                                 --0.54%--0x7f0068863a1c
+               |                                           FcStrStrIgnoreCase
+               |          
+                --4.71%--initializeDb
+                          QFontconfigDatabase::populateFontDatabase
+                          |          
+                          |--2.01%--FcFontList
+                          |          FcFontSetList
+                          |          |          
+                          |           --0.52%--0x7f006887c240
+                          |          
+                          |--1.66%--populateFromPattern
+                          |          |          
+                          |           --1.03%--FcLangSetHasLang
+                          |          
+                           --0.88%--0x7f006886318d
+                                     0x7f0068863157
+                                     |          
+                                      --0.51%--0x7f00688711db
+
+    36.29%     0.00%  kcalc            libQt5Gui.so.5.12.8            [.] loadEngine
+            |
+            ---loadEngine
+               QFontconfigDatabase::fontEngine
+               |          
+                --35.82%--QFontconfigDatabase::setupFontEngine
+                          |          
+                          |--27.98%--FcFontMatch
+                          |          0x7f0068874c6d
+                          |          |          
+                          |           --27.62%--0x7f0068874b42
+                          |                     |          
+                          |                      --22.71%--0x7f0068874845
+                          |                                |          
+                          |                                |--15.92%--0x7f006887469f
+                          |                                |          |          
+                          |                                |          |--7.57%--0x7f006887c198
+                          |                                |          |          |          
+                          |                                |          |           --3.03%--0x7f006887be36
+                          |                                |          |                     |          
+                          |                                |          |                      --2.21%--__strchr_avx2
+                          |                                |          |          
+                          |                                |           --6.99%--0x7f006887c18b
+                          |                                |                     |          
+                          |                                |                      --2.70%--0x7f006887be36
+                          |                                |                                |          
+                          |                                |                                 --2.23%--__strchr_avx2
+                          |                                |          
+                          |                                |--1.75%--0x7f006887447b
+                          |                                |          FcStrCmpIgnoreCase
+                          |                                |          
+                          |                                 --1.36%--0x7f006887464f
+                          |          
+                           --7.84%--FcConfigSubstituteWithPat
+                                     |          
+                                     |--4.29%--0x7f00688639f7
+                                     |          |          
+                                     |          |--2.35%--0x7f006887c198
+                                     |          |          |          
+                                     |          |           --0.66%--0x7f006887be36
+                                     |          |                     |          
+                                     |          |                      --0.56%--__strchr_avx2
+                                     |          |          
+                                     |           --1.31%--0x7f006887c18b
+                                     |                     |          
+                                     |                      --0.51%--0x7f006887be36
+                                     |                                __strchr_avx2
+                                     |          
+                                      --0.54%--0x7f0068863a1c
+                                                FcStrStrIgnoreCase
+</pre>
+
+== Example: Using SQL to analyze latencies ==
+
+In this example, eMMC driver latencies are analyzed.
+
+On an otherwise idle test system, we can run a small test with dd and trace it with Intel PT.  In this case we will trace as root.
+
+The test case is reading from the eMMC because reading is faster and therefore is affected more by latencies.
+
+First we can drop caches:
+<pre>
+# sync
+# echo 3 > /proc/sys/vm/drop_caches
+[  398.282985] sh (207): drop_caches: 3
+</pre>
+
+We can start an open-ended trace, then run the test case <tt>dd</tt> command, then kill <tt>perf</tt> to end the trace.
+
+We can use <tt>'''perf record'''</tt> with options:
+* <tt>'''-o t4'''</tt> to name the output t4 as it was, in fact, our the 4th test
+* <tt>'''-a'''</tt> to trace system wide i.e. all tasks, all CPUs
+* <tt>'''--kcore'''</tt> to copy kernel object code from the /proc/kcore image (helps avoid decoding errors due to kernel self-modifying code)
+* <tt>'''--no-bpf-event'''</tt> to avoid unwanted bpf events because they were making perf segfault.
+* <tt>'''-e'''</tt> to select which events, i.e. the following:
+* <tt>'''intel_pt/cyc,mtc=0/k'''</tt> to get Intel PT with cycle-accurate mode.  We also avoid MTC packets which was found to give a better trace in this case.
+<pre>
+# perf record -o t4 -a --kcore --no-bpf-event -e intel_pt/cyc,mtc=0/k &
+# dd if=/mnt/mmc/afile of=/dev/null bs=4096
+4096+0 records in
+4096+0 records out
+16777216 bytes (17 MB, 16 MiB) copied, 0.0758838 s, 221 MB/s
+# kill %1
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 1.923 MB t4 ]
+[1]+  Terminated                 perf record -o t4 -a --kcore --no-bpf-event -e intel_pt/cyc,mtc=0/k
+</pre>
+Note, because the test system is otherwise idle, and the test case is small and I/O bound, the resulting trace is really quite small.
+
+For a kernel trace with the <tt>--kcore</tt> option, the output directory (called t4 in this case) and everything in it, is all that we need, so we transfer it to another machine for analysis.
+
+There, we can export it to a SQLite3 database:
+<pre>
+$ perf script -i t4 --itrace=bep -s ~/libexec/perf-core/scripts/python/export-to-sqlite.py t4.db branches calls
+2020-06-09 11:17:12.507846 Creating database ...
+2020-06-09 11:17:12.512662 Writing records...
+2020-06-09 11:18:13.610538 Adding indexes
+2020-06-09 11:18:14.168248 Dropping unused tables
+2020-06-09 11:18:14.177895 Done
+</pre>
+
+To make sense of the trace we need some kernel knowledge, as follows:
+* The function that performs the 'read' system call is called vfs_read
+* The function that issues eMMC I/O is called mmc_blk_mq_issue_rq
+* The function that completes eMMC I/O is called mmc_blk_mq_complete
+
+The database contains a table of function calls which shows the time that each function started (call_time) and the time that it ended (return_time).  That table has a 'view' named 'calls_view' which is easier to deal with.
+
+The SQL below is fairly straight forward, and it is likely even someone without SQL knowledge can understand most of it.  There are 2 tricks.
+First, sqlite3 doesn't size columns correctly so we need to artificially make the 'symbol' column wider by renaming it with a long name <tt>"symbol&nbsp;name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"</tt>.
+Secondly, to show the call_time difference to the previous row, the LAG function is used.  That doesn't make sense on the first row, but on the second row, the value is 411032602702 - 411032546128 = 56574.
+
+<pre>
+$ sqlite3  -column -header t4.db \
+> 'SELECT call_id,command,symbol AS "symbol name            ",call_time,call_time - LAG(call_time,1,0) OVER (ORDER BY id) call_time_lag,
+> return_time,elapsed_time,branch_count,insn_count,cyc_count,IPC,flags 
+> FROM calls_view WHERE (command = "dd" AND symbol = "vfs_read") OR symbol IN ("mmc_blk_mq_issue_rq", "mmc_blk_mq_complete") ORDER BY call_time;' | head -100
+call_id     command     symbol name              call_time     call_time_lag  return_time   elapsed_time  branch_count  insn_count  cyc_count   IPC         flags     
+----------  ----------  -----------------------  ------------  -------------  ------------  ------------  ------------  ----------  ----------  ----------  ----------
+182536      dd          vfs_read                 411032546128  411032546128   411032550680  4552          293           2573        8890        0.29                  
+191117      dd          vfs_read                 411032602702  56574          411032605663  2961          285           2397        5726        0.42                  
+199364      dd          vfs_read                 411032652150  49448          411032655372  3222          282           2499        6233        0.4                   
+256863      dd          vfs_read                 411033324366  672216         411035014934  1690568       2456          19464       78746       0.25                  
+434468      kworker/3:  mmc_blk_mq_issue_rq      411034185597  861231         411034195025  9428          117           1005        18042       0.06                  
+436485      swapper     mmc_blk_mq_complete      411035001225  815628         411035009951  8726          464           3630        16785       0.22        jump      
+437997      dd          vfs_read                 411035018460  17235          411035041818  23358         2194          17360       27335       0.64                  
+440393      kworker/3:  mmc_blk_mq_issue_rq      411035034183  15723          411035038508  4325          95            727         1785        0.41                  
+441291      dd          vfs_read                 411035043009  8826           411035044052  1043          119           1169        2080        0.56                  
+441496      dd          vfs_read                 411035044594  1585           411035045478  884           119           1169        1722        0.68                  
+441701      dd          vfs_read                 411035045885  1291           411035343621  297736        3981          36177       30929       1.17                  
+445677      kworker/3:  mmc_blk_mq_issue_rq      411035061376  15491          411035065210  3834          95            848         1079        0.79                  
+447604      swapper     mmc_blk_mq_complete      411035337501  276125         411035340344  2843          340           2692        5469        0.49        jump      
+448875      dd          vfs_read                 411035344722  7221           411035345661  939           119           1169        1846        0.63                  
+449080      dd          vfs_read                 411035346106  1384           411035347080  974           119           1169        1894        0.62                  
+449285      dd          vfs_read                 411035347486  1380           411035348326  840           119           1169        1636        0.71                  
+449490      dd          vfs_read                 411035348733  1247           411035349616  883           119           1169        1724        0.68                  
+449695      dd          vfs_read                 411035350151  1418           411035350869  718           119           1169        1402        0.83                  
+449900      dd          vfs_read                 411035351288  1137           411035352137  849           119           1169        1657        0.71                  
+450105      dd          vfs_read                 411035352538  1250           411035353358  820           119           1169        1601        0.73                  
+450310      dd          vfs_read                 411035353758  1220           411035716494  362736        6102          50580       39418       1.28                  
+456386      kworker/3:  mmc_blk_mq_issue_rq      411035373641  19883          411035377812  4171          112           1078        8037        0.13                  
+457553      swapper     mmc_blk_mq_complete      411035710799  337158         411035713234  2435          368           2956        4685        0.63        jump      
+458851      dd          vfs_read                 411035717565  6766           411035718671  1106          119           1169        2207        0.53                  
+459056      dd          vfs_read                 411035719152  1587           411035719880  728           119           1169        1420        0.82                  
+459261      dd          vfs_read                 411035720292  1140           411035721143  851           119           1169        1661        0.7                   
+459466      dd          vfs_read                 411035721544  1252           411035722345  801           119           1169        1560        0.75                  
+459671      dd          vfs_read                 411035722750  1206           411035723805  1055          119           1169        2051        0.57                  
+459876      dd          vfs_read                 411035724202  1452           411035725094  892           119           1169        1738        0.67                  
+460081      dd          vfs_read                 411035725494  1292           411035726204  710           119           1169        1390        0.84                  
+460286      dd          vfs_read                 411035726612  1118           411035727364  752           119           1169        1471        0.79                  
+460491      dd          vfs_read                 411035727769  1157           411035728705  936           119           1169        1821        0.64                  
+460696      dd          vfs_read                 411035729098  1329           411035729929  831           119           1169        1621        0.72                  
+460901      dd          vfs_read                 411035730327  1229           411035731267  940           119           1169        1831        0.64                  
+461106      dd          vfs_read                 411035731667  1340           411035732415  748           119           1169        1461        0.8                   
+461311      dd          vfs_read                 411035732827  1160           411035733667  840           119           1169        1638        0.71                  
+461516      dd          vfs_read                 411035734066  1239           411035734884  818           119           1169        1598        0.73                  
+461721      dd          vfs_read                 411035735284  1218           411035736118  834           119           1169        1627        0.72                  
+461926      dd          vfs_read                 411035736515  1231           411036291139  554624        6669          60095       46591       1.29                  
+468611      kworker/3:  mmc_blk_mq_issue_rq      411035760954  24439          411035765009  4055          112           1078        7813        0.14                  
+474012      swapper     mmc_blk_mq_complete      411036285461  524507         411036288423  2962          448           3710        5697        0.65        jump      
+475391      dd          vfs_read                 411036292157  6696           411036293361  1204          121           1032        2343        0.44                  
+475598      dd          vfs_read                 411036293848  1691           411036294695  847           121           1032        1612        0.64                  
+475805      dd          vfs_read                 411036295112  1264           411036295943  831           121           1032        1578        0.65                  
+476012      dd          vfs_read                 411036296352  1240           411036297270  918           121           1032        1749        0.59                  
+476219      dd          vfs_read                 411036297672  1320           411036298519  847           121           1032        1610        0.64                  
+476426      dd          vfs_read                 411036298929  1257           411036299781  852           121           1032        1620        0.64                  
+476633      dd          vfs_read                 411036300180  1251           411036300978  798           121           1032        1515        0.68                  
+476840      dd          vfs_read                 411036301379  1199           411036302205  826           121           1032        1573        0.66                  
+477047      dd          vfs_read                 411036302605  1226           411036303510  905           121           1032        1723        0.6                   
+477254      dd          vfs_read                 411036303908  1303           411036304798  890           121           1032        1696        0.61                  
+477461      dd          vfs_read                 411036305195  1287           411036306098  903           121           1032        1718        0.6                   
+477668      dd          vfs_read                 411036306504  1309           411036307202  698           121           1032        1324        0.78                  
+477875      dd          vfs_read                 411036307618  1114           411036308522  904           121           1032        1721        0.6                   
+478082      dd          vfs_read                 411036308920  1302           411036309859  939           121           1032        1790        0.58                  
+478289      dd          vfs_read                 411036310258  1338           411036311112  854           121           1032        1624        0.64                  
+478496      dd          vfs_read                 411036311513  1255           411036312423  910           121           1032        1733        0.6                   
+478703      dd          vfs_read                 411036312822  1309           411036313592  770           121           1032        1462        0.71                  
+478910      dd          vfs_read                 411036314007  1185           411036314864  857           121           1032        1633        0.63                  
+479117      dd          vfs_read                 411036315262  1255           411036316193  931           121           1032        1773        0.58                  
+479324      dd          vfs_read                 411036316595  1333           411036317407  812           121           1032        1548        0.67                  
+479531      dd          vfs_read                 411036317809  1214           411036318730  921           121           1032        1752        0.59                  
+479738      dd          vfs_read                 411036319136  1327           411036319845  709           121           1032        1348        0.77                  
+479945      dd          vfs_read                 411036320259  1123           411036321429  1170          121           1032        2232        0.46                  
+480152      dd          vfs_read                 411036321833  1574           411036322748  915           121           1032        1744        0.59                  
+480359      dd          vfs_read                 411036323151  1318           411036323889  738           121           1032        1401        0.74                  
+480566      dd          vfs_read                 411036324307  1156           411036325164  857           121           1032        1634        0.63                  
+480773      dd          vfs_read                 411036325563  1256           411036326289  726           121           1032        1378        0.75                  
+480980      dd          vfs_read                 411036326696  1133           411036327544  848           121           1032        1614        0.64                  
+481187      dd          vfs_read                 411036328079  1383           411036328981  902           121           1032        1716        0.6                   
+481394      dd          vfs_read                 411036329382  1303           411036330224  842           121           1032        1604        0.64                  
+481601      dd          vfs_read                 411036330622  1240           411036331534  912           121           1032        1735        0.59                  
+481808      dd          vfs_read                 411036331931  1309           411036866337  534406        6223          51811       38456       1.35                  
+488019      kworker/3:  mmc_blk_mq_issue_rq      411036351419  19488          411036355435  4016          112           1078        7740        0.14                  
+489216      swapper     mmc_blk_mq_complete      411036860963  509544         411036863938  2975          437           3562        4657        0.76        jump      
+490583      dd          vfs_read                 411036867336  6373           411036868323  987           121           1032        1884        0.55                  
+490790      dd          vfs_read                 411036868742  1406           411036869660  918           121           1032        1751        0.59                  
+490997      dd          vfs_read                 411036870070  1328           411036871041  971           121           1032        1847        0.56                  
+491204      dd          vfs_read                 411036871454  1384           411036872335  881           121           1032        1678        0.62                  
+491411      dd          vfs_read                 411036872734  1280           411036873536  802           121           1032        1523        0.68                  
+491618      dd          vfs_read                 411036873936  1202           411036874802  866           121           1032        1642        0.63                  
+491825      dd          vfs_read                 411036875207  1271           411036876030  823           121           1032        1564        0.66                  
+492032      dd          vfs_read                 411036876429  1222           411036877279  850           121           1032        1619        0.64                  
+492239      dd          vfs_read                 411036877677  1248           411036878577  900           121           1032        1712        0.6                   
+492446      dd          vfs_read                 411036878976  1299           411036879801  825           121           1032        1571        0.66                  
+492653      dd          vfs_read                 411036880199  1223           411036881130  931           121           1032        1769        0.58                  
+492860      dd          vfs_read                 411036881526  1327           411036882247  721           121           1032        1326        0.78                  
+493067      dd          vfs_read                 411036882653  1127           411036883546  893           121           1032        1700        0.61                  
+493274      dd          vfs_read                 411036883946  1293           411036884759  813           121           1032        1547        0.67                  
+493481      dd          vfs_read                 411036885167  1221           411036885989  822           121           1032        1563        0.66                  
+493688      dd          vfs_read                 411036886387  1220           411036887255  868           121           1032        1651        0.63                  
+493895      dd          vfs_read                 411036887652  1265           411036888461  809           121           1032        1538        0.67                  
+494102      dd          vfs_read                 411036888862  1210           411036889721  859           121           1032        1632        0.63                  
+494309      dd          vfs_read                 411036890119  1257           411036891039  920           121           1032        1751        0.59                  
+494516      dd          vfs_read                 411036891439  1320           411036892243  804           121           1032        1528        0.68                  
+494723      dd          vfs_read                 411036892641  1202           411036893542  901           121           1032        1716        0.6                   
+494930      dd          vfs_read                 411036893941  1300           411036894625  684           121           1032        1296        0.8                   
+495137      dd          vfs_read                 411036895162  1221           411036896011  849           121           1032        1615        0.64                  
+</pre>
+
+The number of vfs_read between each eMMC I/O increases because of readahead.  It grows to 32 because the dd block size was 4096 and 32 * 4096 = 128 KiB which is the readahead value determined on the test system as follows:
+<pre>
+# cat /sys/block/mmcblk0/queue/read_ahead_kb
+128
+</pre>
+
+When vfs_read gets cached data, it takes less that a microsecond.  However the vfs_read that triggers I/O settles at about 550 us.  The latency between the system call and the I/O being issued is about 20 to 25 us.
+
+Of interest is the very first vfs_read that causes I/O.  It takes about 1.7 ms.  About half of that is spent before the I/O is even issued.  One possibility is runtime power management - resuming to a ready state from a low power state.
+So we can add the runtime power management function __pm_runtime_resume to the SQL query and see if that fits:
+
+<pre>
+$ sqlite3  -column -header t4.db \
+> 'SELECT call_id,command,symbol AS "symbol name            ",call_time,call_time - LAG(call_time,1,0) OVER (ORDER BY id) call_time_lag,
+> return_time,elapsed_time,branch_count,insn_count,cyc_count,IPC,flags  
+> FROM calls_view WHERE (command = "dd" AND symbol = "vfs_read") OR 
+> symbol IN ("mmc_blk_mq_issue_rq", "mmc_blk_mq_complete", "__pm_runtime_resume", "sdhci_pci_runtime_resume", "sdhci_pci_runtime_suspend") ORDER BY call_time;' | head -30
+call_id     command          symbol name              call_time     call_time_lag  return_time   elapsed_time  branch_count  insn_count  cyc_count   IPC         flags     
+----------  ---------------  -----------------------  ------------  -------------  ------------  ------------  ------------  ----------  ----------  ----------  ----------
+63682       kworker/3:2-eve  __pm_runtime_resume      408067236586  408067236586   408067237097  511           13            135         1789        0.08                  
+114034      kworker/3:2-eve  __pm_runtime_resume      410051235334  1983998748     410051235411  77            13            135         245         0.55                  
+182536      dd               vfs_read                 411032546128  981310794      411032550680  4552          293           2573        8890        0.29                  
+191117      dd               vfs_read                 411032602702  56574          411032605663  2961          285           2397        5726        0.42                  
+199364      dd               vfs_read                 411032652150  49448          411032655372  3222          282           2499        6233        0.4                   
+256863      dd               vfs_read                 411033324366  672216         411035014934  1690568       2456          19464       78746       0.25                  
+259175      kworker/3:1H-kb  __pm_runtime_resume      411033363271  38905          411034184239  820968        173371        676401      1544084     0.44                  
+259256      kworker/3:1H-kb  __pm_runtime_resume      411033366884  3613           411034181988  815104        173144        674814      1532805     0.44                  
+433515      kworker/3:1H-kb  sdhci_pci_runtime_resum  411034083899  717015         411034180654  96755         658           6972        186013      0.04        jump      
+434406      kworker/3:1H-kb  __pm_runtime_resume      411034184429  100530         411034184544  115           13            101         222         0.45                  
+434468      kworker/3:1H-kb  mmc_blk_mq_issue_rq      411034185597  1168           411034195025  9428          117           1005        18042       0.06                  
+436485      swapper          mmc_blk_mq_complete      411035001225  815628         411035009951  8726          464           3630        16785       0.22        jump      
+437997      dd               vfs_read                 411035018460  17235          411035041818  23358         2194          17360       27335       0.64                  
+440326      kworker/3:1H-kb  __pm_runtime_resume      411035033461  15001          411035033692  231           13            124         444         0.28                  
+440367      kworker/3:1H-kb  __pm_runtime_resume      411035033929  468            411035034079  150           13            0           0           0.0                   
+440393      kworker/3:1H-kb  mmc_blk_mq_issue_rq      411035034183  254            411035038508  4325          95            727         1785        0.41                  
+441291      dd               vfs_read                 411035043009  8826           411035044052  1043          119           1169        2080        0.56                  
+441496      dd               vfs_read                 411035044594  1585           411035045478  884           119           1169        1722        0.68                  
+441701      dd               vfs_read                 411035045885  1291           411035343621  297736        3981          36177       30929       1.17                  
+445677      kworker/3:1H-kb  mmc_blk_mq_issue_rq      411035061376  15491          411035065210  3834          95            848         1079        0.79                  
+447604      swapper          mmc_blk_mq_complete      411035337501  276125         411035340344  2843          340           2692        5469        0.49        jump      
+448875      dd               vfs_read                 411035344722  7221           411035345661  939           119           1169        1846        0.63                  
+449080      dd               vfs_read                 411035346106  1384           411035347080  974           119           1169        1894        0.62                  
+449285      dd               vfs_read                 411035347486  1380           411035348326  840           119           1169        1636        0.71                  
+449490      dd               vfs_read                 411035348733  1247           411035349616  883           119           1169        1724        0.68                  
+449695      dd               vfs_read                 411035350151  1418           411035350869  718           119           1169        1402        0.83                  
+449900      dd               vfs_read                 411035351288  1137           411035352137  849           119           1169        1657        0.71                  
+450105      dd               vfs_read                 411035352538  1250           411035353358  820           119           1169        1601        0.73                  
+</pre>
+
+Yes, that shows that nearly all the extra latency before the I/O is issued is due to runtime pm.
+
+More analysis would be needed to determine whether the rest of the 1.7 ms is due to the eMMC or interrupt latency.
+
+For now, we will just look at the time between the hardware interrupt, and the driver interrupt handler.  For this we need to know that the interrupt handler is called sdhci_irq and that it was running on CPU 1.
+
+Below we can see that the first interrupt at 411034993801 is between the first mmc_blk_mq_issue_rq (411034185597) and first mmc_blk_mq_complete (411035001225).  The previous hardware interrupt is 20 us earlier, which is a surprisingly long time, but still much less than the I/O time of 815us.
+
+<pre>
+$ sqlite3 -column -header t4.db \
+> 'SELECT id,cpu,time,time - LAG (time,1,0) OVER (ORDER BY id) time_lag,symbol,sym_offset,to_symbol,to_sym_offset,branch_type_name FROM samples_view
+> WHERE (cpu = 1) AND ( ( to_symbol = "sdhci_irq" AND to_sym_offset = 0 ) OR (branch_type_name = "hardware interrupt")) ;' | head -30
+id          cpu         time          time_lag      symbol                sym_offset  to_symbol             to_sym_offset  branch_type_name  
+----------  ----------  ------------  ------------  --------------------  ----------  --------------------  -------------  ------------------
+55161       1           407843243644  407843243644  tick_nohz_idle_enter  51          reschedule_interrupt  0              hardware interrupt
+63715       1           408067314572  224070928     mwait_idle            143         irq_entries_start     40             hardware interrupt
+72957       1           408347228661  279914089     mwait_idle            143         apic_timer_interrupt  0              hardware interrupt
+110047      1           409843244054  1496015393    __sched_text_start    643         reschedule_interrupt  0              hardware interrupt
+114067      1           410051312542  208068488     mwait_idle            143         irq_entries_start     40             hardware interrupt
+116528      1           410347228668  295916126     mwait_idle            143         apic_timer_interrupt  0              hardware interrupt
+436300      1           411034973294  687744626     mwait_idle            143         irq_entries_start     16             hardware interrupt
+436388      1           411034993801  20507         __x86_indirect_thunk  0           sdhci_irq             0              unconditional jump
+447419      1           411035311825  318024        mwait_idle            143         irq_entries_start     16             hardware interrupt
+447507      1           411035332130  20305         __x86_indirect_thunk  0           sdhci_irq             0              unconditional jump
+457368      1           411035685301  353171        mwait_idle            143         irq_entries_start     16             hardware interrupt
+457456      1           411035705179  19878         __x86_indirect_thunk  0           sdhci_irq             0              unconditional jump
+473827      1           411036260355  555176        mwait_idle            143         irq_entries_start     16             hardware interrupt
+473915      1           411036279988  19633         __x86_indirect_thunk  0           sdhci_irq             0              unconditional jump
+489031      1           411036835523  555535        mwait_idle            143         irq_entries_start     16             hardware interrupt
+489119      1           411036855487  19964         __x86_indirect_thunk  0           sdhci_irq             0              unconditional jump
+505392      1           411037410996  555509        mwait_idle            143         irq_entries_start     16             hardware interrupt
+505480      1           411037430723  19727         __x86_indirect_thunk  0           sdhci_irq             0              unconditional jump
+520611      1           411037986623  555900        mwait_idle            143         irq_entries_start     16             hardware interrupt
+520699      1           411038006568  19945         __x86_indirect_thunk  0           sdhci_irq             0              unconditional jump
+536927      1           411038562401  555833        mwait_idle            143         irq_entries_start     16             hardware interrupt
+537015      1           411038582223  19822         __x86_indirect_thunk  0           sdhci_irq             0              unconditional jump
+552098      1           411039137734  555511        mwait_idle            143         irq_entries_start     16             hardware interrupt
+552186      1           411039157598  19864         __x86_indirect_thunk  0           sdhci_irq             0              unconditional jump
+568254      1           411039712835  555237        mwait_idle            143         irq_entries_start     16             hardware interrupt
+568342      1           411039732767  19932         __x86_indirect_thunk  0           sdhci_irq             0              unconditional jump
+586569      1           411040288423  555656        mwait_idle            143         irq_entries_start     16             hardware interrupt
+586657      1           411040307873  19450         __x86_indirect_thunk  0           sdhci_irq             0              unconditional jump
+</pre>
+
+We can look at the 20 us between the hardware interrupt and sdhci_irq.  It shows that there are 2 other interrupt handlers being serviced that consume most of that time: idma64_irq and i801_isr
+
+<pre>
+$ perf script -i t4 --itrace=b --time 411.034973294,411.034993801 -F-comm,-tid,-period,-cpu,-event,+flags,+callindent,+addr,-dso --ns -C 1 | \
+> grep -v " jcc " | \
+> awk -F: 'BEGIN {p=0} {ns=1000000000*$1;if (!p) p=ns;printf("%10.0f %s\n",ns-p,$0);p=ns}'
+         0   411.034973294:   hw int                  irq_entries_start            ffffffffa66db33f mwait_idle+0x8f => ffffffffa6800220 irq_entries_start+0x10
+         0   411.034973294:   jmp                                                  ffffffffa6800222 irq_entries_start+0x12 => ffffffffa6800a00 common_interrupt+0x0
+         0   411.034973294:   call                        interrupt_entry          ffffffffa6800a05 common_interrupt+0x5 => ffffffffa6800910 interrupt_entry+0x0
+        37   411.034973331:   return                      interrupt_entry          ffffffffa68009cf interrupt_entry+0xbf => ffffffffa6800a0a common_interrupt+0xa
+         0   411.034973331:   call                        do_IRQ                   ffffffffa6800a0a common_interrupt+0xa => ffffffffa68017e0 do_IRQ+0x0
+         0   411.034973331:   call                            irq_enter            ffffffffa68017fa do_IRQ+0x1a => ffffffffa5c6ddd0 irq_enter+0x0
+         0   411.034973331:   call                                rcu_irq_enter    ffffffffa5c6ddd0 irq_enter+0x0 => ffffffffa5cd81a0 rcu_irq_enter+0x0
+         0   411.034973331:   call                                    rcu_dynticks_eqs_exit                        ffffffffa5cd826e rcu_irq_enter+0xce => ffffffffa5cd21d0 rcu_dynticks_eqs_exit+0x0
+        80   411.034973411:   return                                  rcu_dynticks_eqs_exit                        ffffffffa5cd21f9 rcu_dynticks_eqs_exit+0x29 => ffffffffa5cd8273 rcu_irq_enter+0xd3
+         0   411.034973411:   jmp                                                                                  ffffffffa5cd8295 rcu_irq_enter+0xf5 => ffffffffa5cd8201 rcu_irq_enter+0x61
+         0   411.034973411:   return                              rcu_irq_enter                                    ffffffffa5cd821f rcu_irq_enter+0x7f => ffffffffa5c6ddd5 irq_enter+0x5
+         0   411.034973411:   call                                tick_irq_enter                                   ffffffffa5c6de09 irq_enter+0x39 => ffffffffa5cf2050 tick_irq_enter+0x0
+         0   411.034973411:   call                                    tick_check_oneshot_broadcast_this_cpu        ffffffffa5cf205c tick_irq_enter+0xc => ffffffffa5cf0ec0 tick_check_oneshot_broadcast_this_cpu+0x0
+        88   411.034973499:   return                                  tick_check_oneshot_broadcast_this_cpu        ffffffffa5cf0ee8 tick_check_oneshot_broadcast_this_cpu+0x28 => ffffffffa5cf2061 tick_irq_enter+0x11
+         0   411.034973499:   call                                    ktime_get                                    ffffffffa5cf2075 tick_irq_enter+0x25 => ffffffffa5ce46d0 ktime_get+0x0
+         0   411.034973499:   call                                        __x86_indirect_thunk_rax                 ffffffffa5ce4704 ktime_get+0x34 => ffffffffa6a00fc0 __x86_indirect_thunk_rax+0x0
+         4   411.034973503:   jmp                                                                                  ffffffffa6a00fc0 __x86_indirect_thunk_rax+0x0 => ffffffffa5c27580 read_tsc+0x0
+        21   411.034973524:   return                                      read_tsc                                 ffffffffa5c2758c read_tsc+0xc => ffffffffa5ce4709 ktime_get+0x39
+         0   411.034973524:   return                                  ktime_get                                    ffffffffa5ce4754 ktime_get+0x84 => ffffffffa5cf207a tick_irq_enter+0x2a
+         0   411.034973524:   call                                    update_ts_time_stats                         ffffffffa5cf20cc tick_irq_enter+0x7c => ffffffffa5cf1430 update_ts_time_stats+0x0
+         0   411.034973524:   call                                        nr_iowait_cpu                            ffffffffa5cf1479 update_ts_time_stats+0x49 => ffffffffa5c98170 nr_iowait_cpu+0x0
+         0   411.034973524:   return                                      nr_iowait_cpu                            ffffffffa5c98189 nr_iowait_cpu+0x19 => ffffffffa5cf147e update_ts_time_stats+0x4e
+        12   411.034973536:   jmp                                                                                  ffffffffa5cf1497 update_ts_time_stats+0x67 => ffffffffa5cf143f update_ts_time_stats+0xf
+         0   411.034973536:   return                                  update_ts_time_stats                         ffffffffa5cf1468 update_ts_time_stats+0x38 => ffffffffa5cf20d1 tick_irq_enter+0x81
+         0   411.034973536:   call                                    sched_clock_idle_wakeup_event                ffffffffa5cf20d5 tick_irq_enter+0x85 => ffffffffa5c9a220 sched_clock_idle_wakeup_event+0x0
+         0   411.034973536:   return                                  sched_clock_idle_wakeup_event                ffffffffa5c9a227 sched_clock_idle_wakeup_event+0x7 => ffffffffa5cf20da tick_irq_enter+0x8a
+         0   411.034973536:   jmp                                                                                  ffffffffa5cf20e2 tick_irq_enter+0x92 => ffffffffa5cf2083 tick_irq_enter+0x33
+        37   411.034973573:   return                              tick_irq_enter                                   ffffffffa5cf20b8 tick_irq_enter+0x68 => ffffffffa5c6de0e irq_enter+0x3e
+         0   411.034973573:   call                                _local_bh_enable                                 ffffffffa5c6de0e irq_enter+0x3e => ffffffffa5c6d760 _local_bh_enable+0x0
+         0   411.034973573:   return                              _local_bh_enable                                 ffffffffa5c6d779 _local_bh_enable+0x19 => ffffffffa5c6de13 irq_enter+0x43
+         0   411.034973573:   jmp                                                                                  ffffffffa5c6de13 irq_enter+0x43 => ffffffffa5c6ddf2 irq_enter+0x22
+         0   411.034973573:   return                          irq_enter                                            ffffffffa5c6ddfd irq_enter+0x2d => ffffffffa68017ff do_IRQ+0x1f
+         0   411.034973573:   call                            __x86_indirect_thunk_rax                             ffffffffa680181c do_IRQ+0x3c => ffffffffa6a00fc0 __x86_indirect_thunk_rax+0x0
+       193   411.034973766:   jmp                                                                                  ffffffffa6a00fc0 __x86_indirect_thunk_rax+0x0 => ffffffffa5cc6cf0 handle_fasteoi_irq+0x0
+         0   411.034973766:   call                                _raw_spin_lock                                   ffffffffa5cc6d00 handle_fasteoi_irq+0x10 => ffffffffa66dbbd0 _raw_spin_lock+0x0
+       183   411.034973949:   return                              _raw_spin_lock                                   ffffffffa66dbbdd _raw_spin_lock+0xd => ffffffffa5cc6d05 handle_fasteoi_irq+0x15
+         0   411.034973949:   call                                irq_may_run                                      ffffffffa5cc6d08 handle_fasteoi_irq+0x18 => ffffffffa5cc6a70 irq_may_run+0x0
+         0   411.034973949:   return                              irq_may_run                                      ffffffffa5cc6a81 irq_may_run+0x11 => ffffffffa5cc6d0d handle_fasteoi_irq+0x1d
+        16   411.034973965:   call                                handle_irq_event                                 ffffffffa5cc6d5c handle_fasteoi_irq+0x6c => ffffffffa5cc3090 handle_irq_event+0x0
+         0   411.034973965:   call                                    handle_irq_event_percpu                      ffffffffa5cc30ad handle_irq_event+0x1d => ffffffffa5cc3020 handle_irq_event_percpu+0x0
+         0   411.034973965:   call                                        __handle_irq_event_percpu                ffffffffa5cc3046 handle_irq_event_percpu+0x26 => ffffffffa5cc2ea0 __handle_irq_event_percpu+0x0
+         0   411.034973965:   call                                            __x86_indirect_thunk_rax             ffffffffa5cc2ed6 __handle_irq_event_percpu+0x36 => ffffffffa6a00fc0 __x86_indirect_thunk_rax+0x0
+       158   411.034974123:   jmp                                                                                  ffffffffa6a00fc0 __x86_indirect_thunk_rax+0x0 => ffffffffa60d0270 idma64_irq+0x0
+      8285   411.034982408:   call                                                _raw_spin_lock                   ffffffffa60d0339 idma64_irq+0xc9 => ffffffffa66dbbd0 _raw_spin_lock+0x0
+         0   411.034982408:   return                                              _raw_spin_lock                   ffffffffa66dbbdd _raw_spin_lock+0xd => ffffffffa60d033e idma64_irq+0xce
+         0   411.034982408:   call                                                _raw_spin_lock                   ffffffffa60d0339 idma64_irq+0xc9 => ffffffffa66dbbd0 _raw_spin_lock+0x0
+      3358   411.034985766:   return                                              _raw_spin_lock                   ffffffffa66dbbdd _raw_spin_lock+0xd => ffffffffa60d033e idma64_irq+0xce
+         0   411.034985766:   return                                          idma64_irq                           ffffffffa60d02d4 idma64_irq+0x64 => ffffffffa5cc2edb __handle_irq_event_percpu+0x3b
+       112   411.034985878:   call                                            __x86_indirect_thunk_rax             ffffffffa5cc2ed6 __handle_irq_event_percpu+0x36 => ffffffffa6a00fc0 __x86_indirect_thunk_rax+0x0
+         1   411.034985879:   jmp                                                                                  ffffffffa6a00fc0 __x86_indirect_thunk_rax+0x0 => ffffffffa6377370 i801_isr+0x0
+         0   411.034985879:   call                                                pci_read_config_word             ffffffffa637739f i801_isr+0x2f => ffffffffa6036a70 pci_read_config_word+0x0
+       191   411.034986070:   jmp                                                                                  ffffffffa6036a87 pci_read_config_word+0x17 => ffffffffa6035cb0 pci_bus_read_config_word+0x0
+         0   411.034986070:   call                                                    __x86_indirect_thunk_rax     ffffffffa6035cea pci_bus_read_config_word+0x3a => ffffffffa6a00fc0 __x86_indirect_thunk_rax+0x0
+        21   411.034986091:   jmp                                                                                  ffffffffa6a00fc0 __x86_indirect_thunk_rax+0x0 => ffffffffa6454cc0 pci_read+0x0
+         0   411.034986091:   jmp                                                                                  ffffffffa6454cde pci_read+0x1e => ffffffffa6454c80 raw_pci_read+0x0
+         2   411.034986093:   jmp                                                                                  ffffffffa6454c9b raw_pci_read+0x1b => ffffffffa6a00fc0 __x86_indirect_thunk_rax+0x0
+         2   411.034986095:   jmp                                                                                  ffffffffa6a00fc0 __x86_indirect_thunk_rax+0x0 => ffffffffa6452220 pci_conf1_read+0x0
+         0   411.034986095:   call                                                        _raw_spin_lock_irqsave   ffffffffa645226d pci_conf1_read+0x4d => ffffffffa66dbb40 _raw_spin_lock_irqsave+0x0
+         0   411.034986095:   return                                                      _raw_spin_lock_irqsave   ffffffffa66dbb55 _raw_spin_lock_irqsave+0x15 => ffffffffa6452272 pci_conf1_read+0x52
+       191   411.034986286:   jmp                                                                                  ffffffffa64522fa pci_conf1_read+0xda => ffffffffa64522c5 pci_conf1_read+0xa5
+         0   411.034986286:   call                                                        __lock_text_start        ffffffffa64522cc pci_conf1_read+0xac => ffffffffa66db980 __lock_text_start+0x0
+         0   411.034986286:   return                                                      __lock_text_start        ffffffffa66db985 __lock_text_start+0x5 => ffffffffa64522d1 pci_conf1_read+0xb1
+         0   411.034986286:   return                                                  pci_conf1_read               ffffffffa64522db pci_conf1_read+0xbb => ffffffffa6035cef pci_bus_read_config_word+0x3f
+         0   411.034986286:   return                                              pci_bus_read_config_word         ffffffffa6035d0b pci_bus_read_config_word+0x5b => ffffffffa63773a4 i801_isr+0x34
+      7363   411.034993649:   return                                          i801_isr                             ffffffffa63773f5 i801_isr+0x85 => ffffffffa5cc2edb __handle_irq_event_percpu+0x3b
+         0   411.034993649:   call                                            __x86_indirect_thunk_rax             ffffffffa5cc2ed6 __handle_irq_event_percpu+0x36 => ffffffffa6a00fc0 __x86_indirect_thunk_rax+0x0
+       152   411.034993801:   jmp                                                                                  ffffffffa6a00fc0 __x86_indirect_thunk_rax+0x0 => ffffffffa63e14a0 sdhci_irq+0x0
+         0   411.034993801:   call                                                _raw_spin_lock                   ffffffffa63e14da sdhci_irq+0x3a => ffffffffa66dbbd0 _raw_spin_lock+0x0
+</pre>
