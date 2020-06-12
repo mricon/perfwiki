@@ -129,6 +129,7 @@ This tool requires building and installing a custom kernel module
 
 [http://halobates.de/blog/p/410 Cheat sheet for Intel Processor Trace with Linux perf and gdb]
 
+[http://www.man7.org/linux/man-pages/man1/perf-intel-pt.1.html perf Intel PT man page] and
 [http://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/tools/perf/Documentation/perf-intel-pt.txt perf Intel PT man page source]
 
 [http://lwn.net/Articles/648154/ LWN article: Adding Processor Trace support to Linux]
