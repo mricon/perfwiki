@@ -1758,3 +1758,164 @@ $ perf script -i t4 --itrace=b --time 411.034973294,411.034993801 -F-comm,-tid,-
        152   411.034993801:   jmp                                                                                  ffffffffa6a00fc0 __x86_indirect_thunk_rax+0x0 => ffffffffa63e14a0 sdhci_irq+0x0
          0   411.034993801:   call                                                _raw_spin_lock                   ffffffffa63e14da sdhci_irq+0x3a => ffffffffa66dbbd0 _raw_spin_lock+0x0
 </pre>
+
+== Example: Looking at Intel PT trace packets ==
+
+There are 2 ways to see the trace packets.  To begin, for this example, we can make a trivial trace:
+<pre>
+$ perf record -e intel_pt//u uname
+Linux
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.026 MB perf.data ]
+</pre>
+
+The first way is to use the <tt>perf script</tt> option to display a dump of trace data (<tt>'''-D'''</tt> or <tt>'''--dump-raw-trace'''</tt>).  For example, to show the first 25 lines of PERF_RECORD_AUXTRACE* events:
+<pre>
+$ perf script -D | grep -A25 PERF_RECORD_AUXTRACE 
+0 0 0x2e0 [0x98]: PERF_RECORD_AUXTRACE_INFO type: 1
+  PMU Type            8
+  Time Shift          31
+  Time Muliplier      791841207
+  Time Zero           18446744057222810652
+  Cap Time Zero       1
+  TSC bit             0x400
+  NoRETComp bit       0x800
+  Have sched_switch   3
+  Snapshot mode       0
+  Per-cpu maps        1
+  MTC bit             0x200
+  TSC:CTC numerator   226
+  TSC:CTC denominator 2
+  CYC bit             0x2
+  Max non-turbo ratio 27
+  Filter string len.  0
+  Filter string       
+
+0x378 [0x28]: event: 73
+.
+. ... raw event: size 40 bytes
+.  0000:  49 00 00 00 00 00 28 00 01 00 00 00 00 00 00 00  I.....(.........
+.  0010:  08 38 00 00 00 00 00 00 00 00 00 00 00 00 00 00  .8..............
+.  0020:  00 00 00 00 00 00 00 00                          ........        
+
+--
+0 0 0x1568 [0x30]: PERF_RECORD_AUXTRACE size: 0x5390  offset: 0  ref: 0x51f87fa233f  idx: 2  tid: 14344  cpu: 2
+.
+. ... Intel Processor Trace data: size 21392 bytes
+.  00000000:  02 82 02 82 02 82 02 82 02 82 02 82 02 82 02 82 PSB
+.  00000010:  00 00 00 00 00 00                               PAD
+.  00000016:  19 1d fe e8 87 1f 05 00                         TSC 0x51f87e8fe1d
+.  0000001e:  00 00 00 00 00 00 00 00                         PAD
+.  00000026:  02 73 d9 7e 00 54 00 00                         TMA CTC 0x7ed9 FC 0x54
+.  0000002e:  00 00                                           PAD
+.  00000030:  02 03 2a 00                                     CBR 0x2a
+.  00000034:  02 23                                           PSBEND
+.  00000036:  59 dc                                           MTC 0xdc
+.  00000038:  59 dd                                           MTC 0xdd
+.  0000003a:  59 de                                           MTC 0xde
+.  0000003c:  59 df                                           MTC 0xdf
+.  0000003e:  59 e0                                           MTC 0xe0
+.  00000040:  59 e1                                           MTC 0xe1
+.  00000042:  59 e2                                           MTC 0xe2
+.  00000044:  59 e3                                           MTC 0xe3
+.  00000046:  59 e4                                           MTC 0xe4
+.  00000048:  59 e5                                           MTC 0xe5
+.  0000004a:  59 e6                                           MTC 0xe6
+.  0000004c:  59 e7                                           MTC 0xe7
+.  0000004e:  59 e8                                           MTC 0xe8
+.  00000050:  59 e9                                           MTC 0xe9
+.  00000052:  59 ea                                           MTC 0xea
+</pre>
+
+The second way is to use <tt>perf script</tt> option to create a decoder debug log (<tt>'''--itrace=d'''</tt>).  This will create a file named <tt>'''intel_pt.log'''</tt> (beware it will overwrite any previous file)
+<pre>
+$ perf script --itrace=d
+$ cat intel_pt.log | head -60
+TSC frequency 2712013000
+Maximum non-turbo ratio 27
+event 17: cpu 0 time 0 tsc 0 PERF_RECORD_KSYMBOL addr ffffffffc0374f16 len 61 type 1 flags 0x0 name bpf_prog_6deef7357e7b4530
+event 18: cpu 0 time 0 tsc 0 PERF_RECORD_BPF_EVENT type 1, flags 0, id 22
+event 17: cpu 0 time 0 tsc 0 PERF_RECORD_KSYMBOL addr ffffffffc0384224 len 61 type 1 flags 0x0 name bpf_prog_6deef7357e7b4530
+event 18: cpu 0 time 0 tsc 0 PERF_RECORD_BPF_EVENT type 1, flags 0, id 23
+event 17: cpu 0 time 0 tsc 0 PERF_RECORD_KSYMBOL addr ffffffffc03865f9 len 61 type 1 flags 0x0 name bpf_prog_6deef7357e7b4530
+event 18: cpu 0 time 0 tsc 0 PERF_RECORD_BPF_EVENT type 1, flags 0, id 24
+event 17: cpu 0 time 0 tsc 0 PERF_RECORD_KSYMBOL addr ffffffffc0440ba9 len 61 type 1 flags 0x0 name bpf_prog_6deef7357e7b4530
+event 18: cpu 0 time 0 tsc 0 PERF_RECORD_BPF_EVENT type 1, flags 0, id 25
+event 17: cpu 0 time 0 tsc 0 PERF_RECORD_KSYMBOL addr ffffffffc045239d len 61 type 1 flags 0x0 name bpf_prog_6deef7357e7b4530
+event 18: cpu 0 time 0 tsc 0 PERF_RECORD_BPF_EVENT type 1, flags 0, id 26
+event 17: cpu 0 time 0 tsc 0 PERF_RECORD_KSYMBOL addr ffffffffc0454f83 len 61 type 1 flags 0x0 name bpf_prog_6deef7357e7b4530
+event 18: cpu 0 time 0 tsc 0 PERF_RECORD_BPF_EVENT type 1, flags 0, id 27
+event 17: cpu 0 time 0 tsc 0 PERF_RECORD_KSYMBOL addr ffffffffc068eae8 len 61 type 1 flags 0x0 name bpf_prog_6deef7357e7b4530
+event 18: cpu 0 time 0 tsc 0 PERF_RECORD_BPF_EVENT type 1, flags 0, id 28
+event 17: cpu 0 time 0 tsc 0 PERF_RECORD_KSYMBOL addr ffffffffc06901ce len 61 type 1 flags 0x0 name bpf_prog_6deef7357e7b4530
+event 18: cpu 0 time 0 tsc 0 PERF_RECORD_BPF_EVENT type 1, flags 0, id 29
+event 19: cpu 0 time 0 tsc 0 PERF_RECORD_CGROUP cgroup: 4294967297 /
+event 3: cpu 0 time 0 tsc 0 PERF_RECORD_COMM: perf:14344/14344
+timestamp: mtc_shift 3
+timestamp: tsc_ctc_ratio_n 226
+timestamp: tsc_ctc_ratio_d 2
+timestamp: tsc_ctc_mult 113
+timestamp: tsc_slip 0x10000
+queue 2 getting timestamp
+queue 2 decoding cpu 2 pid -1 tid 14344
+Scanning for PSB
+Getting more data
+Reference timestamp 0x51f87fa233f
+Scanning for PSB
+  00000000:  02 82 02 82 02 82 02 82 02 82 02 82 02 82 02 82 PSB
+  00000010:  00 00 00 00 00 00                               PAD
+  00000016:  19 1d fe e8 87 1f 05 00                         TSC 0x51f87e8fe1d
+Setting timestamp to 0x51f87e8fe1d
+  0000001e:  00 00 00 00 00 00 00 00                         PAD
+  00000026:  02 73 d9 7e 00 54 00 00                         TMA CTC 0x7ed9 FC 0x54
+CTC timestamp 0x51f87e8fd58 last MTC 0xdb  CTC rem 0x1
+  0000002e:  00 00                                           PAD
+  00000030:  02 03 2a 00                                     CBR 0x2a
+  00000034:  02 23                                           PSBEND
+Scanning for full IP
+  00000036:  59 dc                                           MTC 0xdc
+Setting timestamp to 0x51f87e900e0
+  00000038:  59 dd                                           MTC 0xdd
+Setting timestamp to 0x51f87e90468
+  0000003a:  59 de                                           MTC 0xde
+Setting timestamp to 0x51f87e907f0
+  0000003c:  59 df                                           MTC 0xdf
+Setting timestamp to 0x51f87e90b78
+  0000003e:  59 e0                                           MTC 0xe0
+Setting timestamp to 0x51f87e90f00
+  00000040:  59 e1                                           MTC 0xe1
+Setting timestamp to 0x51f87e91288
+  00000042:  59 e2                                           MTC 0xe2
+Setting timestamp to 0x51f87e91610
+  00000044:  59 e3                                           MTC 0xe3
+Setting timestamp to 0x51f87e91998
+  00000046:  59 e4                                           MTC 0xe4
+Setting timestamp to 0x51f87e91d20
+</pre>
+
+The debug log can be very big, but it can be reduced in size by setting time ranges (<tt>'''--time'''</tt> option) or specifying CPUs (<tt>'''--cpu'''</tt>).  When tracing with per-cpu contexts (which is the default), the debug log is much easier to understand if it is limited to one CPU.  The example below shows how a 2G log can be trimmed to 681K when reduced to one CPU and a 1 ms time range, and with sideband events stripped by <tt>grep -v</tt>.
+<pre>
+$ sudo ~/bin/perf record -a -e intel_pt//u -- sleep 1
+[ perf record: Woken up 3 times to write data ]
+[ perf record: Captured and wrote 12.302 MB perf.data ]
+$ sudo chgrp -R perf_users perf.data
+$ sudo chmod -R g+r perf.data
+$ perf script --itrace=d
+$ ls -lh intel_pt.log
+-rw-rw-r-- 1 user user 2.0G Jun 16 10:22 intel_pt.log
+$ perf script --itrace=d --cpu 0
+$ ls -lh intel_pt.log
+-rw-rw-r-- 1 user user 109M Jun 16 10:22 intel_pt.log
+$ perf script --itrace=i10ms
+        kwin_x11  1042 [007]  4760.598466:     922319 instructions:u:      7f54fdd1b090 QTextEngine::itemize+0x690 (/usr/lib/x86_64-linux-gnu/libQt5Gui.so.5.12.8)
+         konsole 13784 [002]  4760.617025:    4048473 instructions:u:      7f34f0282003 QString::reallocData+0x93 (/usr/lib/x86_64-linux-gnu/libQt5Core.so.5.12.8)
+            Xorg   875 [003]  4760.796426:   23859371 instructions:u:      562d6a00ab7b [unknown] (/usr/lib/xorg/Xorg)
+     plasmashell  1048 [001]  4761.155230:   15828349 instructions:u:      7f2da6ead8bb __powf_fma+0x4b (/usr/lib/x86_64-linux-gnu/libm-2.31.so)
+        kwin_x11  1042 [002]  4761.248024:   16194616 instructions:u:      7f54e56673e3 [unknown] (/usr/lib/x86_64-linux-gnu/dri/iris_dri.so)
+$ perf script --itrace=d --cpu 0 --time 4760.598,4760.599
+$ ls -lh intel_pt.log
+-rw-rw-r-- 1 user user 4.7M Jun 16 10:27 intel_pt.log
+$ grep -v "PERF_RECORD\|context_switch" intel_pt.log > intel_pt.log-no-sideband
+$ ls -lh intel_pt.log-no-sideband
+-rw-rw-r-- 1 user user 681K Jun 16 10:27 intel_pt.log-no-sideband
+</pre>
