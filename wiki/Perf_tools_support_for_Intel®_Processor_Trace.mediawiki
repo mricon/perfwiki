@@ -1898,8 +1898,8 @@ The debug log can be very big, but it can be reduced in size by setting time ran
 $ sudo ~/bin/perf record -a -e intel_pt//u -- sleep 1
 [ perf record: Woken up 3 times to write data ]
 [ perf record: Captured and wrote 12.302 MB perf.data ]
-$ sudo chgrp -R perf_users perf.data
-$ sudo chmod -R g+r perf.data
+$ sudo chgrp perf_users perf.data
+$ sudo chmod g+r perf.data
 $ perf script --itrace=d
 $ ls -lh intel_pt.log
 -rw-rw-r-- 1 user user 2.0G Jun 16 10:22 intel_pt.log
