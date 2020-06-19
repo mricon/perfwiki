@@ -1919,3 +1919,273 @@ $ grep -v "PERF_RECORD\|context_switch" intel_pt.log > intel_pt.log-no-sideband
 $ ls -lh intel_pt.log-no-sideband
 -rw-rw-r-- 1 user user 681K Jun 16 10:27 intel_pt.log-no-sideband
 </pre>
+
+== Example: Unknown symbols ==
+
+The current version of <tt>perf</tt> (v5.8-rc1) shows unknown symbols:
+<pre>
+$ perf script --itrace=b -Fip,sym,dso | grep unknown | sort -u
+                0 [unknown] ([unknown])
+     55e2455b7304 [unknown] (/usr/bin/uname)
+     55e2455b7364 [unknown] (/usr/bin/uname)
+     55e2455b7374 [unknown] (/usr/bin/uname)
+     55e2455b7384 [unknown] (/usr/bin/uname)
+     55e2455b7394 [unknown] (/usr/bin/uname)
+     55e2455b73e4 [unknown] (/usr/bin/uname)
+     55e2455b7404 [unknown] (/usr/bin/uname)
+     55e2455b7414 [unknown] (/usr/bin/uname)
+     55e2455b7424 [unknown] (/usr/bin/uname)
+     55e2455b7464 [unknown] (/usr/bin/uname)
+     55e2455b74a4 [unknown] (/usr/bin/uname)
+     55e2455b74d4 [unknown] (/usr/bin/uname)
+     55e2455b74f4 [unknown] (/usr/bin/uname)
+     55e2455b7514 [unknown] (/usr/bin/uname)
+     55e2455b7564 [unknown] (/usr/bin/uname)
+     7f4661556006 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+     7f4661556314 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+     7f4661556334 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+     7f4661556394 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+     7f46615563b4 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+     7f4661556424 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+     7f4661556454 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+     7f4661556464 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+     7f4661556474 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+     7f46615564d4 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+     7f4661556514 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+     7f4661556574 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+     7f4661556584 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+     7f46615565a4 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+     7f46615565e4 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+     7f466173f084 [unknown] (/usr/lib/x86_64-linux-gnu/ld-2.31.so)
+     7f466173f094 [unknown] (/usr/lib/x86_64-linux-gnu/ld-2.31.so)
+     7f466173f0a4 [unknown] (/usr/lib/x86_64-linux-gnu/ld-2.31.so)
+     7f466173f0c4 [unknown] (/usr/lib/x86_64-linux-gnu/ld-2.31.so)
+$ perf script --itrace=b -Faddr,sym,dso | grep unknown | sort -u
+ =>                0 [unknown] ([unknown])
+ =>     55e2455b7300 [unknown] (/usr/bin/uname)
+ =>     55e2455b7360 [unknown] (/usr/bin/uname)
+ =>     55e2455b7370 [unknown] (/usr/bin/uname)
+ =>     55e2455b7380 [unknown] (/usr/bin/uname)
+ =>     55e2455b7390 [unknown] (/usr/bin/uname)
+ =>     55e2455b73e0 [unknown] (/usr/bin/uname)
+ =>     55e2455b7400 [unknown] (/usr/bin/uname)
+ =>     55e2455b7410 [unknown] (/usr/bin/uname)
+ =>     55e2455b7420 [unknown] (/usr/bin/uname)
+ =>     55e2455b7460 [unknown] (/usr/bin/uname)
+ =>     55e2455b74a0 [unknown] (/usr/bin/uname)
+ =>     55e2455b74d0 [unknown] (/usr/bin/uname)
+ =>     55e2455b74f0 [unknown] (/usr/bin/uname)
+ =>     55e2455b7510 [unknown] (/usr/bin/uname)
+ =>     55e2455b7560 [unknown] (/usr/bin/uname)
+ =>     7f4661556000 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+ =>     7f4661556310 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+ =>     7f4661556330 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+ =>     7f4661556390 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+ =>     7f46615563b0 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+ =>     7f4661556420 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+ =>     7f4661556450 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+ =>     7f4661556460 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+ =>     7f4661556470 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+ =>     7f46615564d0 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+ =>     7f4661556510 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+ =>     7f4661556570 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+ =>     7f4661556580 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+ =>     7f46615565a0 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+ =>     7f46615565e0 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+ =>     7f466173f080 [unknown] (/usr/lib/x86_64-linux-gnu/ld-2.31.so)
+ =>     7f466173f090 [unknown] (/usr/lib/x86_64-linux-gnu/ld-2.31.so)
+ =>     7f466173f0a0 [unknown] (/usr/lib/x86_64-linux-gnu/ld-2.31.so)
+ =>     7f466173f0c0 [unknown] (/usr/lib/x86_64-linux-gnu/ld-2.31.so)
+</pre>
+
+To find out what they are we need to look at MMAP events:
+<pre>
+$ perf script --no-itrace --show-mmap-events
+           uname  2385 [007]   291.223573: PERF_RECORD_MMAP2 2385/2385: [0x55e2455b7000(0x4000) @ 0x2000 08:02 4326740 2619663641]: r-xp /usr/bin/uname
+           uname  2385 [007]   291.223584: PERF_RECORD_MMAP2 2385/2385: [0x7f466173f000(0x23000) @ 0x1000 08:02 4332741 3243916115]: r-xp /usr/lib/x86_64-linux-gnu/ld-2.31.so
+           uname  2385 [007]   291.223591: PERF_RECORD_MMAP2 2385/2385: [0x7ffd1ef71000(0x1000) @ 0 00:00 0 0]: r-xp [vdso]
+           uname  2385 [007]   291.223674: PERF_RECORD_MMAP2 2385/2385: [0x7f4661556000(0x178000) @ 0x25000 08:02 4333341 2513837035]: r-xp /usr/lib/x86_64-linux-gnu/libc-2.31.so
+</pre>
+The details of each MMAP event for a process (PID 2385 in this case) is in the form <tt>[start(size) @ offset device inode generation]: protection pathname</tt>.  To calculate a file offset from an address:
+<pre>
+file_offset = address - start + offset
+</pre>
+Unknown addresses in the range from 0x55e2455b7300 to 0x55e2455b7564 are from /usr/bin/uname, from file offset 0x2300 to 0x2564.  We can look at the section headers to find out more:
+<pre>
+$ readelf -S -W /usr/bin/uname 
+There are 30 section headers, starting at offset 0x91f8:
+
+Section Headers:
+  [Nr] Name              Type            Address          Off    Size   ES Flg Lk Inf Al
+  [ 0]                   NULL            0000000000000000 000000 000000 00      0   0  0
+  [ 1] .interp           PROGBITS        0000000000000318 000318 00001c 00   A  0   0  1
+  [ 2] .note.gnu.property NOTE            0000000000000338 000338 000020 00   A  0   0  8
+  [ 3] .note.gnu.build-id NOTE            0000000000000358 000358 000024 00   A  0   0  4
+  [ 4] .note.ABI-tag     NOTE            000000000000037c 00037c 000020 00   A  0   0  4
+  [ 5] .gnu.hash         GNU_HASH        00000000000003a0 0003a0 0000a8 00   A  6   0  8
+  [ 6] .dynsym           DYNSYM          0000000000000448 000448 000648 18   A  7   1  8
+  [ 7] .dynstr           STRTAB          0000000000000a90 000a90 00033a 00   A  0   0  1
+  [ 8] .gnu.version      VERSYM          0000000000000dca 000dca 000086 02   A  6   0  2
+  [ 9] .gnu.version_r    VERNEED         0000000000000e50 000e50 000060 00   A  7   1  8
+  [10] .rela.dyn         RELA            0000000000000eb0 000eb0 0003d8 18   A  6   0  8
+  [11] .rela.plt         RELA            0000000000001288 001288 000438 18  AI  6  25  8
+  [12] .init             PROGBITS        0000000000002000 002000 00001b 00  AX  0   0  4
+  [13] .plt              PROGBITS        0000000000002020 002020 0002e0 10  AX  0   0 16
+  [14] .plt.got          PROGBITS        0000000000002300 002300 000010 10  AX  0   0 16
+  [15] .plt.sec          PROGBITS        0000000000002310 002310 0002d0 10  AX  0   0 16
+  [16] .text             PROGBITS        00000000000025e0 0025e0 003492 00  AX  0   0 16
+  [17] .fini             PROGBITS        0000000000005a74 005a74 00000d 00  AX  0   0  4
+  [18] .rodata           PROGBITS        0000000000006000 006000 00114c 00   A  0   0 32
+  [19] .eh_frame_hdr     PROGBITS        000000000000714c 00714c 00028c 00   A  0   0  4
+  [20] .eh_frame         PROGBITS        00000000000073d8 0073d8 000be8 00   A  0   0  8
+  [21] .init_array       INIT_ARRAY      00000000000099d0 0089d0 000008 08  WA  0   0  8
+  [22] .fini_array       FINI_ARRAY      00000000000099d8 0089d8 000008 08  WA  0   0  8
+  [23] .data.rel.ro      PROGBITS        00000000000099e0 0089e0 000278 00  WA  0   0 32
+  [24] .dynamic          DYNAMIC         0000000000009c58 008c58 0001f0 10  WA  7   0  8
+  [25] .got              PROGBITS        0000000000009e48 008e48 0001a8 08  WA  0   0  8
+  [26] .data             PROGBITS        000000000000a000 009000 0000a0 00  WA  0   0 32
+  [27] .bss              NOBITS          000000000000a0a0 0090a0 000198 00  WA  0   0 32
+  [28] .gnu_debuglink    PROGBITS        0000000000000000 0090a0 000034 00      0   0  4
+  [29] .shstrtab         STRTAB          0000000000000000 0090d4 00011d 00      0   0  1
+Key to Flags:
+  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+  L (link order), O (extra OS processing required), G (group), T (TLS),
+  C (compressed), x (unknown), o (OS specific), E (exclude),
+  l (large), p (processor specific)
+</pre>
+We can see the unknown symbols are from the .plt.got and .plt.sec sections.  If we were to look also at /usr/lib/x86_64-linux-gnu/libc-2.31.so and /usr/lib/x86_64-linux-gnu/ld-2.31.so, we would see the same thing.  That is, the unknown symbols are from the .plt, .plt.got or .plt.sec sections of those files.  <tt>perf</tt> has a function named dso__synthesize_plt_symbols() to get PLT symbols, but it gets it wrong.
+
+BFD also provides a function, named bfd_get_synthetic_symtab(), to get PLT symbols.  It is used by <tt>objdump</tt> when disassembling.
+Here are the PLT symbols from /usr/bin/uname, /usr/lib/x86_64-linux-gnu/ld-2.31.so and /usr/lib/x86_64-linux-gnu/libc.so.6:
+<pre>
+$ objdump -d /usr/bin/uname -j .plt -j .plt.got -j .plt.sec | grep ^0
+0000000000002020 <.plt>:
+0000000000002300 <__cxa_finalize@plt>:
+0000000000002310 <free@plt>:
+0000000000002320 <abort@plt>:
+0000000000002330 <__errno_location@plt>:
+0000000000002340 <strncmp@plt>:
+0000000000002350 <_exit@plt>:
+0000000000002360 <__fpending@plt>:
+0000000000002370 <textdomain@plt>:
+0000000000002380 <fclose@plt>:
+0000000000002390 <bindtextdomain@plt>:
+00000000000023a0 <dcgettext@plt>:
+00000000000023b0 <__ctype_get_mb_cur_max@plt>:
+00000000000023c0 <strlen@plt>:
+00000000000023d0 <__stack_chk_fail@plt>:
+00000000000023e0 <getopt_long@plt>:
+00000000000023f0 <mbrtowc@plt>:
+0000000000002400 <__overflow@plt>:
+0000000000002410 <strrchr@plt>:
+0000000000002420 <uname@plt>:
+0000000000002430 <lseek@plt>:
+0000000000002440 <memset@plt>:
+0000000000002450 <memcmp@plt>:
+0000000000002460 <fputs_unlocked@plt>:
+0000000000002470 <calloc@plt>:
+0000000000002480 <strcmp@plt>:
+0000000000002490 <memcpy@plt>:
+00000000000024a0 <fileno@plt>:
+00000000000024b0 <fgets_unlocked@plt>:
+00000000000024c0 <malloc@plt>:
+00000000000024d0 <fflush@plt>:
+00000000000024e0 <nl_langinfo@plt>:
+00000000000024f0 <__freading@plt>:
+0000000000002500 <realloc@plt>:
+0000000000002510 <setlocale@plt>:
+0000000000002520 <__printf_chk@plt>:
+0000000000002530 <error@plt>:
+0000000000002540 <fseeko@plt>:
+0000000000002550 <fopen@plt>:
+0000000000002560 <__cxa_atexit@plt>:
+0000000000002570 <exit@plt>:
+0000000000002580 <fwrite@plt>:
+0000000000002590 <__fprintf_chk@plt>:
+00000000000025a0 <mbsinit@plt>:
+00000000000025b0 <iswprint@plt>:
+00000000000025c0 <strstr@plt>:
+00000000000025d0 <__ctype_b_loc@plt>:
+$ objdump -d /usr/lib/x86_64-linux-gnu/ld-2.31.so -j .plt -j .plt.got -j .plt.sec | grep ^0
+0000000000001000 <.plt>:
+0000000000001080 <free@plt>:
+0000000000001090 <_dl_catch_exception@plt>:
+00000000000010a0 <malloc@plt>:
+00000000000010b0 <_dl_signal_exception@plt>:
+00000000000010c0 <calloc@plt>:
+00000000000010d0 <realloc@plt>:
+00000000000010e0 <_dl_signal_error@plt>:
+00000000000010f0 <_dl_catch_error@plt>:
+$ objdump -d /usr/lib/x86_64-linux-gnu/libc.so.6 -j .plt -j .plt.got -j .plt.sec | grep ^0
+0000000000025000 <.plt>:
+0000000000025300 <__libpthread_freeres@plt>:
+0000000000025310 <malloc@plt>:
+0000000000025320 <__libdl_freeres@plt>:
+0000000000025330 <free@plt>:
+0000000000025340 <*ABS*+0xa3600@plt>:
+0000000000025350 <*ABS*+0xa27f0@plt>:
+0000000000025360 <*ABS*+0xbf960@plt>:
+0000000000025370 <realloc@plt>:
+0000000000025380 <*ABS*+0xa3a20@plt>:
+0000000000025390 <*ABS*+0xa4e10@plt>:
+00000000000253a0 <*ABS*+0xbfea0@plt>:
+00000000000253b0 <*ABS*+0xa3870@plt>:
+00000000000253c0 <__tls_get_addr@plt>:
+00000000000253d0 <*ABS*+0xa38d0@plt>:
+00000000000253e0 <*ABS*+0xa2c60@plt>:
+00000000000253f0 <*ABS*+0xbfab0@plt>:
+0000000000025400 <memalign@plt>:
+0000000000025410 <_dl_exception_create@plt>:
+0000000000025420 <*ABS*+0xa3550@plt>:
+0000000000025430 <*ABS*+0xa39d0@plt>:
+0000000000025440 <*ABS*+0xabd20@plt>:
+0000000000025450 <__tunable_get_val@plt>:
+0000000000025460 <*ABS*+0xa27b0@plt>:
+0000000000025470 <*ABS*+0xa2280@plt>:
+0000000000025480 <*ABS*+0xa29a0@plt>:
+0000000000025490 <*ABS*+0xbf9e0@plt>:
+00000000000254a0 <*ABS*+0xbff30@plt>:
+00000000000254b0 <*ABS*+0xbff30@plt>:
+00000000000254c0 <*ABS*+0xc10d0@plt>:
+00000000000254d0 <*ABS*+0xa3ad0@plt>:
+00000000000254e0 <*ABS*+0xa2350@plt>:
+00000000000254f0 <*ABS*+0xbfe60@plt>:
+0000000000025500 <*ABS*+0xa3980@plt>:
+0000000000025510 <_dl_find_dso_for_object@plt>:
+0000000000025520 <*ABS*+0xa23b0@plt>:
+0000000000025530 <*ABS*+0xa27f0@plt>:
+0000000000025540 <*ABS*+0xbf960@plt>:
+0000000000025550 <calloc@plt>:
+0000000000025560 <*ABS*+0xa36c0@plt>:
+0000000000025570 <*ABS*+0xa22d0@plt>:
+0000000000025580 <*ABS*+0xa2890@plt>:
+0000000000025590 <*ABS*+0xa3590@plt>:
+00000000000255a0 <*ABS*+0xa3760@plt>:
+00000000000255b0 <*ABS*+0xbf9a0@plt>:
+00000000000255c0 <*ABS*+0xbfe60@plt>:
+00000000000255d0 <*ABS*+0xa4dd0@plt>:
+00000000000255e0 <*ABS*+0xa2960@plt>:
+00000000000255f0 <*ABS*+0xa2220@plt>:
+0000000000025600 <*ABS*+0xa3930@plt>:
+0000000000025610 <*ABS*+0xa2900@plt>:
+0000000000025620 <*ABS*+0xa3600@plt>:
+</pre>
+Many of the PLT symbol names in libc are not particularly meaningful, and there are also some missing from 0x7f4661556000 to 0x7f46615562ff (file offset 0x25000 to 0x25300).
+However, with a branch trace, we can see where they are going anyway:
+<pre>
+$ perf script --itrace=be -F+flags,+addr,-period,-event --ns | grep -B 1 -A 2 7f4661556[012] 
+           uname  2385 [007]   291.223778433:   call                     7f46616932ab _dl_addr+0x3b (/usr/lib/x86_64-linux-gnu/libc-2.31.so) =>     7f4661556510 _dl_find_dso_for_object@plt+0x0 (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+           uname  2385 [007]   291.223778433:   jmp                      7f4661556514 _dl_find_dso_for_object@plt+0x4 (/usr/lib/x86_64-linux-gnu/libc-2.31.so) =>     7f46615561e0 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+           uname  2385 [007]   291.223778433:   jmp                      7f46615561e9 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so) =>     7f4661556000 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+           uname  2385 [007]   291.223778766:   jmp                      7f4661556006 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so) =>     7f4661756bb0 _dl_runtime_resolve_xsavec+0x0 (/usr/lib/x86_64-linux-gnu/ld-2.31.so)
+           uname  2385 [007]   291.223778766:   call                     7f4661756c29 _dl_runtime_resolve_xsavec+0x79 (/usr/lib/x86_64-linux-gnu/ld-2.31.so) =>     7f466174f0b0 _dl_fixup+0x0 (/usr/lib/x86_64-linux-gnu/ld-2.31.so)
+           uname  2385 [007]   291.223778766:   call                     7f466174f182 _dl_fixup+0xd2 (/usr/lib/x86_64-linux-gnu/ld-2.31.so) =>     7f466174a0d0 _dl_lookup_symbol_x+0x0 (/usr/lib/x86_64-linux-gnu/ld-2.31.so)
+--
+           uname  2385 [007]   291.223797766:   call                     7f46615cd275 ptmalloc_init.part.0+0xa5 (/usr/lib/x86_64-linux-gnu/libc-2.31.so) =>     7f4661556450 __tunable_get_val@plt+0x0 (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+           uname  2385 [007]   291.223797766:   jmp                      7f4661556454 __tunable_get_val@plt+0x4 (/usr/lib/x86_64-linux-gnu/libc-2.31.so) =>     7f4661556120 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+           uname  2385 [007]   291.223797766:   jmp                      7f4661556129 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so) =>     7f4661556000 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so)
+           uname  2385 [007]   291.223797766:   jmp                      7f4661556006 [unknown] (/usr/lib/x86_64-linux-gnu/libc-2.31.so) =>     7f4661756bb0 _dl_runtime_resolve_xsavec+0x0 (/usr/lib/x86_64-linux-gnu/ld-2.31.so)
+           uname  2385 [007]   291.223797766:   call                     7f4661756c29 _dl_runtime_resolve_xsavec+0x79 (/usr/lib/x86_64-linux-gnu/ld-2.31.so) =>     7f466174f0b0 _dl_fixup+0x0 (/usr/lib/x86_64-linux-gnu/ld-2.31.so)
+           uname  2385 [007]   291.223797766:   call                     7f466174f182 _dl_fixup+0xd2 (/usr/lib/x86_64-linux-gnu/ld-2.31.so) =>     7f466174a0d0 _dl_lookup_symbol_x+0x0 (/usr/lib/x86_64-linux-gnu/ld-2.31.so)
+$ 
+</pre>
