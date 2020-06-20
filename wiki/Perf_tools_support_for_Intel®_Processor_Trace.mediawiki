@@ -1924,6 +1924,10 @@ $ ls -lh intel_pt.log-no-sideband
 
 The current version of <tt>perf</tt> (v5.8-rc1) shows unknown symbols:
 <pre>
+$ perf record -e intel_pt//u uname
+Linux
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.027 MB perf.data ]
 $ perf script --itrace=b -Fip,sym,dso | grep unknown | sort -u
                 0 [unknown] ([unknown])
      55e2455b7304 [unknown] (/usr/bin/uname)
