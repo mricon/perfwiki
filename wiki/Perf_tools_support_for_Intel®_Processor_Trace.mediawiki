@@ -2193,3 +2193,579 @@ $ perf script --itrace=be -F+flags,+addr,-period,-event --ns | grep -B 1 -A 2 7f
            uname  2385 [007]   291.223797766:   call                     7f466174f182 _dl_fixup+0xd2 (/usr/lib/x86_64-linux-gnu/ld-2.31.so) =>     7f466174a0d0 _dl_lookup_symbol_x+0x0 (/usr/lib/x86_64-linux-gnu/ld-2.31.so)
 $ 
 </pre>
+
+== Example: Tracing suspend and resume ==
+
+Tracing suspend and resume can be problematic.  For example, with a NUC runing Ubuntu 20.04 the following:
+* during suspend, non-boot CPUs (CPUs 1 to 7) are disabled and Intel PT is stopped, but not restarted during resume
+* on CPU 0, while suspended, Intel PT is reset and also not restarted
+* TSC is reset, which would mess up the timing information, even if Intel PT had not been disabled
+
+The NUC and OS support "freeze" (suspend-to-idle) which does not have the issues above, however another alternative is to use [http://www.kernel.org/doc/html/latest/power/basic-pm-debugging.html pm_test] which is what we will do in this example.
+
+Before tracing, we can do a trick to reduce some trace errors.  Because there can be JIT-compiled eBPF in between modules, we need to load another module to delineate the used memory.  A good choice is zfs because it is not already loaded and it is big so it will be added at the end.
+<pre>
+$ sudo cat /proc/kallsyms | sort | tail
+ffffffffc0f7e1b8 d __UNIQUE_ID_ddebug323.71328  [rfcomm]
+ffffffffc0f7e200 d __this_module        [rfcomm]
+ffffffffc0f7e580 b __key.72085  [rfcomm]
+ffffffffc0f7e580 b rfcomm_dlc_debugfs   [rfcomm]
+ffffffffc0f7e588 b rfcomm_thread        [rfcomm]
+ffffffffc0f7e590 b l2cap_ertm   [rfcomm]
+ffffffffc0f7e591 b disable_cfc  [rfcomm]
+ffffffffc0f7e5a0 b rfcomm_sock_debugfs  [rfcomm]
+ffffffffc0f7e5b0 b rfcomm_sk_list       [rfcomm]
+ffffffffc0f7e5c8 b rfcomm_tty_driver    [rfcomm]
+$ sudo modprobe zfs
+$ sudo cat /proc/kallsyms | sort | tail
+ffffffffc1439980 b zvol_request_sync    [zfs]
+ffffffffc1439984 b zvol_inhibit_dev     [zfs]
+ffffffffc1439988 b __key.65694  [zfs]
+ffffffffc1439988 b __key.65702  [zfs]
+ffffffffc1439988 b __key.65999  [zfs]
+ffffffffc1439990 b zvol_ida     [zfs]
+ffffffffc14399a0 b zvol_htable  [zfs]
+ffffffffc14399c0 b zvol_state_list      [zfs]
+ffffffffc14399e0 b zvol_state_lock      [zfs]
+ffffffffc1439a10 b zvol_taskq   [zfs]
+</pre>
+
+We can enable pm_test as follows:
+<pre>
+$ sudo cat /sys/power/pm_test
+[none] core processors platform devices freezer
+$ sudo bash -c 'echo platform > /sys/power/pm_test'
+$ sudo cat /sys/power/pm_test
+none core processors [platform] devices freezer
+</pre>
+
+This example includes kernel tracing, which requires administrator privileges.
+
+We can start an open-ended trace, then run the suspend platform test, then kill <tt>perf</tt> to end the trace.
+
+We can use <tt>'''perf record'''</tt> with options:
+* <tt>'''-o pt-mem-test'''</tt> to name the output pt-mem-test
+* <tt>'''-a'''</tt> to trace system wide i.e. all tasks, all CPUs
+* <tt>'''--kcore'''</tt> to copy kernel object code from the /proc/kcore image (helps avoid decoding errors due to kernel self-modifying code)
+* <tt>'''-m,128M'''</tt> to set the trace buffer size to 128 MiB.  This is needed to avoid trace data loss.  Note the comma is needed.  Also '''''be careful setting large buffer sizes'''''.  With per-cpu tracing (the default), one buffer per CPU will be allocated.  In our case we have 8 CPUs so that means 1024 MiB.  However when tracing with per-task contexts, there will be one buffer per task, which might be far more than anticipated.
+* <tt>'''-e'''</tt> to select which events, i.e. the following:
+* <tt>'''intel_pt//k'''</tt> to get Intel PT tracing the kernel only
+<pre>
+$ sudo ~/bin/perf record -o pt-mem-test -a --kcore -m,128M -e intel_pt//k &
+[1] 2186
+$ sudo bash -c 'echo mem > /sys/power/state'
+$ sudo kill 2186
+$ [ perf record: Woken up 9 times to write data ]
+[ perf record: Captured and wrote 148.521 MB pt-mem-test ]
+[1]+  Terminated              sudo ~/bin/perf record -o pt-mem-test -a --kcore -m,128M -e intel_pt//k
+</pre>
+
+Now, we can disable pm_test as follows:
+<pre>
+$ sudo bash -c 'echo none > /sys/power/pm_test'
+$ sudo cat /sys/power/pm_test
+[none] core processors platform devices freezer
+</pre>
+
+We can allow perf_users to access the trace:
+<pre>
+$ sudo chgrp -R perf_users pt-mem-test
+$ sudo chmod -R g+r pt-mem-test
+$ sudo chmod g+rx pt-mem-test pt-mem-test/kcore_dir 
+</pre>
+
+We can check to see how many trace errors there are:
+<pre>
+$ perf script -i pt-mem-test --itrace=e
+Warning:
+29 instruction trace errors
+ instruction trace error type 1 time 2854.304038029 cpu 3 pid 0 tid 0 ip 0xffffffffae0001b0 code 10: Never-ending loop
+ instruction trace error type 1 time 2854.519908646 cpu 3 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2854.615877328 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2855.951848561 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2855.971847161 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2855.983848121 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2856.391842767 cpu 2 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2856.827831320 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2857.059827217 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2857.071827844 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2857.143826938 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2857.163825205 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2857.659815892 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2857.671817186 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2857.971810190 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2858.359804569 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2858.591800132 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2858.651797933 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2858.663798894 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2858.683797160 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2858.695798454 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2858.795795122 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2858.987791818 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2859.111791073 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2859.323785703 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2859.435783331 cpu 0 pid 0 tid 0 ip 0xffffffffaded55b6 code 7: Overflow packet
+ instruction trace error type 1 time 2859.474475203 cpu 0 pid 0 tid 0 ip 0xffffffffaded55a1 code 7: Overflow packet
+ instruction trace error type 1 time 2859.517865726 cpu 6 pid 0 tid 0 ip 0xffffffffad547ec9 code 7: Overflow packet
+ instruction trace error type 1 time 2859.519310388 cpu 4 pid 2189 tid 2189 ip 0xffffffffad4d9acc code 7: Overflow packet
+</pre>
+
+Most of the overflows are at 0xffffffffaded55b6, which is in mwait_idle i.e.:
+<pre>
+$ grep ffffffffaded55b6 pt-mem-test/kcore_dir/kallsyms 
+$ grep ffffffffaded55b pt-mem-test/kcore_dir/kallsyms 
+$ grep ffffffffaded55 pt-mem-test/kcore_dir/kallsyms 
+ffffffffaded5530 t mwait_idle
+$ cat pt-mem-test/kcore_dir/kallsyms | sort | grep -A 1 ffffffffaded55
+ffffffffaded5530 t mwait_idle
+ffffffffaded5700 T acpi_processor_ffh_cstate_enter
+</pre>
+It is not uncommon to get overflows when transitioning to a C-state, so these errors are not significant.
+
+Overflows last relatively short periods, and there are very few errors compared with the size of the trace, so we can ignore them.
+
+To reduce the time ranges that we look at, we can find the time of the state_store function which got called when we did <tt>'echo mem > /sys/power/state'</tt>
+<pre>
+$ perf script -i pt-mem-test --itrace=be --ns | grep state_store
+            bash  2189 [002]  2854.298249382:          1  branches:k:  ffffffffae200cf0 __x86_indirect_thunk_rax+0x10 ([kernel.kallsyms]) => ffffffffad507580 state_store+0x0 ([kernel.kallsyms])
+            bash  2189 [002]  2854.298249382:          1  branches:k:  ffffffffad5075ac state_store+0x2c ([kernel.kallsyms]) => ffffffffadeb9480 memchr+0x0 ([kernel.kallsyms])
+            bash  2189 [002]  2854.298249715:          1  branches:k:  ffffffffadeb949c memchr+0x1c ([kernel.kallsyms]) => ffffffffad5075b1 state_store+0x31 ([kernel.kallsyms])
+            bash  2189 [002]  2854.298250048:          1  branches:k:  ffffffffad5075df state_store+0x5f ([kernel.kallsyms]) => ffffffffadeb93a0 strlen+0x0 ([kernel.kallsyms])
+            bash  2189 [002]  2854.298250048:          1  branches:k:  ffffffffadeb93b4 strlen+0x14 ([kernel.kallsyms]) => ffffffffad5075e4 state_store+0x64 ([kernel.kallsyms])
+            bash  2189 [002]  2854.298250048:          1  branches:k:  ffffffffad5075f5 state_store+0x75 ([kernel.kallsyms]) => ffffffffad5075c8 state_store+0x48 ([kernel.kallsyms])
+            bash  2189 [002]  2854.298250048:          1  branches:k:  ffffffffad5075d6 state_store+0x56 ([kernel.kallsyms]) => ffffffffad5075ed state_store+0x6d ([kernel.kallsyms])
+            bash  2189 [002]  2854.298250048:          1  branches:k:  ffffffffad5075f5 state_store+0x75 ([kernel.kallsyms]) => ffffffffad5075c8 state_store+0x48 ([kernel.kallsyms])
+            bash  2189 [002]  2854.298250048:          1  branches:k:  ffffffffad5075df state_store+0x5f ([kernel.kallsyms]) => ffffffffadeb93a0 strlen+0x0 ([kernel.kallsyms])
+            bash  2189 [002]  2854.298250048:          1  branches:k:  ffffffffadeb93b4 strlen+0x14 ([kernel.kallsyms]) => ffffffffad5075e4 state_store+0x64 ([kernel.kallsyms])
+            bash  2189 [002]  2854.298250048:          1  branches:k:  ffffffffad5075eb state_store+0x6b ([kernel.kallsyms]) => ffffffffad50761d state_store+0x9d ([kernel.kallsyms])
+            bash  2189 [002]  2854.298250048:          1  branches:k:  ffffffffad507623 state_store+0xa3 ([kernel.kallsyms]) => ffffffffadeb9600 strncmp+0x0 ([kernel.kallsyms])
+            bash  2189 [002]  2854.298250048:          1  branches:k:  ffffffffadeb9627 strncmp+0x27 ([kernel.kallsyms]) => ffffffffad507628 state_store+0xa8 ([kernel.kallsyms])
+            bash  2189 [002]  2854.298250048:          1  branches:k:  ffffffffad507638 state_store+0xb8 ([kernel.kallsyms]) => ffffffffad5075fa state_store+0x7a ([kernel.kallsyms])
+            bash  2189 [002]  2854.298250048:          1  branches:k:  ffffffffad5075fd state_store+0x7d ([kernel.kallsyms]) => ffffffffad508bd0 pm_suspend+0x0 ([kernel.kallsyms])
+^C$ 
+</pre>
+
+For other time ranges, we can use the kernel messages:
+<pre>
+$ dmesg | tail -60
+[    5.553665] iwlwifi 0000:00:14.3: BIOS contains WGDS but no WRDS
+[    6.820682] Bluetooth: RFCOMM TTY layer initialized
+[    6.820688] Bluetooth: RFCOMM socket layer initialized
+[    6.820691] Bluetooth: RFCOMM ver 1.11
+[   10.290428] e1000e: eno1 NIC Link is Up 1000 Mbps Full Duplex, Flow Control: Rx/Tx
+[   10.290585] IPv6: ADDRCONF(NETDEV_CHANGE): eno1: link becomes ready
+[ 2345.150557] usb 1-2: new low-speed USB device number 4 using xhci_hcd
+[ 2345.305251] usb 1-2: New USB device found, idVendor=1a2c, idProduct=2124, bcdDevice= 1.10
+[ 2345.305255] usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[ 2345.305257] usb 1-2: Product: USB Keyboard
+[ 2345.305258] usb 1-2: Manufacturer: SEM
+[ 2345.309691] input: SEM USB Keyboard as /devices/pci0000:00/0000:00:14.0/usb1/1-2/1-2:1.0/0003:1A2C:2124.0002/input/input12
+[ 2345.366828] hid-generic 0003:1A2C:2124.0002: input,hidraw1: USB HID v1.10 Keyboard [SEM USB Keyboard] on usb-0000:00:14.0-2/input0
+[ 2345.369299] input: SEM USB Keyboard Consumer Control as /devices/pci0000:00/0000:00:14.0/usb1/1-2/1-2:1.1/0003:1A2C:2124.0003/input/input13
+[ 2345.426807] input: SEM USB Keyboard System Control as /devices/pci0000:00/0000:00:14.0/usb1/1-2/1-2:1.1/0003:1A2C:2124.0003/input/input14
+[ 2345.427152] hid-generic 0003:1A2C:2124.0003: input,hidraw2: USB HID v1.10 Device [SEM USB Keyboard] on usb-0000:00:14.0-2/input1
+[ 2633.489054] zlua: loading out-of-tree module taints kernel.
+[ 2633.489058] zlua: module license 'MIT' taints kernel.
+[ 2633.489059] Disabling lock debugging due to kernel taint
+[ 2635.463839] ZFS: Loaded module v0.8.3-1ubuntu12, ZFS pool version 5000, ZFS filesystem version 5
+[ 2854.298251] PM: suspend entry (deep)
+[ 2854.302058] Filesystems sync: 0.003 seconds
+[ 2854.303263] Freezing user space processes ... (elapsed 0.001 seconds) done.
+[ 2854.305258] OOM killer disabled.
+[ 2854.305259] Freezing remaining freezable tasks ... (elapsed 0.001 seconds) done.
+[ 2854.306481] printk: Suspending console(s) (use no_console_suspend to debug)
+[ 2854.307753] e1000e: EEE TX LPI TIMER: 00000011
+[ 2854.332049] sd 2:0:0:0: [sda] Synchronizing SCSI cache
+[ 2854.332204] sd 2:0:0:0: [sda] Stopping disk
+[ 2854.502891] ACPI: EC: interrupt blocked
+[ 2854.525496] ACPI: Preparing to enter system sleep state S3
+[ 2854.527608] ACPI: EC: event blocked
+[ 2854.527609] ACPI: EC: EC stopped
+[ 2854.527610] PM: Saving platform NVS memory
+[ 2854.527621] PM: suspend debug: Waiting for 5 second(s).
+[ 2859.465807] ACPI: EC: EC started
+[ 2859.465809] ACPI: Waking up from system sleep state S3
+[ 2859.472814] ACPI: EC: interrupt unblocked
+[ 2859.517524] ACPI: EC: event unblocked
+[ 2859.526934] iwlwifi 0000:00:14.3: Applying debug destination EXTERNAL_DRAM
+[ 2859.528470] sd 2:0:0:0: [sda] Starting disk
+[ 2859.675539] iwlwifi 0000:00:14.3: Applying debug destination EXTERNAL_DRAM
+[ 2859.743970] iwlwifi 0000:00:14.3: FW already configured (0) - re-configuring
+[ 2859.754123] iwlwifi 0000:00:14.3: BIOS contains WGDS but no WRDS
+[ 2859.844031] ata3: SATA link up 6.0 Gbps (SStatus 133 SControl 300)
+[ 2859.845676] ata3.00: ACPI cmd ef/10:06:00:00:00:00 (SET FEATURES) succeeded
+[ 2859.845680] ata3.00: ACPI cmd f5/00:00:00:00:00:00 (SECURITY FREEZE LOCK) filtered out
+[ 2859.845682] ata3.00: ACPI cmd b1/c1:00:00:00:00:00 (DEVICE CONFIGURATION OVERLAY) filtered out
+[ 2859.847186] ata3.00: ACPI cmd ef/10:06:00:00:00:00 (SET FEATURES) succeeded
+[ 2859.847189] ata3.00: ACPI cmd f5/00:00:00:00:00:00 (SECURITY FREEZE LOCK) filtered out
+[ 2859.847192] ata3.00: ACPI cmd b1/c1:00:00:00:00:00 (DEVICE CONFIGURATION OVERLAY) filtered out
+[ 2859.847451] ata3.00: configured for UDMA/133
+[ 2859.847457] ahci 0000:00:17.0: port does not support device sleep
+[ 2859.847570] ata3.00: Enabling discard_zeroes_data
+[ 2859.888491] acpi LNXPOWER:04: Turning OFF
+[ 2859.888592] OOM killer enabled.
+[ 2859.888593] Restarting tasks ... done.
+[ 2859.895729] video LNXVIDEO:00: Restoring backlight state
+[ 2859.895741] PM: suspend exit
+[ 2864.837431] e1000e: eno1 NIC Link is Up 1000 Mbps Full Duplex, Flow Control: Rx/Tx
+</pre>
+
+We can use the following times:
+* suspend start time 2854.298249382 from time of state_store
+* suspend end time 2854.527622 from time of "PM: suspend debug: Waiting for 5 second(s)." plus 1 us
+* resume start time 2859.465807 from time of "ACPI: EC: EC started"
+* resume end time 2859.895742 from time of "PM: suspend exit" plus 1 us
+
+For analysis, we can export to a database, but because we have a lot of data we will use PostgreSQL because it is faster than SQLite3 for large data sets.
+
+We can install PostgreSQL and add userid "user" as follows:
+<pre>
+$ sudo apt-get install postgresql
+$ sudo su - postgres
+$ createuser -s user
+$ exit
+</pre>
+
+We can stop PostgreSQL and stop it from starting at boot up:
+<pre>
+$ sudo systemctl stop postgresql
+$ sudo systemctl disable postgresql
+</pre>
+
+Now, we can manually start PostgreSQL when we need it:
+<pre>
+$ sudo systemctl start postgresql
+</pre>
+
+We can make one database for the suspend:
+<pre>
+$ perf script -i pt-mem-test --itrace=bp --time 2854.298249382,2854.527622 -s ~/libexec/perf-core/scripts/python/export-to-postgresql.py pt_mem_test_suspend branches calls
+2020-06-20 20:12:47.806519 Creating database...
+2020-06-20 20:12:47.919280 Writing to intermediate files...
+2020-06-20 20:12:57.584499 Copying to database...
+2020-06-20 20:13:10.366941 Removing intermediate files...
+2020-06-20 20:13:10.458730 Adding primary keys
+2020-06-20 20:13:13.194662 Adding foreign keys
+2020-06-20 20:13:23.763399 Dropping unused tables
+2020-06-20 20:13:23.784527 Done
+</pre>
+
+And one database for the resume:
+<pre>
+$ perf script -i pt-mem-test --itrace=bp --time 2859.465807,2859.895742 -s ~/libexec/perf-core/scripts/python/export-to-postgresql.py pt_mem_test_resume branches calls
+2020-06-20 20:56:33.427551 Creating database...
+2020-06-20 20:56:33.639840 Writing to intermediate files...
+2020-06-20 20:57:54.092614 Copying to database...
+2020-06-20 20:59:45.300365 Removing intermediate files...
+2020-06-20 20:59:45.715793 Adding primary keys
+2020-06-20 21:00:36.798973 Adding foreign keys
+2020-06-20 21:01:49.617689 Dropping unused tables
+2020-06-20 21:01:49.648594 Done
+</pre>
+
+We can do a crude analysis by aggregating and sorting by function elapsed time.  Note the elapsed time is summed across all CPUs and will be inaccurate for functions where a call or return was not found.
+<pre>
+$ psql pt_mem_test_suspend -c 'SELECT COUNT(symbol_id),symbol_id,(SELECT name FROM symbols WHERE id = symbol_id) AS symbol,SUM(elapsed_time) AS tot_elapsed_time,SUM(branch_count) AS tot_branch_count FROM calls_view GROUP BY symbol_id ORDER BY tot_elapsed_time DESC LIMIT 140;' | cat
+ count | symbol_id |               symbol                | tot_elapsed_time | tot_branch_count 
+-------+-----------+-------------------------------------+------------------+------------------
+ 51753 |       155 | __switch_to_asm                     |      25643692943 |          8084655
+  2247 |       118 | __schedule                          |       3384905721 |          1392743
+  1049 |       117 | schedule                            |       3073233872 |           655725
+    57 |       232 | worker_thread                       |       2251468533 |          1611634
+  2027 |       141 | __perf_event_task_sched_out         |       2179969857 |           469787
+  3657 |       142 | perf_iterate_sb                     |       2111444662 |           820888
+  7109 |       144 | perf_event_switch_output            |       2024431937 |           763784
+   765 |       161 | do_idle                             |       1801033690 |          1121148
+     8 |       162 | cpu_startup_entry                   |       1799810214 |          1117125
+   929 |       189 | cpuidle_enter_state                 |       1512404441 |           372312
+   951 |       186 | call_cpuidle                        |       1512291784 |           374355
+   929 |       187 | cpuidle_enter                       |       1512260439 |           372467
+   816 |       191 | intel_idle                          |       1506383402 |            11860
+    54 |      1572 | ret_from_fork                       |       1236671564 |           405507
+ 32212 |       150 | perf_output_copy                    |       1140597616 |           236324
+ 32622 |        19 | memcpy                              |       1037897766 |            98232
+ 33010 |        20 | memcpy_erms                         |       1037897766 |            65712
+  6858 |       151 | __perf_event__output_id_sample      |       1020294283 |           238528
+   124 |       740 | schedule_timeout                    |        833043903 |            80630
+   333 |       234 | process_one_work                    |        818013956 |          1492462
+  1617 |       156 | __switch_to                         |        806190983 |           230558
+   302 |      1388 | async_run_entry_fn                  |        805990273 |          1332080
+   935 |      1878 | __device_suspend                    |        602465683 |           795242
+   106 |      1905 | async_suspend                       |        598335358 |           711555
+    21 |      1575 | kthread                             |        511135637 |           654753
+   453 |      1674 | wait_for_completion                 |        462718168 |            27924
+  1805 |      1896 | dpm_wait                            |        462391503 |            27536
+  2752 |      1879 | dpm_wait_for_subordinate            |        462184824 |           127442
+  6458 |       147 | __perf_event_header__init_id.isra.0 |        453504285 |           207450
+ 17677 |        27 | sched_clock_cpu                     |        443029861 |           104431
+ 17678 |        28 | sched_clock                         |        442861857 |            69342
+ 17677 |        29 | native_sched_clock                  |        442769188 |            23308
+  6483 |       148 | local_clock                         |        442429154 |            73876
+  2765 |      1880 | device_for_each_child               |        434117232 |           106147
+  1801 |      1895 | dpm_wait_fn                         |        432735602 |            33496
+     7 |      1754 | smpboot_thread_fn                   |        383439061 |            27473
+   459 |      1891 | dpm_run_callback                    |        352449547 |          1209376
+    20 |      2179 | msleep                              |        284584388 |            15571
+   475 |       553 | schedule_hrtimeout_range_clock      |        224993536 |           303536
+   475 |       554 | schedule_hrtimeout_range            |        224959544 |           303188
+   306 |      1767 | usleep_range                        |        215422913 |           297674
+     2 |      2920 | tpm_transmit                        |        204055552 |           192763
+    15 |      2039 | pci_set_power_state                 |        203058833 |           313354
+    14 |      2257 | pci_raw_set_power_state             |        201300666 |            22320
+  6488 |       149 | perf_output_begin                   |        200342196 |            53228
+    76 |      3752 | default_idle_call                   |        197153681 |             9395
+    65 |      3754 | mwait_idle                          |        197150348 |             9130
+    64 |      3753 | arch_cpu_idle                       |        197150348 |             9250
+   914 |      3763 | __device_suspend_noirq              |        177018409 |           539319
+  6410 |       152 | perf_output_end                     |        172279083 |            26373
+  6406 |       153 | perf_output_put_handle              |        171087750 |            10655
+    97 |      3766 | async_suspend_noirq                 |        170761099 |           481677
+    19 |      3767 | pci_pm_suspend_noirq                |        169819437 |           461954
+     2 |      2377 | tpm_pm_suspend                      |        157369145 |           157176
+     1 |      2918 | tpm2_shutdown                       |        156458481 |           150632
+     1 |      2919 | tpm_transmit_cmd                    |        156456147 |           150552
+     9 |      3768 | pci_prepare_to_sleep                |        150865833 |           314568
+  1125 |       154 | enter_lazy_tlb                      |        143645190 |             8102
+    21 |      1975 | pci_pm_suspend                      |        130362569 |           672764
+   758 |       160 | schedule_idle                       |         89123399 |           466833
+     4 |      2157 | usb_port_resume                     |         68498773 |             7301
+     3 |       744 | rcu_gp_kthread                      |         68089441 |            14204
+     1 |      2372 | e1000e_pm_suspend                   |         58136474 |           509370
+    37 |      1977 | __pm_runtime_resume                 |         42501525 |            53958
+    39 |      1978 | rpm_resume                          |         42495862 |            53684
+     8 |      1981 | rpm_callback                        |         42488526 |            53097
+     8 |      1982 | __rpm_callback                      |         42488526 |            53093
+   912 |      3681 | __device_suspend_late               |         35785898 |           102222
+    95 |      3684 | async_suspend_late                  |         35475218 |            46241
+     9 |      1459 | async_synchronize_cookie_domain     |         34602552 |            16471
+     4 |      1983 | pci_pm_runtime_resume               |         31412230 |            45884
+     1 |      2398 | e1000e_pm_freeze                    |         27508908 |            20420
+  5930 |       525 | mutex_lock                          |         27491910 |            45500
+     3 |      1988 | rtnl_lock                           |         27271909 |             2585
+     2 |      2399 | __mutex_lock_slowpath               |         27270243 |             2558
+     2 |      2400 | __mutex_lock.isra.0                 |         27270243 |             2554
+     2 |      2401 | schedule_preempt_disabled           |         27270243 |             2518
+     2 |      1784 | suspend_devices_and_enter           |         26722578 |           313122
+     1 |      3111 | __e1000_shutdown                    |         26479579 |           418542
+     3 |      3679 | suspend_enter                       |         26475246 |           509770
+     7 |      2273 | scsi_bus_suspend_common             |         25100250 |             4560
+   335 |      3117 | e1000e_write_phy_reg_mdic           |         24979374 |           424874
+     2 |      2275 | scsi_device_quiesce                 |         24933585 |             1607
+     6 |      2272 | scsi_bus_suspend                    |         24932584 |             1556
+     1 |      2277 | blk_mq_freeze_queue                 |         24924917 |              823
+     1 |      2281 | blk_mq_freeze_queue_wait            |         24923584 |              768
+   595 |      2575 | delay_tsc                           |         24782071 |           483853
+   597 |      2574 | __const_udelay                      |         24782071 |           485042
+   678 |      1999 | raw_pci_read                        |         23076242 |           165159
+   659 |      1998 | pci_read                            |         23032911 |           167502
+   147 |      3121 | __e1000_write_phy_reg_hv            |         21554264 |           372409
+   579 |      2002 | pci_conf1_read                      |         21341669 |           161095
+     1 |      2368 | pci_legacy_suspend                  |         20570598 |             5401
+     1 |      2369 | rtsx_pci_suspend                    |         20570265 |             5384
+     1 |      3788 | hcd_pci_suspend_noirq               |         20541265 |            53751
+    19 |      2402 | pci_save_state                      |         19793934 |           150800
+ 23936 |        33 | _raw_spin_lock_irqsave              |         19035782 |           182998
+     4 |      1984 | pci_restore_standard_config         |         18696937 |            31582
+   787 |       794 | native_queued_spin_lock_slowpath    |         18328613 |           163490
+     1 |      3680 | dpm_suspend_late                    |         18081940 |            86213
+     9 |      1927 | usb_suspend_both                    |         17712607 |            14462
+    19 |      3685 | pci_pm_suspend_late                 |         17650940 |            32293
+    25 |      3686 | pm_generic_suspend_late             |         17647941 |            31934
+     1 |      3690 | i915_pm_suspend_late                |         17642941 |            31880
+     1 |      3691 | i915_drm_suspend_late               |         17642608 |            31876
+    18 |      2121 | usb_control_msg                     |         17637609 |            14910
+    19 |      2124 | usb_start_wait_urb                  |         17631277 |            14520
+     6 |      1840 | async_synchronize_full              |         17585608 |             4762
+     6 |      2119 | generic_suspend                     |         17220276 |             5745
+     5 |      2120 | usb_port_suspend                    |         17017944 |             4109
+    20 |      2125 | usb_submit_urb                      |         16906944 |             6050
+    20 |      2126 | usb_hcd_submit_urb                  |         16903944 |             5908
+     2 |      2011 | __ieee80211_suspend                 |         16900277 |            16924
+    12 |      2159 | rh_call_control                     |         16895943 |             5360
+    12 |      2161 | xhci_hub_control                    |         16875276 |             2647
+     2 |      2287 | set_port_feature                    |         16800944 |             2587
+   459 |      1997 | pci_bus_read_config_dword           |         16082280 |           116781
+   449 |      2395 | pci_read_config_dword               |         15771950 |           115817
+   118 |      3330 | e1000_access_phy_wakeup_reg_bm      |         15113286 |           269309
+   115 |      3336 | e1000_write_phy_reg_page_hv         |         14123620 |           256960
+     5 |      2381 | crb_wait_for_reg_32.constprop.0     |         13730621 |           116395
+     1 |      2550 | ieee80211_stop_device               |         13666621 |             7922
+     1 |      2558 | drv_stop                            |         13661621 |             7674
+     1 |      2559 | iwl_mvm_mac_stop                    |         13661288 |             7666
+     1 |      2560 | __iwl_mvm_mac_stop                  |         13659621 |             7519
+     1 |      2994 | azx_runtime_resume                  |         12872624 |             8900
+     1 |      2995 | __azx_runtime_resume                |         12868957 |             8894
+     1 |      2566 | iwl_trans_pcie_stop_device          |         12811624 |             5928
+     1 |      2567 | _iwl_trans_pcie_stop_device         |         12809957 |             5902
+     2 |      2589 | iwl_trans_pcie_sw_reset             |         12121294 |             1713
+     1 |      2961 | linkwatch_event                     |         11315629 |             1838
+     1 |      2950 | e1000e_down                         |         11221963 |            15148
+ 25465 |       145 | perf_event_pid_type                 |         11045680 |           166961
+ 25467 |       146 | __task_pid_nr_ns                    |         10978670 |           102056
+     1 |      2441 | mei_me_pm_runtime_resume            |         10954631 |              859
+     1 |      2443 | mei_me_d0i3_exit_sync               |         10953630 |              842
+     1 |      2442 | mei_me_pg_exit_sync                 |         10953630 |              844
+     1 |         3 | state_store                         |         10033967 |           242098
+     1 |         1 | kobj_attr_store                     |         10033967 |           242099
+     1 |         7 | pm_suspend                          |         10033301 |           242064
+(140 rows)
+
+$ psql pt_mem_test_resume -c 'SELECT COUNT(symbol_id),symbol_id,(SELECT name FROM symbols WHERE id = symbol_id) AS symbol,SUM(elapsed_time) AS tot_elapsed_time,SUM(branch_count) AS tot_branch_count FROM calls_view GROUP BY symbol_id ORDER BY tot_elapsed_time DESC LIMIT 140;' | cat
+ count  | symbol_id |                  symbol                   | tot_elapsed_time | tot_branch_count 
+--------+-----------+-------------------------------------------+------------------+------------------
+  85530 |        91 | __switch_to_asm                           |     285351925524 |         96433888
+   6011 |        56 | __schedule                                |      14948664243 |          7784999
+   1851 |        96 | schedule                                  |      14653524942 |          6639494
+   2871 |        92 | __switch_to                               |       8977603169 |          5737396
+    178 |       193 | worker_thread                             |       6680804308 |          1576838
+   3317 |        77 | __perf_event_task_sched_out               |       4600197729 |           793879
+   6008 |        78 | perf_iterate_sb                           |       4449766476 |          1390741
+  11533 |        80 | perf_event_switch_output                  |       4094624656 |          1295510
+    627 |       703 | schedule_timeout                          |       3725284572 |           599231
+   3245 |       142 | do_idle                                   |       3470715806 |         21221047
+     11 |       264 | cpu_startup_entry                         |       3411701625 |         21217880
+  46407 |      1210 | call_cpuidle                              |       2804113112 |         11364705
+  46313 |      1212 | cpuidle_enter                             |       2803665450 |         11271883
+  46313 |      1214 | cpuidle_enter_state                       |       2803575784 |         11087380
+    488 |       194 | process_one_work                          |       2667120505 |          1326501
+    344 |       805 | async_run_entry_fn                        |       2590109758 |           820705
+   1802 |      1216 | intel_idle                                |       2453148165 |            18285
+    287 |       725 | wait_for_completion                       |       2300947973 |           102703
+    498 |       808 | dpm_wait_for_superior                     |       2300522704 |           130369
+    501 |       834 | dpm_wait                                  |       2299873032 |            98477
+  53293 |        86 | perf_output_copy                          |       2095119404 |           384340
+    944 |      1314 | device_resume                             |       1895560721 |           407787
+  11148 |        87 | __perf_event__output_id_sample            |       1876404517 |           403447
+    124 |      1326 | async_resume                              |       1659448842 |           266326
+      9 |        97 | smpboot_thread_fn                         |       1335019903 |            63663
+  69170 |        15 | memcpy_erms                               |       1259056878 |           118574
+  68671 |        14 | memcpy                                    |       1259056878 |           187115
+     50 |      1065 | kthread                                   |       1210197649 |           234278
+    124 |      1062 | ret_from_fork                             |       1119255949 |           472199
+  10741 |        83 | __perf_event_header__init_id.isra.0       |        835974127 |           361423
+      4 |      1713 | irq_thread                                |        821502272 |           135505
+ 209977 |        18 | sched_clock_cpu                           |        768117692 |          1085558
+ 209971 |        19 | sched_clock                               |        767738618 |           664497
+ 209968 |        20 | native_sched_clock                        |        766809889 |           222311
+  10783 |        84 | local_clock                               |        763929233 |           131320
+     24 |       872 | msleep                                    |        716006959 |            70580
+    941 |       807 | device_resume_noirq                       |        689453373 |           623511
+    123 |       806 | async_resume_noirq                        |        605174322 |           485002
+  13995 |       502 | mutex_lock                                |        419992763 |           167568
+    477 |       732 | __mutex_lock_slowpath                     |        418528939 |            65987
+    477 |       733 | __mutex_lock.isra.0                       |        418528605 |            65061
+     14 |       737 | schedule_preempt_disabled                 |        416323953 |             9538
+      5 |       714 | acpi_hotplug_work_fn                      |        416319618 |            16566
+      4 |       730 | acpi_device_hotplug                       |        416307618 |            15386
+     24 |      1327 | pci_pm_resume                             |        407527495 |          2376699
+      2 |      1313 | dpm_resume                                |        368244112 |           157625
+      1 |      1805 | e1000e_pm_resume                          |        367856112 |          2264968
+  10743 |        85 | perf_output_begin                         |        360460322 |            91341
+  44514 |      1734 | poll_idle                                 |        344075848 |          9752486
+   3241 |       187 | schedule_idle                             |        341011283 |           760522
+      5 |       957 | kthreadd                                  |        334471558 |           107715
+     24 |      1466 | ata_msleep                                |        325523584 |            19652
+     18 |      2077 | __scsi_execute                            |        320628269 |            27053
+     18 |      2091 | blk_execute_rq                            |        320596603 |            23104
+     20 |      2112 | io_schedule_timeout                       |        320546936 |            15539
+     18 |      2111 | wait_for_completion_io_timeout            |        320546604 |            15342
+      1 |      2066 | scsi_dev_type_resume                      |        319120274 |             1816
+      1 |      2065 | async_sdev_resume                         |        319120274 |             1820
+      1 |      2067 | do_scsi_resume                            |        319116940 |             1689
+      1 |      2068 | sd_resume                                 |        319116940 |             1685
+      1 |      2076 | sd_start_stop_device                      |        319112274 |             1143
+      4 |      2011 | scsi_error_handler                        |        317802944 |           289791
+      4 |      2012 | ata_scsi_error                            |        317782945 |           287891
+      4 |      2015 | ata_scsi_port_error_handler               |        317759613 |           287682
+      2 |      2046 | ata_eh_recover                            |        317745944 |           288063
+      2 |      2039 | sata_pmp_error_handler                    |        317713279 |           286708
+      2 |      2038 | ahci_error_handler                        |        317712945 |           286676
+      2 |      2044 | sata_pmp_eh_recover                       |        317712279 |           286647
+      1 |      2047 | ata_eh_reset                              |        315574953 |            19949
+      1 |      2054 | ata_do_reset                              |        315560620 |            19303
+      1 |      2056 | ahci_do_hardreset                         |        315560286 |            19287
+      1 |      2055 | ahci_hardreset                            |        315560286 |            19291
+      1 |      2058 | sata_link_hardreset                       |        315554953 |            19259
+      1 |      2115 | sata_link_resume                          |        314494623 |            18406
+      1 |      2710 | __e1000_resume                            |        312765962 |          1386473
+    411 |      1264 | schedule_hrtimeout_range_clock            |        310439884 |           326474
+    409 |      1263 | schedule_hrtimeout_range                  |        310434220 |           326579
+    228 |       141 | default_idle_call                         |        309502540 |            13169
+    212 |       140 | arch_cpu_idle                             |        309499872 |            12727
+    212 |       139 | mwait_idle                                |        309499872 |            12317
+    464 |       841 | dpm_run_callback                          |        292866210 |           893629
+      2 |      2943 | rcu_gp_kthread                            |        288285043 |            10491
+    213 |      1262 | usleep_range                              |        286360633 |           179582
+   2336 |        90 | enter_lazy_tlb                            |        256199483 |            10612
+      1 |      2711 | e1000_resume_workarounds_pchlan           |        242773528 |          1209790
+      1 |      2712 | e1000_init_phy_workarounds_pchlan         |        241693198 |          1199741
+     22 |       854 | pci_power_up                              |        202384994 |           240416
+     22 |       851 | pci_pm_resume_noirq                       |        186022716 |           645188
+   2628 |        94 | finish_task_switch                        |        185356047 |           632666
+   2623 |        95 | __perf_event_task_sched_in                |        183479485 |           611197
+     21 |       861 | pci_raw_set_power_state                   |        174633751 |            89570
+   3283 |      1268 | __const_udelay                            |        156769618 |          2992055
+   3281 |      1269 | delay_tsc                                 |        156769618 |          2985493
+      3 |      1141 | async_synchronize_cookie_domain           |        132836559 |             2419
+      3 |      1140 | async_synchronize_full                    |        132836559 |             2425
+      4 |      2746 | iwl_wait_notification                     |        128951238 |             4668
+    202 |      1833 | e1000e_write_phy_reg_mdic                 |        128042966 |          2451760
+      8 |      2748 | usb_port_resume                           |        113942621 |            16391
+      1 |      3483 | sata_link_debounce                        |        108159308 |            17521
+      2 |      1749 | iwl_mvm_up                                |        106032315 |          1828345
+      4 |      1333 | i915_drm_resume                           |         96838063 |           925008
+     83 |      1933 | __e1000_write_phy_reg_hv                  |         89115984 |          1677443
+      2 |      2714 | e1000_toggle_lanphypc_pch_lpt             |         86013323 |             3235
+      1 |      2454 | intel_display_resume                      |         84957385 |           864298
+      1 |      2459 | __intel_display_resume                    |         84955051 |           863955
+      1 |      2489 | drm_atomic_helper_commit_duplicated_state |         84910385 |           858672
+      1 |      2490 | drm_atomic_commit                         |         84910051 |           858658
+      2 |      2623 | intel_atomic_commit                       |         84909051 |           858119
+      1 |      2665 | intel_atomic_commit_tail                  |         84869385 |           851826
+     11 |      1925 | i2c_transfer                              |         84185721 |           238582
+     11 |      1927 | __i2c_transfer                            |         84183386 |           238363
+     11 |      1928 | __i2c_transfer.part.0                     |         84183053 |           238334
+  10599 |        88 | perf_output_end                           |         82322046 |            44321
+  10598 |        89 | perf_output_put_handle                    |         82288381 |            17948
+      3 |      1944 | iwl_mvm_load_ucode_wait_alive             |         81495062 |           153583
+      1 |      2680 | skl_update_crtcs                          |         68021108 |           843191
+      1 |      2682 | intel_update_crtc                         |         68020774 |           843159
+      1 |      2684 | haswell_crtc_enable                       |         68002107 |           842352
+  42409 |        81 | perf_event_pid_type                       |         67962101 |           293906
+      1 |      2692 | intel_encoders_pre_enable.isra.0          |         67831108 |           835383
+      1 |      2693 | intel_ddi_pre_enable                      |         67830775 |           835376
+      1 |      3679 | e1000e_reset                              |         66664445 |           147625
+     53 |      1851 | usb_control_msg                           |         66284776 |            40820
+     53 |      1854 | usb_start_wait_urb                        |         66272777 |            38835
+     38 |      1930 | drm_dp_i2c_do_msg                         |         65810781 |           206511
+  42534 |        82 | __task_pid_nr_ns                          |         65224567 |           175448
+      8 |      1929 | drm_dp_i2c_xfer                           |         63746788 |           201668
+      1 |      3681 | e1000_reset_hw_ich8lan                    |         62712125 |           119427
+     51 |       339 | acpi_ps_parse_aml                         |         60445802 |          7921658
+      1 |      3167 | i915_hpd_poll_init_work                   |         56777812 |           170866
+      1 |      3168 | drm_helper_hpd_irq_event                  |         56777478 |           170808
+      3 |      3169 | drm_helper_probe_detect_ctx               |         56777145 |           170726
+      2 |      1942 | iwl_run_init_mvm_ucode                    |         56027147 |            70531
+     74 |       236 | acpi_ns_evaluate                          |         55670815 |          3550574
+     73 |        50 | acpi_evaluate_object                      |         55557155 |          3444264
+      8 |      1836 | usb_resume_both                           |         55403483 |            19838
+      8 |      1835 | usb_resume                                |         55397150 |            19714
+      8 |      1834 | usb_dev_resume                            |         55375484 |            19520
+      7 |      1837 | generic_resume                            |         55328150 |            10526
+      2 |      1838 | hcd_bus_resume                            |         55138485 |             2692
+(140 rows)
+</pre>
+While this analysis is crude, we can still pick out some interesting items.
+
+Important subsystem and device driver functions are usually prefixed by their identifier, so we can readily see the longest to suspend are tpm and e1000 while the longest to resume are e1000 and scsi devices.
+
+The presence of __mutex_lock_slowpath indicates contended mutexes, which is not ideal.
+
+The presence of delay or sleep functions msleep, usleep_range, __const_udelay indicates polling, which is not ideal.
+
+The 209977 calls to sched_clock_cpu seems excessive, but is probably caused by perf.
+
+Finally, we can stop PostgreSQL since we are not using it anymore.
+<pre>
+$ sudo systemctl stop postgresql
+</pre>
