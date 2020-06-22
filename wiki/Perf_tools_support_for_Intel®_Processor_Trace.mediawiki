@@ -378,7 +378,7 @@ We can install support for the script <tt>'''export-to-sqlite.py'''</tt>, using 
 <pre>
 sudo apt-get install sqlite3 python3-pyside2.qtsql libqt5sql5-psql
 </pre>
-Refer to the script [http://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/tools/perf/scripts/python/export-to-sqlite.py itself] for more information. 
+Refer to the script [http://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/tools/perf/scripts/python/export-to-sqlite.py export-to-sqlite.py] for more information. 
 
 Then we can perform the export:
 <pre>
