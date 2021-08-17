@@ -2769,3 +2769,48 @@ Finally, we can stop PostgreSQL since we are not using it anymore.
 <pre>
 $ sudo systemctl stop postgresql
 </pre>
+
+== Example: Detecting System Management Mode (SMM) ==
+
+Intel PT is automatically disabled by hardware when entering System Management Mode (SMM), so it is possible to use Intel PT to detect whether SMM might have run.  Control-flow packet generation is also disabled in secure enclaves.
+
+If those do not occur, and there is no trace data loss, then system wide tracing will show only one "trace start" and one "trace end" for each CPU.  Additional "trace start" or "trace end" branches would need another explanation i.e.
+SMM, secure enclave or trace data loss.
+
+To record system wide with 64M buffers for 3 seconds, we can use <tt>perf record</tt> with options:
+* <tt>'''-m,64M'''</tt> to set the trace buffer size to 64 MiB.  This is needed to avoid trace data loss.  Note the comma is needed.  Also '''''be careful setting large buffer sizes'''''.  With per-cpu tracing (the default), one buffer per CPU will be allocated.  In our case we have 8 CPUs so that means 512 MiB.  However when tracing with per-task contexts, there will be one buffer per task, which might be far more than anticipated.
+* <tt>'''-a'''</tt> to trace system wide i.e. all tasks, all CPUs
+* <tt>'''-e'''</tt> to select which events, i.e. the following:
+* <tt>'''intel_pt//'''</tt> to get Intel PT
+* <tt>'''sleep 3'''</tt> is the workload.  The tracing will stop when the workload finishes, so this is simply a way of tracing for about 3 seconds.
+<pre>
+$ sudo perf record -m,64M -a -e intel_pt// -- sleep 3
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 4.524 MB perf.data ]
+</pre>
+
+To show "trace start" and "trace end", use <tt>perf script</tt> with options:
+* <tt>'''--itrace=qbe'''</tt> to show quicker (less detailed) decoding (q), branches (b) and errors (e)
+* <tt>'''-F+flags'''</tt> to show branch flags such as <tt>tr strt</tt> and <tt>tr end</tt>
+* <tt>'''--ns'''</tt> to show the timestamp to nanoseconds instead of the default microseconds
+'''Note''' the itrace 'q' option is new from v5.9.  Use <tt>perf version</tt> to check the version.
+<pre>
+$ sudo perf script --itrace=qbe -F+flags --ns | grep 'tr strt\|tr end'
+            perf  7212 [000] 14733.245070483:          1   branches:   tr strt                             0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu) => ffffffff81016aa8 pt_config_start+0x68 ([kernel.kallsyms])
+            perf  7212 [001] 14733.245128490:          1   branches:   tr strt                             0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu) => ffffffff81016aa8 pt_config_start+0x68 ([kernel.kallsyms])
+            perf  7212 [002] 14733.245182361:          1   branches:   tr strt                             0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu) => ffffffff81016aa8 pt_config_start+0x68 ([kernel.kallsyms])
+            perf  7212 [003] 14733.245237624:          1   branches:   tr strt                             0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu) => ffffffff81016aa8 pt_config_start+0x68 ([kernel.kallsyms])
+            perf  7212 [004] 14733.245292674:          1   branches:   tr strt                             0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu) => ffffffff81016aa8 pt_config_start+0x68 ([kernel.kallsyms])
+            perf  7212 [005] 14733.245351116:          1   branches:   tr strt                             0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu) => ffffffff81016aa8 pt_config_start+0x68 ([kernel.kallsyms])
+            perf  7212 [006] 14733.245404620:          1   branches:   tr strt                             0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu) => ffffffff81016aa8 pt_config_start+0x68 ([kernel.kallsyms])
+            perf  7212 [007] 14733.245458096:          1   branches:   tr strt                             0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu) => ffffffff81016aa8 pt_config_start+0x68 ([kernel.kallsyms])
+            perf  7212 [000] 14736.246883705:          1   branches:   tr end               ffffffff81016eb6 pt_config_stop+0x66 ([kernel.kallsyms]) =>                0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu)
+            perf  7212 [001] 14736.246987037:          1   branches:   tr end               ffffffff81016eb6 pt_config_stop+0x66 ([kernel.kallsyms]) =>                0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu)
+            perf  7212 [002] 14736.247082703:          1   branches:   tr end               ffffffff81016eb6 pt_config_stop+0x66 ([kernel.kallsyms]) =>                0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu)
+            perf  7212 [003] 14736.247180369:          1   branches:   tr end               ffffffff81016eb6 pt_config_stop+0x66 ([kernel.kallsyms]) =>                0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu)
+            perf  7212 [004] 14736.247277368:          1   branches:   tr end               ffffffff81016eb6 pt_config_stop+0x66 ([kernel.kallsyms]) =>                0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu)
+            perf  7212 [005] 14736.247370701:          1   branches:   tr end               ffffffff81016eb6 pt_config_stop+0x66 ([kernel.kallsyms]) =>                0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu)
+            perf  7212 [006] 14736.247465034:          1   branches:   tr end               ffffffff81016eb6 pt_config_stop+0x66 ([kernel.kallsyms]) =>                0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu)
+            perf  7212 [007] 14736.247558700:          1   branches:   tr end               ffffffff81016eb6 pt_config_stop+0x66 ([kernel.kallsyms]) =>                0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu)
+</pre>
+In this case there were no unexplained <tt>tr strt</tt> or <tt>tr end</tt>.
