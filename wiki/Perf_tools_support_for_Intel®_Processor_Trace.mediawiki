@@ -559,7 +559,7 @@ Call Path                                                                       
           ▶ exit                                                                  libc-2.31.so       1      164956        0.9     367844            4.8    262690           3.5   1.40          39106                4.6
 </pre>
 
-== Example: Tracing power events ==
+== Example: Tracing power events and CPU frequency ==
 
 Intel PT can record changes in CPU frequency.
 
@@ -609,6 +609,108 @@ $ perf script --itrace=ep -F-ip --ns -C 1 | head
          konsole  2033 [001] 11253.644436892:                cbr:  cbr: 20 freq: 2009 MHz ( 74%)    
          swapper     0 [001] 11253.645046629:     power:cpu_idle: state=2 cpu_id=1
          swapper     0 [001] 11253.645074374:     power:cpu_idle: state=4294967295 cpu_id=1
+</pre>
+To see some context, show context switch events (different trace to above):
+<pre>
+$ perf script --itrace=ep -F-ip --ns -C 1 --show-switch-events | head -30
+         swapper     0 [001] 15355.259304318: PERF_RECORD_SWITCH_CPU_WIDE OUT preempt  next pid/tid: 17393/17393
+            perf 17393 [001] 15355.259305768: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
+            perf 17393 [001] 15355.259311919:                psb:  psb offs: 0                      
+            perf 17393 [001] 15355.259311919:                cbr:  cbr: 42 freq: 4219 MHz (156%)    
+            perf 17393 [001] 15355.259322862: PERF_RECORD_SWITCH_CPU_WIDE OUT preempt  next pid/tid:    20/20   
+     migration/1    20 [001] 15355.259323762: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 17393/17393
+     migration/1    20 [001] 15355.259330003: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
+         swapper     0 [001] 15355.259330401: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:    20/20   
+         swapper     0 [001] 15355.259333457:     power:cpu_idle: state=8 cpu_id=1
+         swapper     0 [001] 15355.349681141:                cbr:  cbr: 23 freq: 2310 MHz ( 85%)    
+         swapper     0 [001] 15355.349687604:     power:cpu_idle: state=4294967295 cpu_id=1
+         swapper     0 [001] 15355.349711470: PERF_RECORD_SWITCH_CPU_WIDE OUT preempt  next pid/tid: 15823/15823
+         konsole 15823 [001] 15355.349714239: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
+         konsole 15823 [001] 15355.349816414: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
+         swapper     0 [001] 15355.349817827: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 15823/15823
+         swapper     0 [001] 15355.349825977:     power:cpu_idle: state=8 cpu_id=1
+         swapper     0 [001] 15355.390601064:                cbr:  cbr: 16 freq: 1607 MHz ( 59%)    
+         swapper     0 [001] 15355.390608944:     power:cpu_idle: state=4294967295 cpu_id=1
+         swapper     0 [001] 15355.390649821: PERF_RECORD_SWITCH_CPU_WIDE OUT preempt  next pid/tid: 11264/11264
+ kworker/1:0-mm_ 11264 [001] 15355.390652189: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
+ kworker/1:0-mm_ 11264 [001] 15355.390662452: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
+         swapper     0 [001] 15355.390663434: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 11264/11264
+         swapper     0 [001] 15355.390671955:     power:cpu_idle: state=8 cpu_id=1
+         swapper     0 [001] 15355.422505769:     power:cpu_idle: state=4294967295 cpu_id=1
+         swapper     0 [001] 15355.422538477: PERF_RECORD_SWITCH_CPU_WIDE OUT preempt  next pid/tid:    66/66   
+      kcompactd0    66 [001] 15355.422541064: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
+      kcompactd0    66 [001] 15355.422549431: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
+         swapper     0 [001] 15355.422550337: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:    66/66   
+         swapper     0 [001] 15355.422557517:     power:cpu_idle: state=8 cpu_id=1
+         swapper     0 [001] 15355.456474916:                cbr:  cbr: 15 freq: 1507 MHz ( 56%)    
+</pre>
+To see how to create a custom script refer to intel-pt-events.py (https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/tools/perf/scripts/python/intel-pt-events.py)
+<p>To trace with virtual machines:
+<pre>
+$ sudo ~/bin/perf record -a -e intel_pt/branch=0/,power:cpu_idle sleep 1
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 2.764 MB perf.data ]
+$ perf inject -i perf.data --vm-time-correlation=dry-run
+ERROR: Unknown TSC Offset for VMCS 0x24bad0
+VMCS: 0x25da39  TSC Offset 0xffffd5c7e6fbb0e0
+VMCS: 0x24bad0  TSC Offset 0xffffd5c0fd708df0
+VMCS: 0x1fd127  TSC Offset 0xffffd5c7e6fbb0e0
+VMCS: 0x24bb7d  TSC Offset 0xffffd5c0fd708df0
+VMCS: 0x2659c5  TSC Offset 0xffffd5c7e6fbb0e0
+ERROR: Unknown TSC Offset for VMCS 0x25dbc1
+VMCS: 0x25dbc1  TSC Offset 0xffffd5c0fd708df0
+ERROR: Unknown TSC Offset for VMCS 0x213002
+VMCS: 0x213002  TSC Offset 0xffffd5c0fd708df0
+VMCS: 0x1fd374  TSC Offset 0xffffd5c7e6fbb0e0
+$ perf inject -i perf.data --vm-time-correlation="dry-run 0xffffd5c7e6fbb0e0:0x25da39,0x1fd127,0x2659c5,0x1fd374 0xffffd5c0fd708df0:0x24bad0,0x24bb7d,0x25dbc1,0x213002"
+$ perf inject -i perf.data --vm-time-correlation="0xffffd5c7e6fbb0e0:0x25da39,0x1fd127,0x2659c5,0x1fd374 0xffffd5c0fd708df0:0x24bad0,0x24bb7d,0x25dbc1,0x213002"
+The input file would be updated in place, the --force option is required.
+$ perf inject -i perf.data --vm-time-correlation="0xffffd5c7e6fbb0e0:0x25da39,0x1fd127,0x2659c5,0x1fd374 0xffffd5c0fd708df0:0x24bad0,0x24bb7d,0x25dbc1,0x213002" --force
+$ perf script --itrace=ep -F-ip --ns --show-switch-events
+...
+   perf 18011 [004] 17398.037394927:                psb:  psb offs: 0                      
+            perf 18011 [004] 17398.037394927:                cbr:  cbr: 42 freq: 4219 MHz (156%)    
+            perf 18011 [004] 17398.037408451: PERF_RECORD_SWITCH_CPU_WIDE OUT preempt  next pid/tid:    38/38   
+     migration/4    38 [004] 17398.037409609: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 18011/18011
+       CPU 3/KVM 17819 [005] 17398.037417897: PERF_RECORD_SWITCH_CPU_WIDE OUT preempt  next pid/tid: 18011/18011
+            perf 18011 [005] 17398.037421458: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 17809/17819
+     migration/4    38 [004] 17398.037423366: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
+         swapper     0 [004] 17398.037423908: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:    38/38   
+         swapper     0 [004] 17398.037426640:     power:cpu_idle: state=6 cpu_id=4
+            perf 18011 [005] 17398.037427626:                psb:  psb offs: 0                      
+            perf 18011 [005] 17398.037427626:                cbr:  cbr: 42 freq: 4219 MHz (156%)    
+            perf 18011 [005] 17398.037440808: PERF_RECORD_SWITCH_CPU_WIDE OUT preempt  next pid/tid:    44/44   
+     migration/5    44 [005] 17398.037441699: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 18011/18011
+     migration/5    44 [005] 17398.037446582: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 17809/17819
+       CPU 3/KVM 17819 [005] 17398.037448806: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:    44/44   
+         swapper     0 [006] 17398.037483980: PERF_RECORD_SWITCH_CPU_WIDE OUT preempt  next pid/tid: 18011/18011
+            perf 18011 [006] 17398.037485458: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
+            perf 18011 [006] 17398.037491426:                psb:  psb offs: 0                      
+            perf 18011 [006] 17398.037491426:                cbr:  cbr: 42 freq: 4219 MHz (156%)    
+            perf 18011 [006] 17398.037502683: PERF_RECORD_SWITCH_CPU_WIDE OUT preempt  next pid/tid:    50/50   
+     migration/6    50 [006] 17398.037503350: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 18011/18011
+     migration/6    50 [006] 17398.037510565: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
+         swapper     0 [006] 17398.037510908: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:    50/50   
+         swapper     0 [006] 17398.037514870:     power:cpu_idle: state=8 cpu_id=6
+       CPU 1/KVM 17817 [000] 17398.037533765:                cbr:  cbr: 41 freq: 4118 MHz (152%)    
+       CPU 0/KVM 17816 [001] 17398.037533766:                cbr:  cbr: 41 freq: 4118 MHz (152%)    
+       CPU 3/KVM 17819 [005] 17398.037533767:                cbr:  cbr: 41 freq: 4118 MHz (152%)    
+         swapper     0 [006] 17398.037533829:                cbr:  cbr: 41 freq: 4118 MHz (152%)    
+         swapper     0 [007] 17398.037541586: PERF_RECORD_SWITCH_CPU_WIDE OUT preempt  next pid/tid: 18011/18011
+            perf 18011 [007] 17398.037544217: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
+            perf 18011 [007] 17398.037550910:                psb:  psb offs: 0                      
+            perf 18011 [007] 17398.037550910:                cbr:  cbr: 41 freq: 4118 MHz (152%)    
+       CPU 1/KVM 17817 [000] 17398.037572496:                cbr:  cbr: 42 freq: 4219 MHz (156%)    
+       CPU 0/KVM 17816 [001] 17398.037572496:                cbr:  cbr: 42 freq: 4219 MHz (156%)    
+       CPU 3/KVM 17819 [005] 17398.037572498:                cbr:  cbr: 42 freq: 4219 MHz (156%)    
+            perf 18011 [007] 17398.037572508:                cbr:  cbr: 42 freq: 4219 MHz (156%)    
+       CPU 3/KVM 17819 [005] 17398.037644052:                cbr:  cbr: 41 freq: 4118 MHz (152%)    
+       CPU 1/KVM 17817 [000] 17398.037644053:                cbr:  cbr: 41 freq: 4118 MHz (152%)    
+       CPU 0/KVM 17816 [001] 17398.037644054:                cbr:  cbr: 41 freq: 4118 MHz (152%)    
+            perf 18011 [007] 17398.037644064:                cbr:  cbr: 41 freq: 4118 MHz (152%)    
+         swapper     0 [002] 17398.037646332:                cbr:  cbr: 41 freq: 4118 MHz (152%)    
+         swapper     0 [002] 17398.037647762:     power:cpu_idle: state=4294967295 cpu_id=2
+...
 </pre>
 
 == Example: Tracing the NMI handler ==
