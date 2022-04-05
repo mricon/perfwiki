@@ -74,9 +74,8 @@ Intel PT also has some miscellaneous abilities.
 
 ===== Virtualization =====
 
-Although Intel PT can trace through VM Entries / Exits, <tt>perf</tt> tools do not have support for that.
-
-KVM has support for using Intel PT from within guests since linux kernel v5.0.
+Intel PT can trace through VM Entries / Exits, <tt>perf</tt> tools have support for tracing a host and guests, but kernel mode only.
+Refer [https://man7.org/linux/man-pages/man1/perf-intel-pt.1.html perf Intel PT man page]
 
 ===== Intel&reg; Transactional Synchronization Extensions (Intel&reg; TSX) =====
 
