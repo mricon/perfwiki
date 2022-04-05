@@ -2915,3 +2915,293 @@ $ sudo perf script --itrace=qbe -F+flags --ns | grep 'tr strt\|tr end'
             perf  7212 [007] 14736.247558700:          1   branches:   tr end               ffffffff81016eb6 pt_config_stop+0x66 ([kernel.kallsyms]) =>                0 __per_cpu_start+0x0 ([kernel.kallsyms].data..percpu)
 </pre>
 In this case there were no unexplained <tt>tr strt</tt> or <tt>tr end</tt>.
+
+== Example: rdtsc vs Intel PT ==
+
+The rdtsc instruction has long been used to time functions.  Consider:
+
+* How to Benchmark Code Execution Times on Intel ®IA-32 and IA-64 Instruction Set Architectures https://www.intel.com/content/dam/www/public/us/en/documents/white-papers/ia-32-ia-64-benchmark-code-execution-paper.pdf
+
+* RDTSC the only way to benchmark. https://medium.com/geekculture/rdtsc-the-only-way-to-benchmark-fc84562ef734
+
+But how does it compare to Intel PT.  In particular, Intel PT in cycle-accurate mode and configured to use an address filter to trace a single function.
+
+Let's create a test program with a trivial function f() to trace.  Here is the program (named rdtsc-vs-intel-pt.c):
+
+<pre>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+static inline uint64_t rdtsc(void)
+{
+        unsigned int low, high;
+
+        asm volatile("rdtsc" : "=a" (low), "=d" (high));
+
+        return low | ((uint64_t)high) << 32;
+}
+
+static inline uint64_t rdtsc_before(void)
+{
+        unsigned int low, high;
+
+        asm volatile("rdtsc" : "=a" (low), "=d" (high));
+	asm volatile("lfence");
+
+        return low | ((uint64_t)high) << 32;
+}
+
+static inline uint64_t rdtsc_after(void)
+{
+        unsigned int low, high;
+
+	asm volatile("lfence");
+        asm volatile("rdtsc" : "=a" (low), "=d" (high));
+
+        return low | ((uint64_t)high) << 32;
+}
+
+static inline uint64_t rdtscp(void)
+{
+        unsigned int low, high, p;
+
+        asm volatile("rdtscp" : "=a" (low), "=d" (high), "=c"(p));
+
+        return low | ((uint64_t)high) << 32;
+}
+
+static inline uint64_t rdtscp_before(void)
+{
+        unsigned int low, high, p;
+
+        asm volatile("rdtscp" : "=a" (low), "=d" (high), "=c"(p));
+	asm volatile("lfence");
+
+        return low | ((uint64_t)high) << 32;
+}
+
+static void prt(const char *msg, unsigned long long val)
+{
+	printf("%60s: %llu TSC ticks\n", msg, val);
+}
+
+volatile int x = 0;
+
+static void __attribute__((noinline)) f(void)
+{
+	x = x * x + x + 1;
+}
+
+int main(int argc, char *argv[])
+{
+	unsigned long long tsc1, tsc2;
+
+	if (argc > 1) {
+		int secs = atoi(argv[1]);
+
+		if (secs)
+			sleep(secs);
+	}
+
+	f();
+
+	f();
+
+	tsc1 = rdtsc();
+	f();
+	tsc2 = rdtsc();
+	prt("rdtsc with no ordering, measured f() time", tsc2 - tsc1);
+
+	tsc1 = rdtscp();
+	f();
+	tsc2 = rdtscp();
+	prt("rdtscp with no ordering before, measured f() time", tsc2 - tsc1);
+
+	tsc1 = rdtscp_before();
+	f();
+	tsc2 = rdtscp();
+	prt("rdtscp with ordering, measured f() time", tsc2 - tsc1);
+
+	tsc1 = rdtsc_before();
+	f();
+	tsc2 = rdtsc_after();
+	prt("rdtsc with ordering, measured f() time", tsc2 - tsc1);
+
+	return 0;
+}
+</pre>
+
+There are some important points to note.
+
+First, the compiler must not inline the function f(), so __attribute__((noinline)) is employed.
+
+Secondly, rdtsc is not a serializing instruction.  Here is what the Intel SDM (https://www.intel.com/sdm) has to say about it:
+
+<blockquote>
+The RDTSC instruction is not a serializing instruction. It does not necessarily wait until all previous instructions
+have been executed before reading the counter. Similarly, subsequent instructions may begin execution before the
+read operation is performed. The following items may guide software seeking to order executions of RDTSC:
+* If software requires RDTSC to be executed only after all previous instructions have executed and all previous
+loads are globally visible, 1 it can execute LFENCE immediately before RDTSC.
+* If software requires RDTSC to be executed only after all previous instructions have executed and all previous
+loads and stores are globally visible, it can execute the sequence MFENCE;LFENCE immediately before RDTSC.
+* If software requires RDTSC to be executed prior to execution of any subsequent instruction (including any
+memory accesses), it can execute the sequence LFENCE immediately after RDTSC.
+</blockquote>
+
+So to serialize rdtsc, the program defines functions rdtsc_before() and rdtsc_after().
+
+Thirdly, the newer alternative instruction rdtscp can be used.  However it is not entirely serialized either.  Here is what the Intel SDM (https://www.intel.com/sdm) has to say about it:
+
+<blockquote>
+The RDTSCP instruction is not a serializing instruction, but it does wait until all previous instructions have executed
+and all previous loads are globally visible.1 But it does not wait for previous stores to be globally visible, and
+subsequent instructions may begin execution before the read operation is performed. The following items may guide
+software seeking to order executions of RDTSCP:
+* If software requires RDTSCP to be executed only after all previous stores are globally visible, it can execute
+MFENCE immediately before RDTSCP.
+* If software requires RDTSCP to be executed prior to execution of any subsequent instruction (including any
+memory accesses), it can execute LFENCE immediately after RDTSCP.
+</blockquote>
+
+So to serialize rdtscp, the program defines function rdtscp_before().
+
+Finally, the program can take an extra parameter that causes sleep for that number of seconds.  This parameters will come in useful later.
+
+Before continuing, we need to consider, if rdtsc and rdtscp need some extra serialization, what about Intel PT.  Here is what the Intel SDM (https://www.intel.com/sdm) has to say about it:
+
+<blockquote>
+Intel PT can be run in a cycle-accurate mode which enables CYC packets (see Section 32.4.2.14) that provide low-
+level information in the processor core clock domain. This cycle counter data in CYC packets can be used to
+compute IPC (Instructions Per Cycle), or to track wall-clock time on a fine-grain level.
+</blockquote>
+
+<blockquote>
+Cycle-accurate mode adheres to the following protocol:
+* All packets that precede a CYC packet represent instructions or events that took place before the CYC time.
+* All packets that follow a CYC packet represent instructions or events that took place at the same time as, or
+after, the CYC time.
+* The CYC-eligible packet that immediately follows a CYC packet represents an instruction or event that took
+place at the same time as the CYC time.
+</blockquote>
+
+To compile the test program:
+
+<pre>
+$ gcc -Wall -Wextra -O3 -o rdtsc-vs-intel-pt rdtsc-vs-intel-pt.c
+</pre>
+
+And run it:
+
+<pre>
+$ ./rdtsc-vs-intel-pt 
+                   rdtsc with no ordering, measured f() time: 95 TSC ticks
+           rdtscp with no ordering before, measured f() time: 288 TSC ticks
+                     rdtscp with ordering, measured f() time: 176 TSC ticks
+                      rdtsc with ordering, measured f() time: 177 TSC ticks
+</pre>
+
+And trace it with Intel PT:
+
+We can use <tt>'''perf record'''</tt> with options:
+* <tt>'''-e'''</tt> to select which events, i.e. the following:
+* <tt>'''intel_pt/cyc/u'''</tt> to get Intel PT with cycle-accurate mode, user space only.
+* <tt>'''--filter 'filter f @ ./rdtsc-vs-intel-pt' '''</tt> specifies an address filter to trace only f()
+* <tt>'''./rdtsc-vs-intel-pt'''</tt> is the workload.
+<pre>
+$ perf record -e intel_pt/cyc/u --filter 'filter f @ ./rdtsc-vs-intel-pt' ./rdtsc-vs-intel-pt
+                   rdtsc with no ordering, measured f() time: 26 TSC ticks
+           rdtscp with no ordering before, measured f() time: 73 TSC ticks
+                     rdtscp with ordering, measured f() time: 47 TSC ticks
+                      rdtsc with ordering, measured f() time: 47 TSC ticks
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.015 MB ]
+</pre>
+
+<pre>
+perf script --itrace=bep --ns -F+ipc,-period,-dso,-comm,+flags,+addr,-pid,-tid
+[000] 12434.509024343:            psb:                          psb offs: 0                                     0                0 [unknown]
+[000] 12434.509024343:            cbr:                          cbr: 42 freq: 4219 MHz (156%)                   0                0 [unknown]
+[000] 12434.509252555:    branches:uH:   tr strt                               0 [unknown] =>     7f45b77032f0 f+0x0
+[000] 12434.509252568:    branches:uH:   tr end  return             7f45b770330f f+0x1f =>     7f45b77030b3 main+0x13    IPC: 0.12 (7/54) 
+[000] 12434.509252568:    branches:uH:   tr strt                               0 [unknown] =>     7f45b77032f0 f+0x0
+[000] 12434.509252570:    branches:uH:   tr end  return             7f45b770330f f+0x1f =>     7f45b77030b8 main+0x18    IPC: 0.87 (7/8) 
+[000] 12434.509252571:    branches:uH:   tr strt                               0 [unknown] =>     7f45b77032f0 f+0x0
+[000] 12434.509252572:    branches:uH:   tr end  return             7f45b770330f f+0x1f =>     7f45b77030c8 main+0x28    IPC: 1.75 (7/4) 
+[000] 12434.509306045:    branches:uH:   tr strt                               0 [unknown] =>     7f45b77032f0 f+0x0
+[000] 12434.509306065:    branches:uH:   tr end  return             7f45b770330f f+0x1f =>     7f45b7703104 main+0x64    IPC: 0.08 (7/81) 
+[000] 12434.509307757:    branches:uH:   tr strt                               0 [unknown] =>     7f45b77032f0 f+0x0
+[000] 12434.509307763:    branches:uH:   tr end  return             7f45b770330f f+0x1f =>     7f45b7703144 main+0xa4    IPC: 0.28 (7/25) 
+[000] 12434.509308965:    branches:uH:   tr strt                               0 [unknown] =>     7f45b77032f0 f+0x0
+[000] 12434.509308970:    branches:uH:   tr end  return             7f45b770330f f+0x1f =>     7f45b7703183 main+0xe3    IPC: 0.31 (7/22) 
+</pre>
+
+The trace shows the CPU, timestamp in nanoseconds, and event information:
+"psb" is the Intel PT synchronization event.
+"cbr" (core-to-bus ratio) shows the CPU frequency.
+The "branches" events show the 6 invocations of f() as:
+* entry to f() "0 [unknown] =>     7f45b77032f0 f+0x0" (Note the offset is 0 i.e. the start of f())
+* return from f() "7f45b770330f f+0x1f =>     7f45b77030b3 main+0x13"
+
+Branches are annotated with IPC (instructions-per-cpu-cycle) information.  The number of instructions is always 7.  The number of CPU cycles varies.
+Note that the frequency of CPU cycles changes whereas the TSC frequency (2712 MHz in this case) is constant.
+
+But the times are much smaller when traced with Intel PT, so what happened.  Let's add a 1 second sleep by passing 1 as the first parameter:
+
+<pre>
+$ perf record -e intel_pt/cyc/u --filter 'filter f @ ./rdtsc-vs-intel-pt' ./rdtsc-vs-intel-pt 1
+                   rdtsc with no ordering, measured f() time: 359 TSC ticks
+           rdtscp with no ordering before, measured f() time: 234 TSC ticks
+                     rdtscp with ordering, measured f() time: 184 TSC ticks
+                      rdtsc with ordering, measured f() time: 193 TSC ticks
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.123 MB perf.data ]
+$ perf script --itrace=bep --ns -F+ipc,-period,-dso,-comm,+flags,+addr,-pid,-tid
+[005] 12915.734605958:            psb:                          psb offs: 0                                     0                0 [unknown]
+[005] 12915.734605958:            cbr:                          cbr: 42 freq: 4219 MHz (156%)                   0                0 [unknown]
+[005] 12916.735108407:            cbr:                          cbr: 12 freq: 1205 MHz ( 44%)                   0                0 [unknown]
+[005] 12916.735120793:    branches:uH:   tr strt                               0 [unknown] =>     7f67047c42f0 f+0x0
+[005] 12916.735120937:    branches:uH:   tr end  return             7f67047c430f f+0x1f =>     7f67047c40b3 main+0x13    IPC: 0.04 (7/173) 
+[005] 12916.735120938:    branches:uH:   tr strt                               0 [unknown] =>     7f67047c42f0 f+0x0
+[005] 12916.735120946:    branches:uH:   tr end  return             7f67047c430f f+0x1f =>     7f67047c40b8 main+0x18    IPC: 0.70 (7/10) 
+[005] 12916.735120952:    branches:uH:   tr strt                               0 [unknown] =>     7f67047c42f0 f+0x0
+[005] 12916.735120955:    branches:uH:   tr end  return             7f67047c430f f+0x1f =>     7f67047c40c8 main+0x28    IPC: 1.75 (7/4) 
+[005] 12916.735338404:    branches:uH:   tr strt                               0 [unknown] =>     7f67047c42f0 f+0x0
+[005] 12916.735338465:    branches:uH:   tr end  return             7f67047c430f f+0x1f =>     7f67047c4104 main+0x64    IPC: 0.09 (7/73) 
+[005] 12916.735344207:    branches:uH:   tr strt                               0 [unknown] =>     7f67047c42f0 f+0x0
+[005] 12916.735344233:    branches:uH:   tr end  return             7f67047c430f f+0x1f =>     7f67047c4144 main+0xa4    IPC: 0.22 (7/31) 
+[005] 12916.735348485:    branches:uH:   tr strt                               0 [unknown] =>     7f67047c42f0 f+0x0
+[005] 12916.735348511:    branches:uH:   tr end  return             7f67047c430f f+0x1f =>     7f67047c4183 main+0xe3    IPC: 0.22 (7/31) 
+</pre>
+
+Now we can see what happened.  The activity of 'perf' resulted in the CPU frequency increasing to 4219 MHz.  When the program went to sleep, the frequency dropped to 1205 MHz and the TSC timings went back up.
+
+This shows a powerful feature of Intel PT.  '''''Intel PT can show what the CPU frequency actually is.'''''
+
+Let's get that output again, but with only what is interesting and using "--deltatime" to get the change in time:
+<pre>
+$ perf script --itrace=bep --ns -F+ipc,-period,-dso,-comm,-pid,-tid,-cpu,-ip,-event --deltatime | grep IPC
+    0.000000144:         IPC: 0.04 (7/173) 
+    0.000000008:         IPC: 0.70 (7/10) 
+    0.000000003:         IPC: 1.75 (7/4) 
+    0.000000061:         IPC: 0.09 (7/73) 
+    0.000000026:         IPC: 0.22 (7/31) 
+    0.000000026:         IPC: 0.22 (7/31) 
+</pre>
+
+The last 4 correspond to the 4 TSC values, so we have:
+<pre>
+     ns                                 TSC ticks / ns
+    144         IPC: 0.04 (7/173) 
+      8         IPC: 0.70 (7/10) 
+      3         IPC: 1.75 (7/4)         359 / 132   rdtsc with no ordering
+     61         IPC: 0.09 (7/73)        234 /  86   rdtscp with no ordering before
+     26         IPC: 0.22 (7/31)        184 /  68   rdtscp with ordering
+     26         IPC: 0.22 (7/31)        193 /  71   rdtsc with ordering
+</pre>
+
+"rdtsc with no ordering" at 132ns does not match Intel PT result of 3ns at all.  "rdtscp with ordering" and "rdtsc with ordering" seem about the same.
+
+However the presence of TSC overhead is clearly visible.  Perhaps around 50ns in this case.  That isn't bad, but Intel PT seems the winner in this case.
