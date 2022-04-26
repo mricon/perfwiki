@@ -3205,3 +3205,199 @@ The last 4 correspond to the 4 TSC values, so we have:
 "rdtsc with no ordering" at 132ns does not match Intel PT result of 3ns at all.  "rdtscp with ordering" and "rdtsc with ordering" seem about the same.
 
 However the presence of TSC overhead is clearly visible.  Perhaps around 50ns in this case.  That isn't bad, but Intel PT seems the winner in this case.
+
+== Example: Using PTWRITE to measure the time of an individual instruction ==
+
+In "Example: rdtsc vs Intel PT" above, it was seen how Intel PT can be used to measure the time of a function.
+
+In general it is not possible to measure the time of an individual instruction with Intel PT,
+but with some changes to the program code and using the PTWRITE instruction, it can be done.
+
+Some Atom and Hybrid CPUs support PTWRITE.  To check:
+
+<pre>
+# cat /sys/bus/event_source/devices/intel_pt/caps/ptwrite
+1
+</pre>
+
+1 means PTWRITE is supported, 0 (or no file at all) means not supported.
+
+The reason for using PTWRITE is that it produces a CYC-eligible Intel PT packet
+which means we know the cycle count at that point.  Sandwich an instruction
+between 2 PTWRITE instructions and we can see how long that instruction took.
+
+Let's measure the time of xsave and xrestore instructions in the Linux kernel.
+
+First patch the kernel to insert PTWRITE instruction's in the right places.
+For this, the instruction used is "ptwrite (%rsp)" because it will always work
+and we don't care what the PTWRITE payload value is.
+
+Here is the patch diff:
+
+<pre>
+diff --git a/arch/x86/kernel/fpu/xstate.h b/arch/x86/kernel/fpu/xstate.h
+index d22ace092ca2..87b192548621 100644
+--- a/arch/x86/kernel/fpu/xstate.h
++++ b/arch/x86/kernel/fpu/xstate.h
+@@ -83,14 +83,19 @@ static inline u64 xfeatures_mask_independent(void)
+ #define XRSTOR		".byte " REX_PREFIX "0x0f,0xae,0x2f"
+ #define XRSTORS		".byte " REX_PREFIX "0x0f,0xc7,0x1f"
+ 
++/* ptwrite (%rsp) */
++#define PTWRITE		" .byte 0xf3, 0x48, 0x0f, 0xae, 0x24, 0x24\n"
++
+ /*
+  * After this @err contains 0 on success or the trap number when the
+  * operation raises an exception.
+  */
+ #define XSTATE_OP(op, st, lmask, hmask, err)				\
+-	asm volatile("1:" op "\n\t"					\
++	asm volatile(PTWRITE 						\
++		     "1:" op "\n\t"					\
+ 		     "xor %[err], %[err]\n"				\
+ 		     "2:\n\t"						\
++		     PTWRITE						\
+ 		     _ASM_EXTABLE_TYPE(1b, 2b, EX_TYPE_FAULT_MCE_SAFE)	\
+ 		     : [err] "=a" (err)					\
+ 		     : "D" (st), "m" (*st), "a" (lmask), "d" (hmask)	\
+@@ -111,12 +116,14 @@ static inline u64 xfeatures_mask_independent(void)
+  * address of the instruction where we might get an exception at.
+  */
+ #define XSTATE_XSAVE(st, lmask, hmask, err)				\
+-	asm volatile(ALTERNATIVE_2(XSAVE,				\
++	asm volatile(PTWRITE 						\
++		     ALTERNATIVE_2(XSAVE,				\
+ 				   XSAVEOPT, X86_FEATURE_XSAVEOPT,	\
+ 				   XSAVES,   X86_FEATURE_XSAVES)	\
+ 		     "\n"						\
+ 		     "xor %[err], %[err]\n"				\
+ 		     "3:\n"						\
++		     PTWRITE						\
+ 		     _ASM_EXTABLE_TYPE_REG(661b, 3b, EX_TYPE_EFAULT_REG, %[err]) \
+ 		     : [err] "=r" (err)					\
+ 		     : "D" (st), "m" (*st), "a" (lmask), "d" (hmask)	\
+@@ -127,10 +134,12 @@ static inline u64 xfeatures_mask_independent(void)
+  * XSAVE area format.
+  */
+ #define XSTATE_XRESTORE(st, lmask, hmask)				\
+-	asm volatile(ALTERNATIVE(XRSTOR,				\
++	asm volatile(PTWRITE 						\
++		     ALTERNATIVE(XRSTOR,				\
+ 				 XRSTORS, X86_FEATURE_XSAVES)		\
+ 		     "\n"						\
+ 		     "3:\n"						\
++		     PTWRITE						\
+ 		     _ASM_EXTABLE_TYPE(661b, 3b, EX_TYPE_FPU_RESTORE)	\
+ 		     :							\
+ 		     : "D" (st), "m" (*st), "a" (lmask), "d" (hmask)	\
+</pre>
+
+After building and installing the new kernel, we can run a trace:
+
+We can use <tt>'''perf record'''</tt> with options:
+* <tt>'''-a'''</tt> to trace system wide i.e. all tasks, all CPUs
+* <tt>'''--kcore'''</tt> to copy kernel object code from the /proc/kcore image (helps avoid decoding errors due to kernel self-modifying code)
+* <tt>'''-e'''</tt> to select which events, i.e. the following:
+* <tt>'''intel_pt/cyc,ptw,fup_on_ptw/k'''</tt> to get Intel PT with cycle-accurate mode, PTWRITE+FUP, kernel space only.
+* <tt>'''sh -c 'for i in `seq 1 10`;do sleep 0.01;done' '''</tt> is the workload.
+<pre>
+# perf record -a --kcore -e intel_pt/cyc,ptw,fup_on_ptw/k -- sh -c 'for i in `seq 1 10`;do sleep 0.01;done'
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 2.599 MB perf.data ]
+</pre>
+
+And see the results.
+
+Let's see xsaves on CPU 5:
+
+We can use <tt>perf script</tt> with options:
+* <tt>'''--deltatime'''</tt> to show time differences
+* <tt>'''--insn-trace'''</tt> to show all instructions
+* <tt>'''--xed'''</tt> to disassemble instructions using XED
+* <tt>'''-C 5'''</tt> to decode only CPU 5
+This shows times varying from 23ns to 163ns
+<pre>
+# perf script --deltatime --insn-trace --xed -C 5 | grep -A 2 xsave
+     migration/5    36 [005]     0.000000000:  ffffffffafea8f04 save_fpregs_to_fpstate+0x44 ([kernel.kallsyms])                 xsaves64 (%rdi)
+     migration/5    36 [005]     0.000000000:  ffffffffafea8f08 save_fpregs_to_fpstate+0x48 ([kernel.kallsyms])                 xor %edi, %edi
+     migration/5    36 [005]     0.000000023:  ffffffffafea8f0a save_fpregs_to_fpstate+0x4a ([kernel.kallsyms])                 ptwriteq  (%rsp)
+--
+         swapper     0 [005]     0.000000000:  ffffffffafea8f04 save_fpregs_to_fpstate+0x44 ([kernel.kallsyms])                 xsaves64 (%rdi)
+         swapper     0 [005]     0.000000000:  ffffffffafea8f08 save_fpregs_to_fpstate+0x48 ([kernel.kallsyms])                 xor %edi, %edi
+         swapper     0 [005]     0.000000031:  ffffffffafea8f0a save_fpregs_to_fpstate+0x4a ([kernel.kallsyms])                 ptwriteq  (%rsp)
+--
+         swapper     0 [005]     0.000000000:  ffffffffafea8f04 save_fpregs_to_fpstate+0x44 ([kernel.kallsyms])                 xsaves64 (%rdi)
+         swapper     0 [005]     0.000000000:  ffffffffafea8f08 save_fpregs_to_fpstate+0x48 ([kernel.kallsyms])                 xor %edi, %edi
+         swapper     0 [005]     0.000000033:  ffffffffafea8f0a save_fpregs_to_fpstate+0x4a ([kernel.kallsyms])                 ptwriteq  (%rsp)
+--
+         swapper     0 [005]     0.000000000:  ffffffffafea8f04 save_fpregs_to_fpstate+0x44 ([kernel.kallsyms])                 xsaves64 (%rdi)
+         swapper     0 [005]     0.000000000:  ffffffffafea8f08 save_fpregs_to_fpstate+0x48 ([kernel.kallsyms])                 xor %edi, %edi
+         swapper     0 [005]     0.000000048:  ffffffffafea8f0a save_fpregs_to_fpstate+0x4a ([kernel.kallsyms])                 ptwriteq  (%rsp)
+--
+         swapper     0 [005]     0.000000000:  ffffffffafea8f04 save_fpregs_to_fpstate+0x44 ([kernel.kallsyms])                 xsaves64 (%rdi)
+         swapper     0 [005]     0.000000000:  ffffffffafea8f08 save_fpregs_to_fpstate+0x48 ([kernel.kallsyms])                 xor %edi, %edi
+         swapper     0 [005]     0.000000121:  ffffffffafea8f0a save_fpregs_to_fpstate+0x4a ([kernel.kallsyms])                 ptwriteq  (%rsp)
+--
+         swapper     0 [005]     0.000000000:  ffffffffafea8f04 save_fpregs_to_fpstate+0x44 ([kernel.kallsyms])                 xsaves64 (%rdi)
+         swapper     0 [005]     0.000000000:  ffffffffafea8f08 save_fpregs_to_fpstate+0x48 ([kernel.kallsyms])                 xor %edi, %edi
+         swapper     0 [005]     0.000000154:  ffffffffafea8f0a save_fpregs_to_fpstate+0x4a ([kernel.kallsyms])                 ptwriteq  (%rsp)
+--
+         swapper     0 [005]     0.000000000:  ffffffffafea8f04 save_fpregs_to_fpstate+0x44 ([kernel.kallsyms])                 xsaves64 (%rdi)
+         swapper     0 [005]     0.000000000:  ffffffffafea8f08 save_fpregs_to_fpstate+0x48 ([kernel.kallsyms])                 xor %edi, %edi
+         swapper     0 [005]     0.000000122:  ffffffffafea8f0a save_fpregs_to_fpstate+0x4a ([kernel.kallsyms])                 ptwriteq  (%rsp)
+--
+         swapper     0 [005]     0.000000000:  ffffffffafea8f04 save_fpregs_to_fpstate+0x44 ([kernel.kallsyms])                 xsaves64 (%rdi)
+         swapper     0 [005]     0.000000000:  ffffffffafea8f08 save_fpregs_to_fpstate+0x48 ([kernel.kallsyms])                 xor %edi, %edi
+         swapper     0 [005]     0.000000148:  ffffffffafea8f0a save_fpregs_to_fpstate+0x4a ([kernel.kallsyms])                 ptwriteq  (%rsp)
+--
+         swapper     0 [005]     0.000000000:  ffffffffafea8f04 save_fpregs_to_fpstate+0x44 ([kernel.kallsyms])                 xsaves64 (%rdi)
+         swapper     0 [005]     0.000000000:  ffffffffafea8f08 save_fpregs_to_fpstate+0x48 ([kernel.kallsyms])                 xor %edi, %edi
+         swapper     0 [005]     0.000000122:  ffffffffafea8f0a save_fpregs_to_fpstate+0x4a ([kernel.kallsyms])                 ptwriteq  (%rsp)
+--
+         swapper     0 [005]     0.000000000:  ffffffffafea8f04 save_fpregs_to_fpstate+0x44 ([kernel.kallsyms])                 xsaves64 (%rdi)
+         swapper     0 [005]     0.000000000:  ffffffffafea8f08 save_fpregs_to_fpstate+0x48 ([kernel.kallsyms])                 xor %edi, %edi
+         swapper     0 [005]     0.000000160:  ffffffffafea8f0a save_fpregs_to_fpstate+0x4a ([kernel.kallsyms])                 ptwriteq  (%rsp)
+--
+         swapper     0 [005]     0.000000000:  ffffffffafea8f04 save_fpregs_to_fpstate+0x44 ([kernel.kallsyms])                 xsaves64 (%rdi)
+         swapper     0 [005]     0.000000000:  ffffffffafea8f08 save_fpregs_to_fpstate+0x48 ([kernel.kallsyms])                 xor %edi, %edi
+         swapper     0 [005]     0.000000163:  ffffffffafea8f0a save_fpregs_to_fpstate+0x4a ([kernel.kallsyms])                 ptwriteq  (%rsp)
+</pre>
+
+Similarly, let's see xrestores on CPU 5:
+
+This shows times varying from 32ns to 855ns
+<pre>
+# perf script --deltatime --insn-trace --xed -C 5 | grep -A 1 xrst
+              sh  1167 [005]     0.000000000:  ffffffffafea9072 restore_fpregs_from_fpstate+0x52 ([kernel.kallsyms])            xrstors64 (%rdi)
+              sh  1167 [005]     0.000000117:  ffffffffafea9076 restore_fpregs_from_fpstate+0x56 ([kernel.kallsyms])            ptwriteq  (%rsp)
+--
+           sleep  1167 [005]     0.000000000:  ffffffffafea9072 restore_fpregs_from_fpstate+0x52 ([kernel.kallsyms])            xrstors64 (%rdi)
+           sleep  1167 [005]     0.000000032:  ffffffffafea9076 restore_fpregs_from_fpstate+0x56 ([kernel.kallsyms])            ptwriteq  (%rsp)
+--
+              sh  1169 [005]     0.000000000:  ffffffffafea9072 restore_fpregs_from_fpstate+0x52 ([kernel.kallsyms])            xrstors64 (%rdi)
+              sh  1169 [005]     0.000000095:  ffffffffafea9076 restore_fpregs_from_fpstate+0x56 ([kernel.kallsyms])            ptwriteq  (%rsp)
+--
+           sleep  1169 [005]     0.000000000:  ffffffffafea9072 restore_fpregs_from_fpstate+0x52 ([kernel.kallsyms])            xrstors64 (%rdi)
+           sleep  1169 [005]     0.000000047:  ffffffffafea9076 restore_fpregs_from_fpstate+0x56 ([kernel.kallsyms])            ptwriteq  (%rsp)
+--
+              sh  1170 [005]     0.000000000:  ffffffffafea9072 restore_fpregs_from_fpstate+0x52 ([kernel.kallsyms])            xrstors64 (%rdi)
+              sh  1170 [005]     0.000000344:  ffffffffafea9076 restore_fpregs_from_fpstate+0x56 ([kernel.kallsyms])            ptwriteq  (%rsp)
+--
+           sleep  1170 [005]     0.000000000:  ffffffffafea9072 restore_fpregs_from_fpstate+0x52 ([kernel.kallsyms])            xrstors64 (%rdi)
+           sleep  1170 [005]     0.000000135:  ffffffffafea9076 restore_fpregs_from_fpstate+0x56 ([kernel.kallsyms])            ptwriteq  (%rsp)
+--
+              sh  1174 [005]     0.000000000:  ffffffffafea9072 restore_fpregs_from_fpstate+0x52 ([kernel.kallsyms])            xrstors64 (%rdi)
+              sh  1174 [005]     0.000000317:  ffffffffafea9076 restore_fpregs_from_fpstate+0x56 ([kernel.kallsyms])            ptwriteq  (%rsp)
+--
+           sleep  1174 [005]     0.000000000:  ffffffffafea9072 restore_fpregs_from_fpstate+0x52 ([kernel.kallsyms])            xrstors64 (%rdi)
+           sleep  1174 [005]     0.000000134:  ffffffffafea9076 restore_fpregs_from_fpstate+0x56 ([kernel.kallsyms])            ptwriteq  (%rsp)
+--
+              sh  1176 [005]     0.000000000:  ffffffffafea9072 restore_fpregs_from_fpstate+0x52 ([kernel.kallsyms])            xrstors64 (%rdi)
+              sh  1176 [005]     0.000000855:  ffffffffafea9076 restore_fpregs_from_fpstate+0x56 ([kernel.kallsyms])            ptwriteq  (%rsp)
+--
+           sleep  1176 [005]     0.000000000:  ffffffffafea9072 restore_fpregs_from_fpstate+0x52 ([kernel.kallsyms])            xrstors64 (%rdi)
+           sleep  1176 [005]     0.000000536:  ffffffffafea9076 restore_fpregs_from_fpstate+0x56 ([kernel.kallsyms])            ptwriteq  (%rsp)
+--
+            perf  1164 [005]     0.000000000:  ffffffffafea9072 restore_fpregs_from_fpstate+0x52 ([kernel.kallsyms])            xrstors64 (%rdi)
+            perf  1164 [005]     0.000000198:  ffffffffafea9076 restore_fpregs_from_fpstate+0x56 ([kernel.kallsyms])            ptwriteq  (%rsp)
+</pre>
