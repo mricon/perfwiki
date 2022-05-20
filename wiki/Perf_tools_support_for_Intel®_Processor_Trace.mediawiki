@@ -141,7 +141,7 @@ For other purposes, <tt>perf</tt> on modern Linux is usually fine.
 
 === Downloading and building the latest perf tools ===
 
-The example below is for a Debian-based system, specifically Ubuntu 20.04 in this case.  We will need 4G of disk space.
+The example below is for a Debian-based system, specifically Ubuntu 20.04 in this case, although there is a package list also for Fedora.  We will need 4G of disk space.
 
 <tt>git</tt> is needed:
 <pre>
@@ -161,6 +161,10 @@ $ sudo apt-get install build-essential flex bison
 It should be possible to build <tt>perf</tt> at this stage but it will be missing essential features.  Add some more development libraries:
 <pre>
 $ sudo apt-get install libelf-dev libnewt-dev libdw-dev libaudit-dev libiberty-dev libunwind-dev libcap-dev libzstd-dev libnuma-dev libssl-dev python3-dev python3-distutils binutils-dev gcc-multilib liblzma-dev
+</pre>
+Aside: example packages for Fedora instead of Ubuntu:
+<pre>
+sudo yum install flex bison gcc make elfutils-libelf-devel elfutils-devel libunwind-devel python-devel libcap-devel slang-devel binutils-devel numactl-devel openssl-devel
 </pre>
 To build <tt>perf</tt> (with script bindings for python3 instead of python2) and put it in <tt>~/bin/perf</tt> :
 <pre>
