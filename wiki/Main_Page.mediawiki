@@ -38,3 +38,4 @@ To learn more, see the examples in the [[Tutorial]].
 * [http://indico.cern.ch/materialDisplay.py?contribId=20&sessionId=4&materialId=slides&confId=141309 Roberto Vitillo's presentation on Perf events]
 * [http://www.brendangregg.com/perf.html Brendan Gregg's perf examples]
 * [https://youtu.be/nXaxk27zwlk CppCon 2015: Chandler Carruth "Tuning C++: Benchmarks, and CPUs, and Compilers! Oh My!"]
+* [https://www.jabperf.com/5-level-vs-4-level-page-tables-does-it-matter/ Mark Dawson, Jr. uses 'perf diff' on "5-level vs 4-level Page Tables: Does It Matter?"]
