@@ -43,3 +43,4 @@ To learn more, see the examples in the [[Tutorial]].
 * [https://www.linaro.org/blog/using-the-arm-statistical-profiling-extension-to-detect-false-cache-line-sharing/ Leo Yan on supporting 'perf c2c' on Armv8.2 "Using the Arm Statistical Profiling Extension to detect false cache-line sharing"]
 * [https://www.dbi-services.com/blog/linux-perf-top-basics-understand-the/ Franck Pachot's not so basic perf top tutorial "Linux perf-top basics: understand the %"]
 * [https://www.dbi-services.com/blog/should-cpu-intensive-logic-be-done-in-the-db-or-in-application-server/ Frank Pachot help going from 'time' to 'perf stat' while analysing database performance on "Should CPU-intensive logic be done in the DB or in application server?"]
+* [https://opensource.com/article/18/7/fun-perf-and-python Paul Clarke reimplements AIX's 'curt' command using perf python scripting support, detailing the whole process on "How to analyze your system with perf and Python"]
