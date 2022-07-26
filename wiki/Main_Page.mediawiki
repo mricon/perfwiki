@@ -41,3 +41,4 @@ To learn more, see the examples in the [[Tutorial]].
 * [https://www.jabperf.com/5-level-vs-4-level-page-tables-does-it-matter/ Mark Dawson, Jr. uses 'perf diff' on "5-level vs 4-level Page Tables: Does It Matter?"]
 * [https://joemario.github.io/blog/2016/09/01/c2c-blog/ Joe Mario's original 2016 article about 'perf c2c' "C2C - False Sharing Detection in Linux Perf"]
 * [https://www.linaro.org/blog/using-the-arm-statistical-profiling-extension-to-detect-false-cache-line-sharing/ Leo Yan on supporting 'perf c2c' on Armv8.2 "Using the Arm Statistical Profiling Extension to detect false cache-line sharing"]
+* [https://www.dbi-services.com/blog/linux-perf-top-basics-understand-the/ Franck Pachot's not so basic perf top tutorial "Linux perf-top basics: understand the %"]
