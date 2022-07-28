@@ -4,7 +4,7 @@ title: Useful Links
 
 __TOC__
 
-=Useful web sites about profiling=
+=Useful web sites about the Linux perf tools=
 
 * [http://www.brendangregg.com/perf.html Brendan Gregg's perf examples]
 * [https://www.dbi-services.com/blog/linux-perf-top-basics-understand-the/ Franck Pachot's not so basic perf top tutorial "Linux perf-top basics: understand the %"]
