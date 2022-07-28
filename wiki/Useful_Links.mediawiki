@@ -22,5 +22,12 @@ __TOC__
 =Presentations=
 
 * [https://youtu.be/aUDtN0qjxD0 Easyperf Twitter Spaces with Arnaldo Carvalho de Melo and Denis Bakhvalov] October 2021
+* [https://protools19.github.io/slides/Eranian_KeynoteSC19.pdf Stephane Eranian's keynote at SuperComputing ProTools 2019: Hardware Performance Monitoring Landscape]
 * [https://youtu.be/nXaxk27zwlk CppCon 2015: Chandler Carruth "Tuning C++: Benchmarks, and CPUs, and Compilers! Oh My!"]
 * [http://indico.cern.ch/materialDisplay.py?contribId=20&sessionId=4&materialId=slides&confId=141309 Roberto Vitillo's presentation on Perf events] June 2011
+
+=Manuals=
+
+* [https://software.intel.com/content/www/us/en/develop/download/intel-64-and-ia-32-architectures-optimization-reference-manual.html Intel PMU event tables], in particular Appendix B of the Intel® 64 and IA-32 Architectures Optimization Reference Manual
+* [https://developer.amd.com/resources/developer-guides-manuals/ AMD PMU event table], the Processor Programming Reference Manual for AMD 17h family see Section 2.1.15 Performance Monitor Counters.
+* [https://developer.arm.com/architectures/cpu-architecture/a-profile/docs ARM PMU event tables], see Chapter D7. The Performance Monitors Extension, of the Arm Architecture Reference Manual Armv8, for Armv8-A architecture profile.
