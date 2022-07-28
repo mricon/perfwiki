@@ -33,5 +33,5 @@ To learn more, see the examples in the [[Tutorial]].
 * [[HardwareReference]]
 * [[perf_events kernel ABI]]
 * [[perf tools support for Intel&reg; Processor Trace]]
-* [[Useful Links]]: How perf tools work, examples of usage to solve real problems, observability articles
+* [[Useful Links]]: How perf tools work, examples of usage to solve real problems, observability articles, hardware manuals
 * [[Glossary]]
