@@ -1,0 +1,76 @@
+---
+title: Glossary
+---
+
+==C==
+
+===C2C===
+ Cache-to-cache. ''perf c2c'' is a builtin perf tool for analyzing shared data accesses and problems like [[#False_Sharing|false sharing]].
+
+===Core===
+ 1. Used to refer to events on the CPU's PMU, contrast with [[#Uncore|Uncore]] and [[#Offcore|Offcore]].
+ 2. Part of the [[#Topology|topology]] containing multiple [[#SMT|SMT]] threads.
+
+==E==
+
+===Event Selector===
+
+See [[#evsel|evsel]].
+
+===evlist===
+
+ 1. A [[Perf-Evlst|perf command]] to list the events within a [[#perf.data|perf.data]] file.
+ 2. A list of [[#evsel|event selectors]]. The [https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/tools/lib/perf/include/perf/evlist.h evlist API is part of libperf].
+
+===evsel===
+ An event selector describes a [[#Perf_Event|perf event]] that will be opened on multiple CPUs or threads. The [https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/tools/lib/perf/include/perf/evsel.h evsel API is part of libperf].
+
+
+==F==
+===False Sharing===
+ When a cache line is accidentally shared, and written-to, by two threads because of the layout of data being so that it is on the same cache line.
+
+==H==
+
+===HITM===
+ A load that hit a modified cacheline.
+
+===Hyperthread===
+ Intel/x86 term for [[#SMT|SMT]].
+
+==M==
+
+===Metric===
+ Taking multiple performance counters, typcally in ''perf stat'', and then computing a human meaningful value like memory bandwidth.
+
+==O==
+
+===Offcore===
+ TODO
+
+===Off-CPU===
+ Off-CPU is data collected when a [[#Task|task]] gets context switched. Brendan Gregg discusses [https://www.brendangregg.com/offcpuanalysis.html Off-CPU analysis]. Combining on-CPU time, measured with a performance counter, with off-CPU time will give wall clock time. Linux perf 5.20 adds a command line option to ''perf record'' to gather off-CPU data.
+
+==P==
+
+===perf.data===
+ By default output from various perf commands is stored in a file named perf.data.
+
+===Perf Event===
+ A kernel abstraction used to reference data being gathered about a particular kind of kernel event.
+
+
+==S==
+
+===SMT===
+ [https://en.wikipedia.org/wiki/Simultaneous_multithreading Simultaneous multithreading].
+
+==T==
+
+===Task===
+ Kernel term for a process (if just 1 thread) or thread.
+
+==U==
+
+===Uncore===
+ [https://en.wikipedia.org/wiki/Uncore Functions of the microprocessor not in the core].
