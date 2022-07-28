@@ -1,0 +1,25 @@
+---
+title: Useful Links
+---
+
+__TOC__
+
+=Useful web sites about profiling=
+
+* [http://www.brendangregg.com/perf.html Brendan Gregg's perf examples]
+* [https://www.dbi-services.com/blog/linux-perf-top-basics-understand-the/ Franck Pachot's not so basic perf top tutorial "Linux perf-top basics: understand the %"]
+* [https://www.dbi-services.com/blog/should-cpu-intensive-logic-be-done-in-the-db-or-in-application-server/ Frank Pachot help going from 'time' to 'perf stat' while analysing database performance on "Should CPU-intensive logic be done in the DB or in application server?"]
+* [https://www.linaro.org/blog/using-the-arm-statistical-profiling-extension-to-detect-false-cache-line-sharing/ Leo Yan on supporting 'perf c2c' on Armv8.2 "Using the Arm Statistical Profiling Extension to detect false cache-line sharing"]
+* [https://www.jabperf.com/5-level-vs-4-level-page-tables-does-it-matter/ Mark Dawson, Jr. uses 'perf diff' on "5-level vs 4-level Page Tables: Does It Matter?"]
+* [https://joemario.github.io/blog/2016/09/01/c2c-blog/ Joe Mario's original 2016 article about 'perf c2c' "C2C - False Sharing Detection in Linux Perf"]
+* [https://opensource.com/article/18/7/fun-perf-and-python Paul Clarke reimplements AIX's 'curt' command using perf python scripting support, detailing the whole process on "How to analyze your system with perf and Python"]
+
+=Useful web sites about profilers=
+
+* [https://www.markhansen.co.nz/profilerpedia/ ProfilerPedia A map of the Software Profiling Ecosystem]
+
+=Presentations=
+
+* [https://youtu.be/aUDtN0qjxD0 Easyperf Twitter Spaces with Arnaldo Carvalho de Melo and Denis Bakhvalov] October 2021
+* [https://youtu.be/nXaxk27zwlk CppCon 2015: Chandler Carruth "Tuning C++: Benchmarks, and CPUs, and Compilers! Oh My!"]
+* [http://indico.cern.ch/materialDisplay.py?contribId=20&sessionId=4&materialId=slides&confId=141309 Roberto Vitillo's presentation on Perf events] June 2011
