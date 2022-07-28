@@ -2,6 +2,14 @@
 title: Glossary
 ---
 
+==B==
+
+===BPF===
+ [https://en.wikipedia.org/wiki/Berkeley_Packet_Filter Berkeley Packet Filter].
+
+===BPF Counter===
+ An option on ''perf stat'' where a BPF program reads counters to a BPF map rather then the regular ''read'' of a perf event file descriptor. The BPF program reads the counter on context switches from an event in system wide mode. If the number of system wide per CPU events is less than the number of threads or cgroups, this option can reduce file descriptor overhead.
+
 ==C==
 
 ===C2C===
@@ -30,6 +38,12 @@ See [[#evsel|evsel]].
 ===False Sharing===
  When a cache line is accidentally shared, and written-to, by two threads because of the layout of data being so that it is on the same cache line.
 
+===Flexible Event===
+ The default kind of event that can be [[#Multiplexing|multiplexed]], contrast with [[#Pinned Event|pinned event]].
+
+===Free Running Counter===
+ A counter that runs through its full range of values before repeating.
+
 ==H==
 
 ===HITM===
@@ -42,6 +56,9 @@ See [[#evsel|evsel]].
 
 ===Metric===
  Taking multiple performance counters, typcally in ''perf stat'', and then computing a human meaningful value like memory bandwidth.
+
+===Multiplexing===
+ When the number of events is greater than the hardware counters the kernel will multiplex the events. Each event is scheduled for a period of time (by default 1kHz) and then rotated.
 
 ==O==
 
@@ -59,6 +76,9 @@ See [[#evsel|evsel]].
 ===Perf Event===
  A kernel abstraction used to reference data being gathered about a particular kind of kernel event.
 
+
+===Pinned Event===
+ Pinned events are scheduled at a higher priority to flexible events. If they can't be scheduled within the kernel they don't multiplex and enter an error state.
 
 ==S==
 
