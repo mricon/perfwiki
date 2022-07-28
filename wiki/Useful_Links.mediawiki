@@ -13,6 +13,7 @@ __TOC__
 * [https://www.jabperf.com/5-level-vs-4-level-page-tables-does-it-matter/ Mark Dawson, Jr. uses 'perf diff' on "5-level vs 4-level Page Tables: Does It Matter?"]
 * [https://joemario.github.io/blog/2016/09/01/c2c-blog/ Joe Mario's original 2016 article about 'perf c2c' "C2C - False Sharing Detection in Linux Perf"]
 * [https://opensource.com/article/18/7/fun-perf-and-python Paul Clarke reimplements AIX's 'curt' command using perf python scripting support, detailing the whole process on "How to analyze your system with perf and Python"]
+* [https://biriukov.dev/docs/page-cache/0-linux-page-cache-for-sre/ Viacheslav Biriukov mentions using perf to get more info about page cache activity in the "Advanced tools" section in his "SRE deep dive into Linux Page Cache" series of articles]
 
 =Useful web sites about profilers=
 
