@@ -164,8 +164,10 @@ $ sudo apt-get install build-essential flex bison
 </pre>
 It should be possible to build <tt>perf</tt> at this stage but it will be missing essential features.  Add some more development libraries:
 <pre>
-$ sudo apt-get install libelf-dev libnewt-dev libdw-dev libaudit-dev libiberty-dev libunwind-dev libcap-dev libzstd-dev libnuma-dev libssl-dev python3-dev python3-distutils binutils-dev gcc-multilib liblzma-dev
+$ sudo apt-get install libelf-dev libnewt-dev libdw-dev libaudit-dev libiberty-dev libunwind-dev libcap-dev libzstd-dev libnuma-dev libssl-dev python3-dev python3-setuptools binutils-dev gcc-multilib liblzma-dev
 </pre>
+Note, with v5.19 and earlier, python3-distutils was used instead of python3-setuptools, but that was changed in [http://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=ee87a0841aa538ab7ad49cf5679ac5ea2682c909 this commit].
+
 Aside: example packages for Fedora instead of Ubuntu:
 <pre>
 sudo yum install flex bison gcc make elfutils-libelf-devel elfutils-devel libunwind-devel python-devel libcap-devel slang-devel binutils-devel numactl-devel openssl-devel
