@@ -2,4 +2,4 @@
 title: APITest2
 ---
 
-{{nocat|2022|08|25}}
+New text for page.
