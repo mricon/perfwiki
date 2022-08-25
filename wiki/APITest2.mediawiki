@@ -186,8 +186,11 @@ psb_period Allows the frequency of PSB packets to be specified.
 
 <blockquote><pre>The PSB packet is a synchronization packet that provides a
 starting point for decoding or recovery from errors.
+
 Support for psb_period is indicated by:
+
 /sys/bus/event_source/devices/intel_pt/caps/psb_cyc
+
 which contains &quot;1&quot; if the feature is supported and &quot;0&quot;
 otherwise.</pre></blockquote>
 <blockquote><pre>Valid values are given by:</pre></blockquote>
