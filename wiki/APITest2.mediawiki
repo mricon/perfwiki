@@ -2,6 +2,7 @@
 title: APITest2
 ---
 
+
 = NAME =
 
 perf-intel-pt - Support for Intel Processor Trace within perf tools
@@ -192,85 +193,121 @@ Support for psb_period is indicated by:
 /sys/bus/event_source/devices/intel_pt/caps/psb_cyc
 
 which contains &quot;1&quot; if the feature is supported and &quot;0&quot;
-otherwise.</pre></blockquote>
-<blockquote><pre>Valid values are given by:</pre></blockquote>
-<blockquote><pre>/sys/bus/event_source/devices/intel_pt/caps/psb_periods</pre></blockquote>
-<blockquote><pre>which contains a hexadecimal value, the bits of which represent
-valid values e.g. bit 2 set means value 2 is valid.</pre></blockquote>
-<blockquote><pre>The psb_period value is converted to the approximate number of
-trace bytes between PSB packets as:</pre></blockquote>
-<blockquote><pre>2 ^ (value + 11)</pre></blockquote>
-<blockquote><pre>e.g. value 3 means 16KiB bytes between PSBs</pre></blockquote>
-<blockquote><pre>If an invalid value is entered, the error message
-will give a list of valid values e.g.</pre></blockquote>
-<blockquote><pre>$ perf record -e intel_pt/psb_period=15/u uname
-Invalid psb_period for intel_pt. Valid values are: 0-5</pre></blockquote>
-<blockquote><pre>If MTC packets are selected, the default config selects a value
+otherwise.
+
+Valid values are given by:
+
+/sys/bus/event_source/devices/intel_pt/caps/psb_periods
+
+which contains a hexadecimal value, the bits of which represent
+valid values e.g. bit 2 set means value 2 is valid.
+
+The psb_period value is converted to the approximate number of
+trace bytes between PSB packets as:
+
+2 ^ (value + 11)
+
+e.g. value 3 means 16KiB bytes between PSBs
+
+If an invalid value is entered, the error message
+will give a list of valid values e.g.
+
+$ perf record -e intel_pt/psb_period=15/u uname
+Invalid psb_period for intel_pt. Valid values are: 0-5
+
+If MTC packets are selected, the default config selects a value
 of 3 (i.e. psb_period=3) or the nearest lower value that is
-supported (0 is always supported).  Otherwise the default is 0.</pre></blockquote>
-<blockquote><pre>If decoding is expected to be reliable and the buffer is large
-then a large PSB period can be used.</pre></blockquote>
-<blockquote><pre>Because a TSC packet is produced with PSB, the PSB period can
+supported (0 is always supported).  Otherwise the default is 0.
+
+If decoding is expected to be reliable and the buffer is large
+then a large PSB period can be used.
+
+Because a TSC packet is produced with PSB, the PSB period can
 also affect the granularity to timing information in the absence
 of MTC or CYC.</pre></blockquote>
 mtc Produces MTC timing packets.
 
 <blockquote><pre>MTC packets provide finer grain timestamp information than TSC
 packets.  MTC packets record time using the hardware crystal
-clock (CTC) which is related to TSC packets using a TMA packet.</pre></blockquote>
-<blockquote><pre>Support for this feature is indicated by:</pre></blockquote>
-<blockquote><pre>/sys/bus/event_source/devices/intel_pt/caps/mtc</pre></blockquote>
-<blockquote><pre>which contains &quot;1&quot; if the feature is supported and
-&quot;0&quot; otherwise.</pre></blockquote>
-<blockquote><pre>The frequency of MTC packets can also be specified - see
+clock (CTC) which is related to TSC packets using a TMA packet.
+
+Support for this feature is indicated by:
+
+/sys/bus/event_source/devices/intel_pt/caps/mtc
+
+which contains &quot;1&quot; if the feature is supported and
+&quot;0&quot; otherwise.
+
+The frequency of MTC packets can also be specified - see
 mtc_period below.</pre></blockquote>
 mtc_period Specifies how frequently MTC packets are produced - see mtc above for how to determine if MTC packets are supported.
 
-<blockquote><pre>Valid values are given by:</pre></blockquote>
-<blockquote><pre>/sys/bus/event_source/devices/intel_pt/caps/mtc_periods</pre></blockquote>
-<blockquote><pre>which contains a hexadecimal value, the bits of which represent
-valid values e.g. bit 2 set means value 2 is valid.</pre></blockquote>
-<blockquote><pre>The mtc_period value is converted to the MTC frequency as:</pre></blockquote>
-<blockquote><pre>CTC-frequency / (2 ^ value)</pre></blockquote>
-<blockquote><pre>e.g. value 3 means one eighth of CTC-frequency</pre></blockquote>
-<blockquote><pre>Where CTC is the hardware crystal clock, the frequency of which
-can be related to TSC via values provided in cpuid leaf 0x15.</pre></blockquote>
-<blockquote><pre>If an invalid value is entered, the error message
-will give a list of valid values e.g.</pre></blockquote>
-<blockquote><pre>$ perf record -e intel_pt/mtc_period=15/u uname
-Invalid mtc_period for intel_pt. Valid values are: 0,3,6,9</pre></blockquote>
-<blockquote><pre>The default value is 3 or the nearest lower value
+<blockquote><pre>Valid values are given by:
+
+/sys/bus/event_source/devices/intel_pt/caps/mtc_periods
+
+which contains a hexadecimal value, the bits of which represent
+valid values e.g. bit 2 set means value 2 is valid.
+
+The mtc_period value is converted to the MTC frequency as:
+
+CTC-frequency / (2 ^ value)
+
+e.g. value 3 means one eighth of CTC-frequency
+
+Where CTC is the hardware crystal clock, the frequency of which
+can be related to TSC via values provided in cpuid leaf 0x15.
+
+If an invalid value is entered, the error message
+will give a list of valid values e.g.
+
+$ perf record -e intel_pt/mtc_period=15/u uname
+Invalid mtc_period for intel_pt. Valid values are: 0,3,6,9
+
+The default value is 3 or the nearest lower value
 that is supported (0 is always supported).</pre></blockquote>
 cyc Produces CYC timing packets.
 
 <blockquote><pre>CYC packets provide even finer grain timestamp information than
 MTC and TSC packets.  A CYC packet contains the number of CPU
 cycles since the last CYC packet. Unlike MTC and TSC packets,
-CYC packets are only sent when another packet is also sent.</pre></blockquote>
-<blockquote><pre>Support for this feature is indicated by:</pre></blockquote>
-<blockquote><pre>/sys/bus/event_source/devices/intel_pt/caps/psb_cyc</pre></blockquote>
-<blockquote><pre>which contains &quot;1&quot; if the feature is supported and
-&quot;0&quot; otherwise.</pre></blockquote>
-<blockquote><pre>The number of CYC packets produced can be reduced by specifying
+CYC packets are only sent when another packet is also sent.
+
+Support for this feature is indicated by:
+
+/sys/bus/event_source/devices/intel_pt/caps/psb_cyc
+
+which contains &quot;1&quot; if the feature is supported and
+&quot;0&quot; otherwise.
+
+The number of CYC packets produced can be reduced by specifying
 a threshold - see cyc_thresh below.</pre></blockquote>
 cyc_thresh Specifies how frequently CYC packets are produced - see cyc above for how to determine if CYC packets are supported.
 
-<blockquote><pre>Valid cyc_thresh values are given by:</pre></blockquote>
-<blockquote><pre>/sys/bus/event_source/devices/intel_pt/caps/cycle_thresholds</pre></blockquote>
-<blockquote><pre>which contains a hexadecimal value, the bits of which represent
-valid values e.g. bit 2 set means value 2 is valid.</pre></blockquote>
-<blockquote><pre>The cyc_thresh value represents the minimum number of CPU cycles
+<blockquote><pre>Valid cyc_thresh values are given by:
+
+/sys/bus/event_source/devices/intel_pt/caps/cycle_thresholds
+
+which contains a hexadecimal value, the bits of which represent
+valid values e.g. bit 2 set means value 2 is valid.
+
+The cyc_thresh value represents the minimum number of CPU cycles
 that must have passed before a CYC packet can be sent.  The
-number of CPU cycles is:</pre></blockquote>
-<blockquote><pre>2 ^ (value - 1)</pre></blockquote>
-<blockquote><pre>e.g. value 4 means 8 CPU cycles must pass before a CYC packet
+number of CPU cycles is:
+
+2 ^ (value - 1)
+
+e.g. value 4 means 8 CPU cycles must pass before a CYC packet
 can be sent.  Note a CYC packet is still only sent when another
-packet is sent, not at, e.g. every 8 CPU cycles.</pre></blockquote>
-<blockquote><pre>If an invalid value is entered, the error message
-will give a list of valid values e.g.</pre></blockquote>
-<blockquote><pre>$ perf record -e intel_pt/cyc,cyc_thresh=15/u uname
-Invalid cyc_thresh for intel_pt. Valid values are: 0-12</pre></blockquote>
-<blockquote><pre>CYC packets are not requested by default.</pre></blockquote>
+packet is sent, not at, e.g. every 8 CPU cycles.
+
+If an invalid value is entered, the error message
+will give a list of valid values e.g.
+
+$ perf record -e intel_pt/cyc,cyc_thresh=15/u uname
+Invalid cyc_thresh for intel_pt. Valid values are: 0-12
+
+CYC packets are not requested by default.</pre></blockquote>
 pt Specifies pass-through which enables the ''branch'' config term.
 
 <blockquote><pre>The default config selects pt if it is available, so a user will
@@ -280,30 +317,39 @@ branch Enable branch tracing. Branch tracing is enabled by default so to disable
 <blockquote><pre>The default config selects branch if it is available.</pre></blockquote>
 ptw Enable PTWRITE packets which are produced when a ptwrite instruction is executed.
 
-<blockquote><pre>Support for this feature is indicated by:</pre></blockquote>
-<blockquote><pre>/sys/bus/event_source/devices/intel_pt/caps/ptwrite</pre></blockquote>
-<blockquote><pre>which contains &quot;1&quot; if the feature is supported and
-&quot;0&quot; otherwise.</pre></blockquote>
-<blockquote><pre>As an alternative, refer to &quot;Emulated PTWRITE&quot; further below.</pre></blockquote>
+<blockquote><pre>Support for this feature is indicated by:
+
+/sys/bus/event_source/devices/intel_pt/caps/ptwrite
+
+which contains &quot;1&quot; if the feature is supported and
+&quot;0&quot; otherwise.
+
+As an alternative, refer to &quot;Emulated PTWRITE&quot; further below.</pre></blockquote>
 fup_on_ptw Enable a FUP packet to follow the PTWRITE packet. The FUP packet provides the address of the ptwrite instruction. In the absence of fup_on_ptw, the decoder will use the address of the previous branch if branch tracing is enabled, otherwise the address will be zero. Note that fup_on_ptw will work even when branch tracing is disabled.
 
 pwr_evt Enable power events. The power events provide information about changes to the CPU C-state.
 
-<blockquote><pre>Support for this feature is indicated by:</pre></blockquote>
-<blockquote><pre>/sys/bus/event_source/devices/intel_pt/caps/power_event_trace</pre></blockquote>
-<blockquote><pre>which contains &quot;1&quot; if the feature is supported and
+<blockquote><pre>Support for this feature is indicated by:
+
+/sys/bus/event_source/devices/intel_pt/caps/power_event_trace
+
+which contains &quot;1&quot; if the feature is supported and
 &quot;0&quot; otherwise.</pre></blockquote>
 event Enable Event Trace. The events provide information about asynchronous events.
 
-<blockquote><pre>Support for this feature is indicated by:</pre></blockquote>
-<blockquote><pre>/sys/bus/event_source/devices/intel_pt/caps/event_trace</pre></blockquote>
-<blockquote><pre>which contains &quot;1&quot; if the feature is supported and
+<blockquote><pre>Support for this feature is indicated by:
+
+/sys/bus/event_source/devices/intel_pt/caps/event_trace
+
+which contains &quot;1&quot; if the feature is supported and
 &quot;0&quot; otherwise.</pre></blockquote>
 notnt Disable TNT packets. Without TNT packets, it is not possible to walk executable code to reconstruct control flow, however FUP, TIP, TIP.PGE and TIP.PGD packets still indicate asynchronous control flow, and (if return compression is disabled - see noretcomp) return statements. The advantage of eliminating TNT packets is reducing the size of the trace and corresponding tracing overhead.
 
-<blockquote><pre>Support for this feature is indicated by:</pre></blockquote>
-<blockquote><pre>/sys/bus/event_source/devices/intel_pt/caps/tnt_disable</pre></blockquote>
-<blockquote><pre>which contains &quot;1&quot; if the feature is supported and
+<blockquote><pre>Support for this feature is indicated by:
+
+/sys/bus/event_source/devices/intel_pt/caps/tnt_disable
+
+which contains &quot;1&quot; if the feature is supported and
 &quot;0&quot; otherwise.</pre></blockquote>
 == AUX area sampling option ==
 
@@ -702,7 +748,7 @@ Cycles can be displayed using dlfilter-show-cycles.so in which case the itrace A
 To see a list of dlfilters:
 
 <blockquote><pre>perf script -v --list-dlfilters</pre></blockquote>
-See also '''perf-dlfilters'''(1)
+See also [[Latest Manual Page of perf-dlfilters.1|<tt>'''perf-dlfilters'''(1)</tt>]]
 
 == dump option ==
 
@@ -726,11 +772,13 @@ Below is an example of using Intel PT with autofdo. It requires autofdo ('''http
 <blockquote><pre>$ gcc-5 -O3 sort.c -o sort_optimized
 $ ./sort_optimized 30000
 Bubble sorting array of 30000 elements
-2254 ms</pre></blockquote>
-<blockquote><pre>$ cat ~/.perfconfig
+2254 ms
+
+$ cat ~/.perfconfig
 [intel-pt]
-        mispred-all = on</pre></blockquote>
-<blockquote><pre>$ perf record -e intel_pt//u ./sort 3000
+        mispred-all = on
+
+$ perf record -e intel_pt//u ./sort 3000
 Bubble sorting array of 3000 elements
 58 ms
 [ perf record: Woken up 2 times to write data ]
@@ -1122,9 +1170,11 @@ Here is an example tracing a test program from the kernel’s KVM selftests:
   tsc_msrs_test 18436 [007] 10897.962089878:      branches:   jmp                    ffffffffc13b2fa0 vmx_vmexit+0x0 (vmlinux) =&gt; ffffffffc13b2fd2 vmx_vmexit+0x32 (vmlinux)
   tsc_msrs_test 18436 [007] 10897.962089887:      branches:   return                 ffffffffc13b2fd2 vmx_vmexit+0x32 (vmlinux) =&gt; ffffffffc13b3040 __vmx_vcpu_run+0x60 (vmlinux)
   tsc_msrs_test 18436 [007] 10897.962089901:      branches:   return                 ffffffffc13b30b6 __vmx_vcpu_run+0xd6 (vmlinux) =&gt; ffffffffc13b2f2e vmx_vcpu_enter_exit+0x4e (vmlinux)
-[SNIP]</pre></blockquote>
-<blockquote><pre># perf kvm --guest-code --guest --host report -i perf.data --stdio | head -20</pre></blockquote>
-<blockquote><pre># To display the perf.data header info, please use --header/--header-only options.
+[SNIP]
+
+# perf kvm --guest-code --guest --host report -i perf.data --stdio | head -20
+
+# To display the perf.data header info, please use --header/--header-only options.
 #
 #
 # Total Lost Samples: 0
@@ -1199,10 +1249,12 @@ Later perf tools support a method to emulate the ptwrite instruction, which can 
 
 Instead of using the ptwrite instruction, a function is used which produces a trace that encodes the payload data into TNT packets. Here is an example of the function:
 
-<blockquote><pre>#include &lt;stdint.h&gt;</pre></blockquote>
-<blockquote><pre>void perf_emulate_ptwrite(uint64_t x)
-__attribute__((externally_visible, noipa, no_instrument_function, naked));</pre></blockquote>
-<blockquote><pre>#define PERF_EMULATE_PTWRITE_8_BITS \
+<blockquote><pre>#include &lt;stdint.h&gt;
+
+void perf_emulate_ptwrite(uint64_t x)
+__attribute__((externally_visible, noipa, no_instrument_function, naked));
+
+#define PERF_EMULATE_PTWRITE_8_BITS \
                 &quot;1: shl %rax\n&quot;     \
                 &quot;   jc 1f\n&quot;        \
                 &quot;1: shl %rax\n&quot;     \
@@ -1218,11 +1270,14 @@ __attribute__((externally_visible, noipa, no_instrument_function, naked));</pre>
                 &quot;1: shl %rax\n&quot;     \
                 &quot;   jc 1f\n&quot;        \
                 &quot;1: shl %rax\n&quot;     \
-                &quot;   jc 1f\n&quot;</pre></blockquote>
-<blockquote><pre>/* Undefined instruction */
-#define PERF_EMULATE_PTWRITE_UD2        &quot;.byte 0x0f, 0x0b\n&quot;</pre></blockquote>
-<blockquote><pre>#define PERF_EMULATE_PTWRITE_MAGIC        PERF_EMULATE_PTWRITE_UD2 &quot;.ascii \&quot;perf,ptwrite  \&quot;\n&quot;</pre></blockquote>
-<blockquote><pre>void perf_emulate_ptwrite(uint64_t x __attribute__ ((__unused__)))
+                &quot;   jc 1f\n&quot;
+
+/* Undefined instruction */
+#define PERF_EMULATE_PTWRITE_UD2        &quot;.byte 0x0f, 0x0b\n&quot;
+
+#define PERF_EMULATE_PTWRITE_MAGIC        PERF_EMULATE_PTWRITE_UD2 &quot;.ascii \&quot;perf,ptwrite  \&quot;\n&quot;
+
+void perf_emulate_ptwrite(uint64_t x __attribute__ ((__unused__)))
 {
          /* Assumes SysV ABI : x passed in rdi */
         __asm__ volatile (
@@ -1244,12 +1299,15 @@ For example, a test program with the function above:
 
 <blockquote><pre>#include &lt;stdio.h&gt;
 #include &lt;stdint.h&gt;
-#include &lt;stdlib.h&gt;</pre></blockquote>
-<blockquote><pre>#include &quot;perf_emulate_ptwrite.h&quot;</pre></blockquote>
-<blockquote><pre>int main(int argc, char *argv[])
+#include &lt;stdlib.h&gt;
+
+#include &quot;perf_emulate_ptwrite.h&quot;
+
+int main(int argc, char *argv[])
 {
-        uint64_t x = 0;</pre></blockquote>
-<blockquote><pre>        if (argc &gt; 1)
+        uint64_t x = 0;
+
+        if (argc &gt; 1)
                 x = strtoull(argv[1], NULL, 0);
         perf_emulate_ptwrite(x);
         return 0;
@@ -1271,4 +1329,9 @@ Examples can be found on perf wiki page &quot;Perf tools support for Intel® Pro
 
 = SEE ALSO =
 
-'''perf-record'''(1), '''perf-script'''(1), '''perf-report'''(1), '''perf-inject'''(1)
+[[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]], [[Latest Manual Page of perf-script.1|<tt>'''perf-script'''(1)</tt>]], [[Latest Manual Page of perf-report.1|<tt>'''perf-report'''(1)</tt>]], [[Latest Manual Page of perf-inject.1|<tt>'''perf-inject'''(1)</tt>]]
+
+
+= KERNEL VERSION =
+
+This page is auto-generated.  The kernel version is 6.0.0-rc1
