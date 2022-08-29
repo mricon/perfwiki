@@ -607,7 +607,7 @@ session-&lt;NAME&gt;.*, session-&lt;NAME&gt;.run
 </blockquote>
 = SEE ALSO =
 
-'''perf'''(1)
+[[Latest Manual Page of perf.1|<tt>'''perf'''(1)</tt>]]
 
 
 = KERNEL VERSION =
