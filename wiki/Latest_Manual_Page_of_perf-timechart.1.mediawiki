@@ -1,0 +1,138 @@
+---
+title: Latest Manual Page of perf-timechart.1
+---
+
+
+= NAME =
+
+perf-timechart - Tool to visualize total system behavior during a workload
+
+= SYNOPSIS =
+
+<pre></pre>
+= DESCRIPTION =
+
+There are two variants of perf timechart:
+
+<blockquote><pre>perf timechart record &lt;command&gt; to record the system level events
+of an arbitrary workload. By default timechart records only scheduler
+and CPU events (task switches, running times, CPU power states, etc),
+but its possible to record IO (disk, network) activity using -I argument.
+
+perf timechart to turn a trace into a Scalable Vector Graphics file,
+that can be viewed with popular SVG viewers such as Inkscape. Depending
+on the events in the perf.data file, timechart will contain scheduler/cpu
+events or IO events.
+
+In IO mode, every bar has two charts: upper and lower.
+Upper bar shows incoming events (disk reads, ingress network packets).
+Lower bar shows outgoing events (disk writes, egress network packets).
+There are also poll bars which show how much time application spent
+in poll/epoll/select syscalls.</pre></blockquote>
+= TIMECHART OPTIONS =
+
+-o, --output=
+
+<blockquote>Select the output file (default: output.svg)
+</blockquote>
+-i, --input=
+
+<blockquote>Select the input file (default: perf.data unless stdin is a fifo)
+</blockquote>
+-w, --width=
+
+<blockquote>Select the width of the SVG file (default: 1000)
+</blockquote>
+-P, --power-only
+
+<blockquote>Only output the CPU power section of the diagram
+</blockquote>
+-T, --tasks-only
+
+<blockquote>Don’t output processor state transitions
+</blockquote>
+-p, --process
+
+<blockquote>Select the processes to display, by name or PID
+</blockquote>
+-f, --force
+
+<blockquote>Don’t complain, do it.
+</blockquote>
+--symfs=&lt;directory&gt;
+
+<blockquote>Look for files with symbols relative to this directory.
+</blockquote>
+-n, --proc-num
+
+<blockquote>Print task info for at least given number of tasks.
+</blockquote>
+-t, --topology
+
+<blockquote>Sort CPUs according to topology.
+</blockquote>
+--highlight=&lt;duration_nsecs|task_name&gt;
+
+<blockquote>Highlight tasks (using different color) that run more than given duration or tasks with given name. If number is given it’s interpreted as number of nanoseconds. If non-numeric string is given it’s interpreted as task name.
+</blockquote>
+--io-skip-eagain
+
+<blockquote>Don’t draw EAGAIN IO events.
+</blockquote>
+--io-min-time=&lt;nsecs&gt;
+
+<blockquote>Draw small events as if they lasted min-time. Useful when you need to see very small and fast IO. It’s possible to specify ms or us suffix to specify time in milliseconds or microseconds. Default value is 1ms.
+</blockquote>
+--io-merge-dist=&lt;nsecs&gt;
+
+<blockquote>Merge events that are merge-dist nanoseconds apart. Reduces number of figures on the SVG and makes it more render-friendly. It’s possible to specify ms or us suffix to specify time in milliseconds or microseconds. Default value is 1us.
+</blockquote>
+= RECORD OPTIONS =
+
+-P, --power-only
+
+<blockquote>Record only power-related events
+</blockquote>
+-T, --tasks-only
+
+<blockquote>Record only tasks-related events
+</blockquote>
+-I, --io-only
+
+<blockquote>Record only io-related events
+</blockquote>
+-g, --callchain
+
+<blockquote>Do call-graph (stack chain/backtrace) recording
+</blockquote>
+= EXAMPLES =
+
+$ perf timechart record git pull
+
+<blockquote><pre>[ perf record: Woken up 13 times to write data ]
+[ perf record: Captured and wrote 4.253 MB perf.data (~185801 samples) ]</pre></blockquote>
+$ perf timechart
+
+<blockquote><pre>Written 10.2 seconds of trace to output.svg.</pre></blockquote>
+Record system-wide timechart:
+
+<blockquote><pre>$ perf timechart record
+
+then generate timechart and highlight gcc tasks:
+
+$ perf timechart --highlight gcc</pre></blockquote>
+Record system-wide IO events:
+
+<blockquote><pre>$ perf timechart record -I
+
+then generate timechart:
+
+$ perf timechart</pre></blockquote>
+= SEE ALSO =
+
+[[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]]
+
+
+= KERNEL VERSION =
+
+This page is auto-generated.  The kernel version is v6.0-rc3
