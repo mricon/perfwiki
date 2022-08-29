@@ -1,0 +1,235 @@
+---
+title: Latest Manual Page of perf-annotate.1
+---
+
+
+= NAME =
+
+perf-annotate - Read perf.data (created by perf record) and display annotated code
+
+= SYNOPSIS =
+
+<pre>perf annotate [-i &lt;file&gt; | --input=file] [symbol_name]</pre>
+= DESCRIPTION =
+
+This command reads the input file and displays an annotated version of the code. If the object file has debug symbols then the source code will be displayed alongside assembly code.
+
+If there is no debug info in the object, then annotated assembly is displayed.
+
+= OPTIONS =
+
+-i, --input=&lt;file&gt;
+
+<blockquote>Input file name. (default: perf.data unless stdin is a fifo)
+</blockquote>
+-d, --dsos=&lt;dso[,dso...]&gt;
+
+<blockquote>Only consider symbols in these dsos.
+</blockquote>
+-s, --symbol=&lt;symbol&gt;
+
+<blockquote>Symbol to annotate.
+</blockquote>
+-f, --force
+
+<blockquote>Don’t do ownership validation.
+</blockquote>
+-v, --verbose
+
+<blockquote>Be more verbose. (Show symbol address, etc)
+</blockquote>
+-q, --quiet
+
+<blockquote>Do not show any message. (Suppress -v)
+</blockquote>
+-n, --show-nr-samples
+
+<blockquote>Show the number of samples for each symbol
+</blockquote>
+-D, --dump-raw-trace
+
+<blockquote>Dump raw trace in ASCII.
+</blockquote>
+-k, --vmlinux=&lt;file&gt;
+
+<blockquote>vmlinux pathname.
+</blockquote>
+--ignore-vmlinux
+
+<blockquote>Ignore vmlinux files.
+</blockquote>
+--itrace
+
+<blockquote>Options for decoding instruction tracing data. The options are:
+
+<blockquote><pre>i       synthesize instructions events
+b       synthesize branches events (branch misses for Arm SPE)
+c       synthesize branches events (calls only)
+r       synthesize branches events (returns only)
+x       synthesize transactions events
+w       synthesize ptwrite events
+p       synthesize power events (incl. PSB events for Intel PT)
+o       synthesize other events recorded due to the use
+        of aux-output (refer to perf record)
+I       synthesize interrupt or similar (asynchronous) events
+        (e.g. Intel PT Event Trace)
+e       synthesize error events
+d       create a debug log
+f       synthesize first level cache events
+m       synthesize last level cache events
+M       synthesize memory events
+t       synthesize TLB events
+a       synthesize remote access events
+g       synthesize a call chain (use with i or x)
+G       synthesize a call chain on existing event records
+l       synthesize last branch entries (use with i or x)
+L       synthesize last branch entries on existing event records
+s       skip initial number of events
+q       quicker (less detailed) decoding
+A       approximate IPC
+Z       prefer to ignore timestamps (so-called &quot;timeless&quot; decoding)
+
+The default is all events i.e. the same as --itrace=ibxwpe,
+except for perf script where it is --itrace=ce
+
+In addition, the period (default 100000, except for perf script where it is 1)
+for instructions events can be specified in units of:
+
+i       instructions
+t       ticks
+ms      milliseconds
+us      microseconds
+ns      nanoseconds (default)
+
+Also the call chain size (default 16, max. 1024) for instructions or
+transactions events can be specified.
+
+Also the number of last branch entries (default 64, max. 1024) for
+instructions or transactions events can be specified.
+
+Similar to options g and l, size may also be specified for options G and L.
+On x86, note that G and L work poorly when data has been recorded with
+large PEBS. Refer linkperf:perf-intel-pt[1] man page for details.
+
+It is also possible to skip events generated (instructions, branches, transactions,
+ptwrite, power) at the beginning. This is useful to ignore initialization code.
+
+--itrace=i0nss1000000
+
+skips the first million instructions.
+
+The e option may be followed by flags which affect what errors will or
+will not be reported. Each flag must be preceded by either + or -.
+The flags are:
+        o       overflow
+        l       trace data lost
+
+If supported, the d option may be followed by flags which affect what
+debug messages will or will not be logged. Each flag must be preceded
+by either + or -. The flags are:
+        a       all perf events
+        o       output to stdout
+
+If supported, the q option may be repeated to increase the effect.
+
+To disable decoding entirely, use --no-itrace.</pre></blockquote></blockquote>
+-m, --modules
+
+<blockquote>Load module symbols. WARNING: use only with -k and LIVE kernel.
+</blockquote>
+-l, --print-line
+
+<blockquote>Print matching source lines (may be slow).
+</blockquote>
+-P, --full-paths
+
+<blockquote>Don’t shorten the displayed pathnames.
+</blockquote>
+--stdio
+
+<blockquote>Use the stdio interface.
+</blockquote>
+--stdio2
+
+<blockquote>Use the stdio2 interface, non-interactive, uses the TUI formatting.
+</blockquote>
+--stdio-color=&lt;mode&gt;
+
+<blockquote>''always'', ''never'' or ''auto'', allowing configuring color output via the command line, in addition to via &quot;color.ui&quot; .perfconfig. Use ''--stdio-color always'' to generate color even when redirecting to a pipe or file. Using just ''--stdio-color'' is equivalent to using ''always''.
+</blockquote>
+--tui
+
+<blockquote>Use the TUI interface. Use of --tui requires a tty, if one is not present, as when piping to other commands, the stdio interface is used. This interfaces starts by centering on the line with more samples, TAB/UNTAB cycles through the lines with more samples.
+</blockquote>
+--gtk
+
+<blockquote>Use the GTK interface.
+</blockquote>
+-C, --cpu=&lt;cpu&gt;
+
+<blockquote>Only report samples for the list of CPUs provided. Multiple CPUs can be provided as a comma-separated list with no space: 0,1. Ranges of CPUs are specified with -: 0-2. Default is to report samples on all CPUs.
+</blockquote>
+--asm-raw
+
+<blockquote>Show raw instruction encoding of assembly instructions.
+</blockquote>
+--show-total-period
+
+<blockquote>Show a column with the sum of periods.
+</blockquote>
+--source
+
+<blockquote>Interleave source code with assembly code. Enabled by default, disable with --no-source.
+</blockquote>
+--symfs=&lt;directory&gt;
+
+<blockquote>Look for files with symbols relative to this directory.
+</blockquote>
+-M, --disassembler-style=
+
+<blockquote>Set disassembler style for objdump.
+</blockquote>
+--objdump=&lt;path&gt;
+
+<blockquote>Path to objdump binary.
+</blockquote>
+--prefix=PREFIX, --prefix-strip=N
+
+<blockquote>Remove first N entries from source file path names in executables and add PREFIX. This allows to display source code compiled on systems with different file system layout.
+</blockquote>
+--skip-missing
+
+<blockquote>Skip symbols that cannot be annotated.
+</blockquote>
+--group
+
+<blockquote>Show event group information together
+</blockquote>
+--demangle
+
+<blockquote>Demangle symbol names to human readable form. It’s enabled by default, disable with --no-demangle.
+</blockquote>
+--demangle-kernel
+
+<blockquote>Demangle kernel symbol names to human readable form (for C++ kernels).
+</blockquote>
+--percent-type
+
+<blockquote>Set annotation percent type from following choices: global-period, local-period, global-hits, local-hits
+
+<blockquote><pre>The local/global keywords set if the percentage is computed
+in the scope of the function (local) or the whole data (global).
+The period/hits keywords set the base the percentage is computed
+on - the samples period or the number of samples (hits).</pre></blockquote></blockquote>
+--percent-limit
+
+<blockquote>Do not show functions which have an overhead under that percent on stdio or stdio2 (Default: 0). Note that this is about selection of functions to display, not about lines within the function.
+</blockquote>
+= SEE ALSO =
+
+[[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]], [[Latest Manual Page of perf-report.1|<tt>'''perf-report'''(1)</tt>]]
+
+
+= KERNEL VERSION =
+
+This page is auto-generated.  The kernel version is v6.0-rc3
