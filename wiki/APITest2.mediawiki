@@ -2,9 +2,6 @@
 title: APITest2
 ---
 
-= PAGES =
-
-
 * [[Latest_Manual_Page_of_perf.1 | <tt>perf</tt>]]
 * [[Latest_Manual_Page_of_perf-annotate.1 | <tt>perf annotate</tt>]]
 * [[Latest_Manual_Page_of_perf-archive.1 | <tt>perf archive</tt>]]
@@ -46,6 +43,6 @@ title: APITest2
 * [[Latest_Manual_Page_of_perf-version.1 | <tt>perf version</tt>]]
 
 
-= KERNEL VERSION =
+= Kernel Version =
 
 This page is auto-generated.  The kernel version is v6.0-rc3
