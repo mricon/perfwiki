@@ -1,0 +1,50 @@
+---
+title: Latest Manual Page of perf-evlist.1
+---
+
+
+= NAME =
+
+perf-evlist - List the event names in a perf.data file
+
+= SYNOPSIS =
+
+<pre>perf evlist &lt;options&gt;</pre>
+= DESCRIPTION =
+
+This command displays the names of events sampled in a perf.data file.
+
+= OPTIONS =
+
+-i, --input=
+
+<blockquote>Input file name. (default: perf.data unless stdin is a fifo)
+</blockquote>
+-f, --force
+
+<blockquote>Don’t complain, do it.
+</blockquote>
+-F, --freq=
+
+<blockquote>Show just the sample frequency used for each event.
+</blockquote>
+-v, --verbose
+
+<blockquote>Show all fields.
+</blockquote>
+-g, --group
+
+<blockquote>Show event group information.
+</blockquote>
+--trace-fields
+
+<blockquote>Show tracepoint field names.
+</blockquote>
+= SEE ALSO =
+
+[[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]], [[Latest Manual Page of perf-list.1|<tt>'''perf-list'''(1)</tt>]], [[Latest Manual Page of perf-report.1|<tt>'''perf-report'''(1)</tt>]]
+
+
+= KERNEL VERSION =
+
+This page is auto-generated.  The kernel version is v6.0-rc3
