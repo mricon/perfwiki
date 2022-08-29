@@ -1,0 +1,615 @@
+---
+title: Latest Manual Page of perf-config.1
+---
+
+
+= NAME =
+
+perf-config - Get and set variables in a configuration file.
+
+= SYNOPSIS =
+
+<pre>perf config [&lt;file-option&gt;] [section.name[=value] ...]
+or
+perf config [&lt;file-option&gt;] -l | --list</pre>
+= DESCRIPTION =
+
+You can manage variables in a configuration file with this command.
+
+= OPTIONS =
+
+-l, --list
+
+<blockquote>Show current config variables, name and value, for all sections.
+</blockquote>
+--user
+
+<blockquote>For writing and reading options: write to user ''$HOME/.perfconfig'' file or read it.
+</blockquote>
+--system
+
+<blockquote>For writing and reading options: write to system-wide ''$(sysconfdir)/perfconfig'' or read it.
+</blockquote>
+= CONFIGURATION FILE =
+
+The perf configuration file contains many variables to change various aspects of each of its tools, including output, disk usage, etc. The ''$HOME/.perfconfig'' file is used to store a per-user configuration. The file ''$(sysconfdir)/perfconfig'' can be used to store a system-wide default configuration.
+
+One an disable reading config files by setting the PERF_CONFIG environment variable to /dev/null, or provide an alternate config file by setting that variable.
+
+When reading or writing, the values are read from the system and user configuration files by default, and options ''--system'' and ''--user'' can be used to tell the command to read from or write to only that location.
+
+== Syntax ==
+
+The file consist of sections. A section starts with its name surrounded by square brackets and continues till the next section begins. Each variable must be in a section, and have the form ''name = value'', for example:
+
+<blockquote><pre>[section]
+        name1 = value1
+        name2 = value2</pre></blockquote>
+Section names are case sensitive and can contain any characters except newline (double quote &quot; and backslash have to be escaped as \&quot; and \\, respectively). Section headers can’t span multiple lines.
+
+== Example ==
+
+Given a $HOME/.perfconfig like this:
+
+# # This is the config file, and # a ''#'' and '';'' character indicates a comment #
+
+<blockquote><pre>[colors]
+        # Color variables
+        top = red, default
+        medium = green, default
+        normal = lightgray, default
+        selected = white, lightgray
+        jump_arrows = blue, default
+        addr = magenta, default
+        root = white, blue
+
+[tui]
+        # Defaults if linked with libslang
+        report = on
+        annotate = on
+        top = on
+
+[buildid]
+        # Default, disable using /dev/null
+        dir = ~/.debug
+
+[annotate]
+        # Defaults
+        hide_src_code = false
+        use_offset = true
+        jump_arrows = true
+        show_nr_jumps = false
+
+[help]
+        # Format can be man, info, web or html
+        format = man
+        autocorrect = 0
+
+[ui]
+        show-headers = true
+
+[call-graph]
+        # fp (framepointer), dwarf
+        record-mode = fp
+        print-type = graph
+        order = caller
+        sort-key = function
+
+[report]
+        # Defaults
+        sort_order = comm,dso,symbol
+        percent-limit = 0
+        queue-size = 0
+        children = true
+        group = true
+        skip-empty = true
+
+[llvm]
+        dump-obj = true
+        clang-opt = -g</pre></blockquote>
+You can hide source code of annotate feature setting the config to false with
+
+<blockquote><pre>% perf config annotate.hide_src_code=true</pre></blockquote>
+If you want to add or modify several config items, you can do like
+
+<blockquote><pre>% perf config ui.show-headers=false kmem.default=slab</pre></blockquote>
+To modify the sort order of report functionality in user config file(i.e. ~/.perfconfig), do
+
+<blockquote><pre>% perf config --user report.sort-order=srcline</pre></blockquote>
+To change colors of selected line to other foreground and background colors in system config file (i.e. $(sysconf)/perfconfig), do
+
+<blockquote><pre>% perf config --system colors.selected=yellow,green</pre></blockquote>
+To query the record mode of call graph, do
+
+<blockquote><pre>% perf config call-graph.record-mode</pre></blockquote>
+If you want to know multiple config key/value pairs, you can do like
+
+<blockquote><pre>% perf config report.queue-size call-graph.order report.children</pre></blockquote>
+To query the config value of sort order of call graph in user config file (i.e. ~/.perfconfig), do
+
+<blockquote><pre>% perf config --user call-graph.sort-order</pre></blockquote>
+To query the config value of buildid directory in system config file (i.e. $(sysconf)/perfconfig), do
+
+<blockquote><pre>% perf config --system buildid.dir</pre></blockquote>
+== Variables ==
+
+colors.*
+
+<blockquote>The variables for customizing the colors used in the output for the ''report'', ''top'' and ''annotate'' in the TUI. They should specify the foreground and background colors, separated by a comma, for example:
+
+<blockquote><pre>medium = green, lightgray
+
+If you want to use the color configured for you terminal, just leave it
+as default, for example:
+
+medium = default, lightgray
+
+Available colors:
+red, yellow, green, cyan, gray, black, blue,
+white, default, magenta, lightgray</pre></blockquote></blockquote>
+colors.top
+
+<blockquote>''top'' means a overhead percentage which is more than 5%. And values of this variable specify percentage colors. Basic key values are foreground-color ''red'' and background-color ''default''.
+</blockquote>
+colors.medium
+
+<blockquote>''medium'' means a overhead percentage which has more than 0.5%. Default values are ''green'' and ''default''.
+</blockquote>
+colors.normal
+
+<blockquote>''normal'' means the rest of overhead percentages except ''top'', ''medium'', ''selected''. Default values are ''lightgray'' and ''default''.
+</blockquote>
+colors.selected
+
+<blockquote>This selects the colors for the current entry in a list of entries from sub-commands (top, report, annotate). Default values are ''black'' and ''lightgray''.
+</blockquote>
+colors.jump_arrows
+
+<blockquote>Colors for jump arrows on assembly code listings such as ''jns'', ''jmp'', ''jane'', etc. Default values are ''blue'', ''default''.
+</blockquote>
+colors.addr
+
+<blockquote>This selects colors for addresses from ''annotate''. Default values are ''magenta'', ''default''.
+</blockquote>
+colors.root
+
+<blockquote>Colors for headers in the output of a sub-commands (top, report). Default values are ''white'', ''blue''.
+</blockquote>
+core.*, core.proc-map-timeout
+
+<blockquote>Sets a timeout (in milliseconds) for parsing /proc/&lt;pid&gt;/maps files. Can be overridden by the --proc-map-timeout option on supported subcommands. The default timeout is 500ms.
+</blockquote>
+tui.''', gtk.'''
+
+<blockquote>Subcommands that can be configured here are ''top'', ''report'' and ''annotate''. These values are booleans, for example:
+
+<blockquote><pre>[tui]
+        top = true
+
+will make the TUI be the default for the top subcommand. Those will be
+available if the required libs were detected at tool build time.</pre></blockquote></blockquote>
+buildid.*, buildid.dir
+
+<blockquote>Each executable and shared library in modern distributions comes with a content based identifier that, if available, will be inserted in a ''perf.data'' file header to, at analysis time find what is needed to do symbol resolution, code annotation, etc.
+
+<blockquote><pre>The recording tools also stores a hard link or copy in a per-user
+directory, $HOME/.debug/, of binaries, shared libraries, /proc/kallsyms
+and /proc/kcore files to be used at analysis time.
+
+The buildid.dir variable can be used to either change this directory
+cache location, or to disable it altogether. If you want to disable it,
+set buildid.dir to /dev/null. The default is $HOME/.debug</pre></blockquote></blockquote>
+buildid-cache.*
+
+<blockquote>buildid-cache.debuginfod=URLs Specify debuginfod URLs to be used when retrieving perf.data binaries, it follows the same syntax as the DEBUGINFOD_URLS variable, like:
+
+<blockquote><pre>buildid-cache.debuginfod=http://192.168.122.174:8002</pre></blockquote></blockquote>
+annotate.*
+
+<blockquote>These are in control of addresses, jump function, source code in lines of assembly code from a specific program.
+
+<blockquote><pre>annotate.disassembler_style:
+        Use this to change the default disassembler style to some other value
+        supported by binutils, such as &quot;intel&quot;, see the -M option help in the
+        objdump man page.</pre></blockquote></blockquote>
+annotate.hide_src_code
+
+<blockquote>If a program which is analyzed has source code, this option lets ''annotate'' print a list of assembly code with the source code. For example, let’s see a part of a program. There’re four lines. If this option is ''true'', they can be printed without source code from a program as below.
+
+<blockquote><pre>│        push   %rbp
+│        mov    %rsp,%rbp
+│        sub    $0x10,%rsp
+│        mov    (%rdi),%rdx
+
+But if this option is false, source code of the part
+can be also printed as below. Default is false.
+
+│      struct rb_node *rb_next(const struct rb_node *node)
+│      {
+│        push   %rbp
+│        mov    %rsp,%rbp
+│        sub    $0x10,%rsp
+│              struct rb_node *parent;
+│
+│              if (RB_EMPTY_NODE(node))
+│        mov    (%rdi),%rdx
+│              return n;
+
+This option works with tui, stdio2 browsers.</pre></blockquote></blockquote>
+annotate.use_offset
+
+<blockquote>Basing on a first address of a loaded function, offset can be used. Instead of using original addresses of assembly code, addresses subtracted from a base address can be printed. Let’s illustrate an example. If a base address is 0XFFFFFFFF81624d50 as below,
+
+<blockquote><pre>ffffffff81624d50 &lt;load0&gt;
+
+an address on assembly code has a specific absolute address as below
+
+ffffffff816250b8:│  mov    0x8(%r14),%rdi
+
+but if use_offset is true, an address subtracted from a base address is printed.
+Default is true. This option is only applied to TUI.
+
+368:│  mov    0x8(%r14),%rdi
+
+This option works with tui, stdio2 browsers.</pre></blockquote></blockquote>
+annotate.jump_arrows
+
+<blockquote>There can be jump instruction among assembly code. Depending on a boolean value of jump_arrows, arrows can be printed or not which represent where do the instruction jump into as below.
+
+<blockquote><pre>│     ┌──jmp    1333
+│     │  xchg   %ax,%ax
+│1330:│  mov    %r15,%r10
+│1333:└─→cmp    %r15,%r14
+
+If jump_arrow is false, the arrows isnt printed as below.
+Default is false.
+
+│      ↓ jmp    1333
+│        xchg   %ax,%ax
+│1330:   mov    %r15,%r10
+│1333:   cmp    %r15,%r14
+
+This option works with tui browser.</pre></blockquote></blockquote>
+annotate.show_linenr
+
+<blockquote>When showing source code if this option is ''true'', line numbers are printed as below.
+
+<blockquote><pre>│1628         if (type &amp; PERF_SAMPLE_IDENTIFIER) {
+│     ↓ jne    508
+│1628                 data-&gt;id = *array;
+│1629                 array++;
+│1630         }
+
+However if this option is false, they arent printed as below.
+Default is false.
+
+│             if (type &amp; PERF_SAMPLE_IDENTIFIER) {
+│     ↓ jne    508
+│                     data-&gt;id = *array;
+│                     array++;
+│             }
+
+This option works with tui, stdio2 browsers.</pre></blockquote></blockquote>
+annotate.show_nr_jumps
+
+<blockquote>Let’s see a part of assembly code.
+
+<blockquote><pre>│1382:   movb   $0x1,-0x270(%rbp)
+
+If use this, the number of branches jumping to that address can be printed as below.
+Default is false.
+
+│1 1382:   movb   $0x1,-0x270(%rbp)
+
+This option works with tui, stdio2 browsers.</pre></blockquote></blockquote>
+annotate.show_total_period
+
+<blockquote>To compare two records on an instruction base, with this option provided, display total number of samples that belong to a line in assembly code. If this option is ''true'', total periods are printed instead of percent values as below.
+
+<blockquote><pre>302 │      mov    %eax,%eax
+
+But if this option is false, percent values for overhead are printed i.e.
+Default is false.
+
+99.93 │      mov    %eax,%eax
+
+This option works with tui, stdio2, stdio browsers.</pre></blockquote></blockquote>
+annotate.show_nr_samples
+
+<blockquote>By default perf annotate shows percentage of samples. This option can be used to print absolute number of samples. Ex, when set as false:
+
+<blockquote><pre>Percent│
+ 74.03 │      mov    %fs:0x28,%rax
+
+When set as true:
+
+Samples│
+     6 │      mov    %fs:0x28,%rax
+
+This option works with tui, stdio2, stdio browsers.</pre></blockquote></blockquote>
+annotate.offset_level
+
+<blockquote>Default is ''1'', meaning just jump targets will have offsets show right beside the instruction. When set to ''2'' ''call'' instructions will also have its offsets shown, 3 or higher will show offsets for all instructions.
+
+<blockquote><pre>This option works with tui, stdio2 browsers.</pre></blockquote></blockquote>
+annotate.demangle
+
+<blockquote>Demangle symbol names to human readable form. Default is ''true''.
+</blockquote>
+annotate.demangle_kernel
+
+<blockquote>Demangle kernel symbol names to human readable form. Default is ''true''.
+</blockquote>
+hist.*, hist.percentage
+
+<blockquote>This option control the way to calculate overhead of filtered entries - that means the value of this option is effective only if there’s a filter (by comm, dso or symbol name). Suppose a following example:
+
+<blockquote><pre>Overhead  Symbols
+........  .......
+ 33.33%     foo
+ 33.33%     bar
+ 33.33%     baz
+
+This is an original overhead and well filter out the first foo
+entry. The value of relative would increase the overhead of bar
+and baz to 50.00% for each, while absolute would show their
+current overhead (33.33%).</pre></blockquote></blockquote>
+ui.*, ui.show-headers
+
+<blockquote>This option controls display of column headers (like ''Overhead'' and ''Symbol'') in ''report'' and ''top''. If this option is false, they are hidden. This option is only applied to TUI.
+</blockquote>
+call-graph.*
+
+<blockquote>The following controls the handling of call-graphs (obtained via the -g/--call-graph options).
+</blockquote>
+call-graph.record-mode
+
+<blockquote>The mode for user space can be ''fp'' (frame pointer), ''dwarf'' and ''lbr''. The value ''dwarf'' is effective only if libunwind (or a recent version of libdw) is present on the system; the value ''lbr'' only works for certain cpus. The method for kernel space is controlled not by this option but by the kernel config (CONFIG_UNWINDER_*).
+</blockquote>
+call-graph.dump-size
+
+<blockquote>The size of stack to dump in order to do post-unwinding. Default is 8192 (byte). When using dwarf into record-mode, the default size will be used if omitted.
+</blockquote>
+call-graph.print-type
+
+<blockquote>The print-types can be graph (graph absolute), fractal (graph relative), flat and folded. This option controls a way to show overhead for each callchain entry. Suppose a following example.
+
+<blockquote><pre>Overhead  Symbols
+........  .......
+  40.00%  foo
+          |
+          ---foo
+             |
+             |--50.00%--bar
+             |          main
+             |
+              --50.00%--baz
+                        main
+
+This output is a fractal format. The foo came from bar and baz exactly
+half and half so fractal shows 50.00% for each
+(meaning that it assumes 100% total overhead of foo).
+
+The graph uses absolute overhead value of foo as total so each of
+bar and baz callchain will have 20.00% of overhead.
+If flat is used, single column and linear exposure of call chains.
+folded mean call chains are displayed in a line, separated by semicolons.</pre></blockquote></blockquote>
+call-graph.order
+
+<blockquote>This option controls print order of callchains. The default is ''callee'' which means callee is printed at top and then followed by its caller and so on. The ''caller'' prints it in reverse order.
+
+<blockquote><pre>If this option is not set and report.children or top.children is
+set to true (or the equivalent command line option is given),
+the default value of this option is changed to caller for the
+execution of perf report or perf top. Other commands will
+still default to callee.</pre></blockquote></blockquote>
+call-graph.sort-key
+
+<blockquote>The callchains are merged if they contain same information. The sort-key option determines a way to compare the callchains. A value of ''sort-key'' can be ''function'' or ''address''. The default is ''function''.
+</blockquote>
+call-graph.threshold
+
+<blockquote>When there’re many callchains it’d print tons of lines. So perf omits small callchains under a certain overhead (threshold) and this option control the threshold. Default is 0.5 (%). The overhead is calculated by value depends on call-graph.print-type.
+</blockquote>
+call-graph.print-limit
+
+<blockquote>This is a maximum number of lines of callchain printed for a single histogram entry. Default is 0 which means no limitation.
+</blockquote>
+report.*, report.sort_order
+
+<blockquote>Allows changing the default sort order from &quot;comm,dso,symbol&quot; to some other default, for instance &quot;sym,dso&quot; may be more fitting for kernel developers.
+</blockquote>
+report.percent-limit
+
+<blockquote>This one is mostly the same as call-graph.threshold but works for histogram entries. Entries having an overhead lower than this percentage will not be printed. Default is ''0''. If percent-limit is ''10'', only entries which have more than 10% of overhead will be printed.
+</blockquote>
+report.queue-size
+
+<blockquote>This option sets up the maximum allocation size of the internal event queue for ordering events. Default is 0, meaning no limit.
+</blockquote>
+report.children
+
+<blockquote>''Children'' means functions called from another function. If this option is true, ''perf report'' cumulates callchains of children and show (accumulated) total overhead as well as ''Self'' overhead. Please refer to the ''perf report'' manual. The default is ''true''.
+</blockquote>
+report.group
+
+<blockquote>This option is to show event group information together. Example output with this turned on, notice that there is one column per event in the group, ref-cycles and cycles:
+
+<blockquote><pre># group: {ref-cycles,cycles}
+# ========
+#
+# Samples: 7K of event anon group { ref-cycles, cycles }
+# Event count (approx.): 6876107743
+#
+#         Overhead  Command      Shared Object               Symbol
+# ................  .......  .................  ...................
+#
+    99.84%  99.76%  noploop  noploop            [.] main
+     0.07%   0.00%  noploop  ld-2.15.so         [.] strcmp
+     0.03%   0.00%  noploop  [kernel.kallsyms]  [k] timerqueue_del</pre></blockquote></blockquote>
+report.skip-empty
+
+<blockquote>This option can change default stat behavior with empty results. If it’s set true, ''perf report --stat'' will not show 0 stats.
+</blockquote>
+top.*, top.children
+
+<blockquote>Same as ''report.children''. So if it is enabled, the output of ''top'' command will have ''Children'' overhead column as well as ''Self'' overhead column by default. The default is ''true''.
+</blockquote>
+top.call-graph
+
+<blockquote>This is identical to ''call-graph.record-mode'', except it is applicable only for ''top'' subcommand. This option ONLY setup the unwind method. To enable ''perf top'' to actually use it, the command line option -g must be specified.
+</blockquote>
+man.*, man.viewer
+
+<blockquote>This option can assign a tool to view manual pages when ''help'' subcommand was invoked. Supported tools are ''man'', ''woman'' (with emacs client) and ''konqueror''. Default is ''man''.
+
+<blockquote><pre>New man viewer tool can be also added using man.&lt;tool&gt;.cmd
+or use different path using man.&lt;tool&gt;.path config option.</pre></blockquote></blockquote>
+pager.*, pager.&lt;subcommand&gt;
+
+<blockquote>When the subcommand is run on stdio, determine whether it uses pager or not based on this value. Default is ''unspecified''.
+</blockquote>
+kmem.*, kmem.default
+
+<blockquote>This option decides which allocator is to be analyzed if neither ''--slab'' nor ''--page'' option is used. Default is ''slab''.
+</blockquote>
+record.*, record.build-id
+
+<blockquote>This option can be ''cache'', ''no-cache'', ''skip'' or ''mmap''. ''cache'' is to post-process data and save/update the binaries into the build-id cache (in ~/.debug). This is the default. But if this option is ''no-cache'', it will not update the build-id cache. ''skip'' skips post-processing and does not update the cache. ''mmap'' skips post-processing and reads build-ids from MMAP events.
+</blockquote>
+record.call-graph
+
+<blockquote>This is identical to ''call-graph.record-mode'', except it is applicable only for ''record'' subcommand. This option ONLY setup the unwind method. To enable ''perf record'' to actually use it, the command line option -g must be specified.
+</blockquote>
+record.aio
+
+<blockquote>Use ''n'' control blocks in asynchronous (Posix AIO) trace writing mode (''n'' default: 1, max: 4).
+</blockquote>
+record.debuginfod
+
+<blockquote>Specify debuginfod URL to be used when cacheing perf.data binaries, it follows the same syntax as the DEBUGINFOD_URLS variable, like:
+
+<blockquote><pre>http://192.168.122.174:8002
+
+If the URLs is system, the value of DEBUGINFOD_URLS system environment
+variable is used.</pre></blockquote></blockquote>
+diff.*, diff.order
+
+<blockquote>This option sets the number of columns to sort the result. The default is 0, which means sorting by baseline. Setting it to 1 will sort the result by delta (or other compute method selected).
+</blockquote>
+diff.compute
+
+<blockquote>This options sets the method for computing the diff result. Possible values are ''delta'', ''delta-abs'', ''ratio'' and ''wdiff''. Default is ''delta''.
+</blockquote>
+trace.*, trace.add_events
+
+<blockquote>Allows adding a set of events to add to the ones specified by the user, or use as a default one if none was specified. The initial use case is to add augmented_raw_syscalls.o to activate the ''perf trace'' logic that looks for syscall pointer contents after the normal tracepoint payload.
+</blockquote>
+trace.args_alignment
+
+<blockquote>Number of columns to align the argument list, default is 70, use 40 for the strace default, zero to no alignment.
+</blockquote>
+trace.no_inherit
+
+<blockquote>Do not follow children threads.
+</blockquote>
+trace.show_arg_names
+
+<blockquote>Should syscall argument names be printed? If not then trace.show_zeros will be set.
+</blockquote>
+trace.show_duration
+
+<blockquote>Show syscall duration.
+</blockquote>
+trace.show_prefix
+
+<blockquote>If set to ''yes'' will show common string prefixes in tables. The default is to remove the common prefix in things like &quot;MAP_SHARED&quot;, showing just &quot;SHARED&quot;.
+</blockquote>
+trace.show_timestamp
+
+<blockquote>Show syscall start timestamp.
+</blockquote>
+trace.show_zeros
+
+<blockquote>Do not suppress syscall arguments that are equal to zero.
+</blockquote>
+trace.tracepoint_beautifiers
+
+<blockquote>Use &quot;libtraceevent&quot; to use that library to augment the tracepoint arguments, &quot;libbeauty&quot;, the default, to use the same argument beautifiers used in the strace-like sys_enter+sys_exit lines.
+</blockquote>
+ftrace.*, ftrace.tracer
+
+<blockquote>Can be used to select the default tracer when neither -G nor -F option is not specified. Possible values are ''function'' and ''function_graph''.
+</blockquote>
+llvm.*, llvm.clang-path
+
+<blockquote>Path to clang. If omit, search it from $PATH.
+</blockquote>
+llvm.clang-bpf-cmd-template
+
+<blockquote>Cmdline template. Below lines show its default value. Environment variable is used to pass options. &quot;$CLANG_EXEC -D''KERNEL'' -D''NR_CPUS''=$NR_CPUS &quot;\ &quot;-DLINUX_VERSION_CODE=$LINUX_VERSION_CODE &quot; \ &quot;$CLANG_OPTIONS $PERF_BPF_INC_OPTIONS $KERNEL_INC_OPTIONS &quot; \ &quot;-Wno-unused-value -Wno-pointer-sign &quot; \ &quot;-working-directory $WORKING_DIR &quot; \ &quot;-c \&quot;$CLANG_SOURCE\&quot; -target bpf $CLANG_EMIT_LLVM -O2 -o - $LLVM_OPTIONS_PIPE&quot;
+</blockquote>
+llvm.clang-opt
+
+<blockquote>Options passed to clang.
+</blockquote>
+llvm.kbuild-dir
+
+<blockquote>kbuild directory. If not set, use /lib/modules/uname -r/build. If set to &quot;&quot; deliberately, skip kernel header auto-detector.
+</blockquote>
+llvm.kbuild-opts
+
+<blockquote>Options passed to ''make'' when detecting kernel header options.
+</blockquote>
+llvm.dump-obj
+
+<blockquote>Enable perf dump BPF object files compiled by LLVM.
+</blockquote>
+llvm.opts
+
+<blockquote>Options passed to llc.
+</blockquote>
+samples.*, samples.context
+
+<blockquote>Define how many ns worth of time to show around samples in perf report sample context browser.
+</blockquote>
+scripts.*
+
+<blockquote>Any option defines a script that is added to the scripts menu in the interactive perf browser and whose output is displayed. The name of the option is the name, the value is a script command line. The script gets the same options passed as a full perf script, in particular -i perfdata file, --cpu, --tid
+</blockquote>
+convert.*, convert.queue-size
+
+<blockquote>Limit the size of ordered_events queue, so we could control allocation size of perf data files without proper finished round events.
+</blockquote>
+stat.*, stat.big-num
+
+<blockquote>(boolean) Change the default for &quot;--big-num&quot;. To make &quot;--no-big-num&quot; the default, set &quot;stat.big-num=false&quot;.
+</blockquote>
+intel-pt.*, intel-pt.cache-divisor, intel-pt.mispred-all
+
+<blockquote>If set, Intel PT decoder will set the mispred flag on all branches.
+</blockquote>
+intel-pt.max-loops
+
+<blockquote>If set and non-zero, the maximum number of unconditional branches decoded without consuming any trace packets. If the maximum is exceeded there will be a &quot;Never-ending loop&quot; error. The default is 100000.
+</blockquote>
+auxtrace.*, auxtrace.dumpdir
+
+<blockquote>s390 only. The directory to save the auxiliary trace buffer can be changed using this option. Ex, auxtrace.dumpdir=/tmp. If the directory does not exist or has the wrong file type, the current directory is used.
+</blockquote>
+daemon.*, daemon.base
+
+<blockquote>Base path for daemon data. All sessions data are stored under this path.
+</blockquote>
+session-&lt;NAME&gt;.*, session-&lt;NAME&gt;.run
+
+<blockquote>Defines new record session for daemon. The value is record’s command line without the ''record'' keyword.
+</blockquote>
+= SEE ALSO =
+
+'''perf'''(1)
+
+
+= KERNEL VERSION =
+
+This page is auto-generated.  The kernel version is v6.0-rc3
