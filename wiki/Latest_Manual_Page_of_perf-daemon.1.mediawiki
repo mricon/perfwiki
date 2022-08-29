@@ -1,0 +1,169 @@
+---
+title: Latest Manual Page of perf-daemon.1
+---
+
+
+= NAME =
+
+perf-daemon - Run record sessions on background
+
+= SYNOPSIS =
+
+<pre>perf daemon
+perf daemon [&lt;options&gt;]
+perf daemon start  [&lt;options&gt;]
+perf daemon stop   [&lt;options&gt;]
+perf daemon signal [&lt;options&gt;]
+perf daemon ping   [&lt;options&gt;]</pre>
+= DESCRIPTION =
+
+This command allows to run simple daemon process that starts and monitors configured record sessions.
+
+You can imagine ''perf daemon'' of background process with several ''perf record'' child tasks, like:
+
+<blockquote><pre># ps axjf
+...
+     1  916507 ... perf daemon start
+916507  916508 ...  \_ perf record --control=fifo:control,ack -m 10M -e cycles --overwrite --switch-output -a
+916507  916509 ...  \_ perf record --control=fifo:control,ack -m 20M -e sched:* --overwrite --switch-output -a</pre></blockquote>
+Not every ''perf record'' session is suitable for running under daemon. User need perf session that either produces data on query, like the flight recorder sessions in above example or session that is configured to produce data periodically, like with --switch-output configuration for time and size.
+
+Each session is started with control setup (with perf record --control options).
+
+Sessions are configured through config file, see CONFIG FILE section with EXAMPLES.
+
+= OPTIONS =
+
+-v, --verbose
+
+<blockquote>Be more verbose.
+</blockquote>
+--config=&lt;PATH&gt;
+
+<blockquote>Config file path. If not provided, perf will check system and default locations (/etc/perfconfig, $HOME/.perfconfig).
+</blockquote>
+--base=&lt;PATH&gt;
+
+<blockquote>Base directory path. Each daemon instance is running on top of base directory. Only one instance of server can run on top of one directory at the time.
+</blockquote>
+All generic options are available also under commands.
+
+= START COMMAND =
+
+The start command creates the daemon process.
+
+-f, --foreground
+
+<blockquote>Do not put the process in background.
+</blockquote>
+= STOP COMMAND =
+
+The stop command stops all the session and the daemon process.
+
+= SIGNAL COMMAND =
+
+The signal command sends signal to configured sessions.
+
+--session
+
+<blockquote>Send signal to specific session.
+</blockquote>
+= PING COMMAND =
+
+The ping command sends control ping to configured sessions.
+
+--session
+
+<blockquote>Send ping to specific session.
+</blockquote>
+= CONFIG FILE =
+
+The daemon is configured within standard perf config file by following new variables:
+
+daemon.base: Base path for daemon data. All sessions data are stored under this path.
+
+session-&lt;NAME&gt;.run: Defines new record session. The value is record’s command line without the ''record'' keyword.
+
+Each perf record session is run in daemon.base/&lt;NAME&gt; directory.
+
+= EXAMPLES =
+
+Example with 2 record sessions:
+
+<blockquote><pre># cat ~/.perfconfig
+[daemon]
+base=/opt/perfdata
+
+[session-cycles]
+run = -m 10M -e cycles --overwrite --switch-output -a
+
+[session-sched]
+run = -m 20M -e sched:* --overwrite --switch-output -a</pre></blockquote>
+Starting the daemon:
+
+<blockquote><pre># perf daemon start</pre></blockquote>
+Check sessions:
+
+<blockquote><pre># perf daemon
+[603349:daemon] base: /opt/perfdata
+[603350:cycles] perf record -m 10M -e cycles --overwrite --switch-output -a
+[603351:sched] perf record -m 20M -e sched:* --overwrite --switch-output -a</pre></blockquote>
+First line is daemon process info with configured daemon base.
+
+Check sessions with more info:
+
+<blockquote><pre># perf daemon -v
+[603349:daemon] base: /opt/perfdata
+  output:  /opt/perfdata/output
+  lock:    /opt/perfdata/lock
+  up:      1 minutes
+[603350:cycles] perf record -m 10M -e cycles --overwrite --switch-output -a
+  base:    /opt/perfdata/session-cycles
+  output:  /opt/perfdata/session-cycles/output
+  control: /opt/perfdata/session-cycles/control
+  ack:     /opt/perfdata/session-cycles/ack
+  up:      1 minutes
+[603351:sched] perf record -m 20M -e sched:* --overwrite --switch-output -a
+  base:    /opt/perfdata/session-sched
+  output:  /opt/perfdata/session-sched/output
+  control: /opt/perfdata/session-sched/control
+  ack:     /opt/perfdata/session-sched/ack
+  up:      1 minutes</pre></blockquote>
+The ''base'' path is daemon/session base. The ''lock'' file is daemon’s lock file guarding that no other daemon is running on top of the base. The ''output'' file is perf record output for specific session. The ''control'' and ''ack'' files are perf control files. The ''up'' number shows minutes daemon/session is running.
+
+Make sure control session is online:
+
+<blockquote><pre># perf daemon ping
+OK   cycles
+OK   sched</pre></blockquote>
+Send USR2 signal to session ''cycles'' to generate perf.data file:
+
+<blockquote><pre># perf daemon signal --session cycles
+signal 12 sent to session cycles [603452]
+
+# tail -2  /opt/perfdata/session-cycles/output
+[ perf record: dump data: Woken up 1 times ]
+[ perf record: Dump perf.data.2020123017013149 ]</pre></blockquote>
+Send USR2 signal to all sessions:
+
+<blockquote><pre># perf daemon signal
+signal 12 sent to session cycles [603452]
+signal 12 sent to session sched [603453]
+
+# tail -2  /opt/perfdata/session-cycles/output
+[ perf record: dump data: Woken up 1 times ]
+[ perf record: Dump perf.data.2020123017024689 ]
+# tail -2  /opt/perfdata/session-sched/output
+[ perf record: dump data: Woken up 1 times ]
+[ perf record: Dump perf.data.2020123017024713 ]</pre></blockquote>
+Stop daemon:
+
+<blockquote><pre># perf daemon stop</pre></blockquote>
+= SEE ALSO =
+
+[[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]], [[Latest Manual Page of perf-config.1|<tt>'''perf-config'''(1)</tt>]]
+
+
+= KERNEL VERSION =
+
+This page is auto-generated.  The kernel version is v6.0-rc3
