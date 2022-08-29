@@ -1,0 +1,60 @@
+---
+title: Latest Manual Page of perf-data.1
+---
+
+
+= NAME =
+
+perf-data - Data file related processing
+
+= SYNOPSIS =
+
+<pre>perf data [&lt;common options&gt;] &lt;command&gt; [&lt;options&gt;]&quot;,</pre>
+= DESCRIPTION =
+
+Data file related processing.
+
+= COMMANDS =
+
+convert
+
+<blockquote>Converts perf data file into another format. It’s possible to set data-convert debug variable to get debug messages from conversion, like: perf --debug data-convert data convert ...
+</blockquote>
+= OPTIONS FOR FICONVERTFR =
+
+--to-ctf
+
+<blockquote>Triggers the CTF conversion, specify the path of CTF data directory.
+</blockquote>
+--to-json
+
+<blockquote>Triggers JSON conversion. Specify the JSON filename to output.
+</blockquote>
+--tod
+
+<blockquote>Convert time to wall clock time.
+</blockquote>
+-i
+
+<blockquote>Specify input perf data file path.
+</blockquote>
+-f, --force
+
+<blockquote>Don’t complain, do it.
+</blockquote>
+-v, --verbose
+
+<blockquote>Be more verbose (show counter open errors, etc).
+</blockquote>
+--all
+
+<blockquote>Convert all events, including non-sample events (comm, fork, ...), to output. Default is off, only convert samples.
+</blockquote>
+= SEE ALSO =
+
+'''perf'''(1) [1] Common Trace Format - '''http://www.efficios.com/ctf'''
+
+
+= KERNEL VERSION =
+
+This page is auto-generated.  The kernel version is v6.0-rc3
