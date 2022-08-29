@@ -1,0 +1,27 @@
+---
+title: Latest Manual Page of perf-kallsyms.1
+---
+
+
+= NAME =
+
+perf-kallsyms - Searches running kernel for symbols
+
+= SYNOPSIS =
+
+<pre>perf kallsyms [&lt;options&gt;] symbol_name[,symbol_name...]</pre>
+= DESCRIPTION =
+
+This command searches the running kernel kallsyms file for the given symbol(s) and prints information about it, including the DSO, the kallsyms begin/end addresses and the addresses in the ELF kallsyms symbol table (for symbols in modules).
+
+= OPTIONS =
+
+-v, --verbose
+
+<blockquote>Increase verbosity level, showing details about symbol table loading, etc.
+</blockquote>
+
+
+= KERNEL VERSION =
+
+This page is auto-generated.  The kernel version is v6.0-rc3
