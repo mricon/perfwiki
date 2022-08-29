@@ -1,0 +1,811 @@
+---
+title: Latest Manual Page of perf-report.1
+---
+
+
+= NAME =
+
+perf-report - Read perf.data (created by perf record) and display the profile
+
+= SYNOPSIS =
+
+<pre>perf report [-i &lt;file&gt; | --input=file]</pre>
+= DESCRIPTION =
+
+This command displays the performance counter profile information recorded via perf record.
+
+= OPTIONS =
+
+-i, --input=
+
+<blockquote>Input file name. (default: perf.data unless stdin is a fifo)
+</blockquote>
+-v, --verbose
+
+<blockquote>Be more verbose. (show symbol address, etc)
+</blockquote>
+-q, --quiet
+
+<blockquote>Do not show any message. (Suppress -v)
+</blockquote>
+-n, --show-nr-samples
+
+<blockquote>Show the number of samples for each symbol
+</blockquote>
+--show-cpu-utilization
+
+<blockquote>Show sample percentage for different cpu modes.
+</blockquote>
+-T, --threads
+
+<blockquote>Show per-thread event counters. The input data file should be recorded with -s option.
+</blockquote>
+-c, --comms=
+
+<blockquote>Only consider symbols in these comms. CSV that understands '''file://filename''' entries. This option will affect the percentage of the overhead column. See --percentage for more info.
+</blockquote>
+--pid=
+
+<blockquote>Only show events for given process ID (comma separated list).
+</blockquote>
+--tid=
+
+<blockquote>Only show events for given thread ID (comma separated list).
+</blockquote>
+-d, --dsos=
+
+<blockquote>Only consider symbols in these dsos. CSV that understands '''file://filename''' entries. This option will affect the percentage of the overhead column. See --percentage for more info.
+</blockquote>
+-S, --symbols=
+
+<blockquote>Only consider these symbols. CSV that understands '''file://filename''' entries. This option will affect the percentage of the overhead column. See --percentage for more info.
+</blockquote>
+--symbol-filter=
+
+<blockquote>Only show symbols that match (partially) with this filter.
+</blockquote>
+-U, --hide-unresolved
+
+<blockquote>Only display entries resolved to a symbol.
+</blockquote>
+-s, --sort=
+
+<blockquote>Sort histogram entries by given key(s) - multiple keys can be specified in CSV format. Following sort keys are available: pid, comm, dso, symbol, parent, cpu, socket, srcline, weight, local_weight, cgroup_id.
+
+<blockquote><pre>Each key has following meaning:</pre></blockquote>
+<blockquote>·
+
+comm: command (name) of the task which can be read via /proc/&lt;pid&gt;/comm
+</blockquote>
+<blockquote>·
+
+pid: command and tid of the task
+</blockquote>
+<blockquote>·
+
+dso: name of library or module executed at the time of sample
+</blockquote>
+<blockquote>·
+
+dso_size: size of library or module executed at the time of sample
+</blockquote>
+<blockquote>·
+
+symbol: name of function executed at the time of sample
+</blockquote>
+<blockquote>·
+
+symbol_size: size of function executed at the time of sample
+</blockquote>
+<blockquote>·
+
+parent: name of function matched to the parent regex filter. Unmatched entries are displayed as &quot;[other]&quot;.
+</blockquote>
+<blockquote>·
+
+cpu: cpu number the task ran at the time of sample
+</blockquote>
+<blockquote>·
+
+socket: processor socket number the task ran at the time of sample
+</blockquote>
+<blockquote>·
+
+srcline: filename and line number executed at the time of sample. The DWARF debugging info must be provided.
+</blockquote>
+<blockquote>·
+
+srcfile: file name of the source file of the samples. Requires dwarf information.
+</blockquote>
+<blockquote>·
+
+weight: Event specific weight, e.g. memory latency or transaction abort cost. This is the global weight.
+</blockquote>
+<blockquote>·
+
+local_weight: Local weight version of the weight above.
+</blockquote>
+<blockquote>·
+
+cgroup_id: ID derived from cgroup namespace device and inode numbers.
+</blockquote>
+<blockquote>·
+
+cgroup: cgroup pathname in the cgroupfs.
+</blockquote>
+<blockquote>·
+
+transaction: Transaction abort flags.
+</blockquote>
+<blockquote>·
+
+overhead: Overhead percentage of sample
+</blockquote>
+<blockquote>·
+
+overhead_sys: Overhead percentage of sample running in system mode
+</blockquote>
+<blockquote>·
+
+overhead_us: Overhead percentage of sample running in user mode
+</blockquote>
+<blockquote>·
+
+overhead_guest_sys: Overhead percentage of sample running in system mode on guest machine
+</blockquote>
+<blockquote>·
+
+overhead_guest_us: Overhead percentage of sample running in user mode on guest machine
+</blockquote>
+<blockquote>·
+
+sample: Number of sample
+</blockquote>
+<blockquote>·
+
+period: Raw number of event count of sample
+</blockquote>
+<blockquote>·
+
+time: Separate the samples by time stamp with the resolution specified by --time-quantum (default 100ms). Specify with overhead and before it.
+</blockquote>
+<blockquote>·
+
+code_page_size: the code page size of sampled code address (ip)
+</blockquote>
+<blockquote>·
+
+ins_lat: Instruction latency in core cycles. This is the global instruction latency
+</blockquote>
+<blockquote>·
+
+local_ins_lat: Local instruction latency version
+</blockquote>
+<blockquote>·
+
+p_stage_cyc: On powerpc, this presents the number of cycles spent in a pipeline stage. And currently supported only on powerpc.
+
+<blockquote><pre>By default, comm, dso and symbol keys are used.
+(i.e. --sort comm,dso,symbol)
+
+If --branch-stack option is used, following sort keys are also
+available:</pre></blockquote></blockquote>
+<blockquote>·
+
+dso_from: name of library or module branched from
+</blockquote>
+<blockquote>·
+
+dso_to: name of library or module branched to
+</blockquote>
+<blockquote>·
+
+symbol_from: name of function branched from
+</blockquote>
+<blockquote>·
+
+symbol_to: name of function branched to
+</blockquote>
+<blockquote>·
+
+srcline_from: source file and line branched from
+</blockquote>
+<blockquote>·
+
+srcline_to: source file and line branched to
+</blockquote>
+<blockquote>·
+
+mispredict: &quot;N&quot; for predicted branch, &quot;Y&quot; for mispredicted branch
+</blockquote>
+<blockquote>·
+
+in_tx: branch in TSX transaction
+</blockquote>
+<blockquote>·
+
+abort: TSX transaction abort.
+</blockquote>
+<blockquote>·
+
+cycles: Cycles in basic block
+
+<blockquote><pre>And default sort keys are changed to comm, dso_from, symbol_from, dso_to
+and symbol_to, see --branch-stack.
+
+When the sort key symbol is specified, columns &quot;IPC&quot; and &quot;IPC Coverage&quot;
+are enabled automatically. Column &quot;IPC&quot; reports the average IPC per function
+and column &quot;IPC coverage&quot; reports the percentage of instructions with
+sampled IPC in this function. IPC means Instruction Per Cycle. If its low,
+it indicates there may be a performance bottleneck when the function is
+executed, such as a memory access bottleneck. If a function has high overhead
+and low IPC, its worth further analyzing it to optimize its performance.
+
+If the --mem-mode option is used, the following sort keys are also available
+(incompatible with --branch-stack):
+symbol_daddr, dso_daddr, locked, tlb, mem, snoop, dcacheline, blocked.</pre></blockquote></blockquote>
+<blockquote>·
+
+symbol_daddr: name of data symbol being executed on at the time of sample
+</blockquote>
+<blockquote>·
+
+dso_daddr: name of library or module containing the data being executed on at the time of the sample
+</blockquote>
+<blockquote>·
+
+locked: whether the bus was locked at the time of the sample
+</blockquote>
+<blockquote>·
+
+tlb: type of tlb access for the data at the time of the sample
+</blockquote>
+<blockquote>·
+
+mem: type of memory access for the data at the time of the sample
+</blockquote>
+<blockquote>·
+
+snoop: type of snoop (if any) for the data at the time of the sample
+</blockquote>
+<blockquote>·
+
+dcacheline: the cacheline the data address is on at the time of the sample
+</blockquote>
+<blockquote>·
+
+phys_daddr: physical address of data being executed on at the time of sample
+</blockquote>
+<blockquote>·
+
+data_page_size: the data page size of data being executed on at the time of sample
+</blockquote>
+<blockquote>·
+
+blocked: reason of blocked load access for the data at the time of the sample
+
+<blockquote><pre>And the default sort keys are changed to local_weight, mem, sym, dso,
+symbol_daddr, dso_daddr, snoop, tlb, locked, blocked, local_ins_lat,
+see --mem-mode.
+
+If the data file has tracepoint event(s), following (dynamic) sort keys
+are also available:
+trace, trace_fields, [&lt;event&gt;.]&lt;field&gt;[/raw]</pre></blockquote></blockquote>
+<blockquote>·
+
+trace: pretty printed trace output in a single column
+</blockquote>
+<blockquote>·
+
+trace_fields: fields in tracepoints in separate columns
+</blockquote>
+<blockquote>·
+
+&lt;field name&gt;: optional event and field name for a specific field
+
+<blockquote><pre>The last form consists of event and field names.  If event name is
+omitted, it searches all events for matching field name.  The matched
+field will be shown only for the event has the field.  The event name
+supports substring match so user doesnt need to specify full subsystem
+and event name everytime.  For example, sched:sched_switch event can
+be shortened to switch as long as its not ambiguous.  Also event can
+be specified by its index (starting from 1) preceded by the %.
+So %1 is the first event, %2 is the second, and so on.
+
+The field name can have /raw suffix which disables pretty printing
+and shows raw field value like hex numbers.  The --raw-trace option
+has the same effect for all dynamic sort keys.
+
+The default sort keys are changed to trace if all events in the data
+file are tracepoint.</pre></blockquote></blockquote></blockquote>
+-F, --fields=
+
+<blockquote>Specify output field - multiple keys can be specified in CSV format. Following fields are available: overhead, overhead_sys, overhead_us, overhead_children, sample and period. Also it can contain any sort key(s).
+
+<blockquote><pre>By default, every sort keys not specified in -F will be appended
+automatically.
+
+If the keys starts with a prefix +, then it will append the specified
+field(s) to the default field order. For example: perf report -F +period,sample.</pre></blockquote></blockquote>
+-p, --parent=&lt;regex&gt;
+
+<blockquote>A regex filter to identify parent. The parent is a caller of this function and searched through the callchain, thus it requires callchain information recorded. The pattern is in the extended regex format and defaults to &quot;^sys_|^do_page_fault&quot;, see ''--sort parent''.
+</blockquote>
+-x, --exclude-other
+
+<blockquote>Only display entries with parent-match.
+</blockquote>
+-w, --column-widths=&lt;width[,width...]&gt;
+
+<blockquote>Force each column width to the provided list, for large terminal readability. 0 means no limit (default behavior).
+</blockquote>
+-t, --field-separator=
+
+<blockquote>Use a special separator character and don’t pad with spaces, replacing all occurrences of this separator in symbol names (and other output) with a ''.'' character, that thus it’s the only non valid separator.
+</blockquote>
+-D, --dump-raw-trace
+
+<blockquote>Dump raw trace in ASCII.
+</blockquote>
+--disable-order
+
+<blockquote>Disable raw trace ordering.
+</blockquote>
+-g, --call-graph=&lt;print_type,threshold[,print_limit],order,sort_key[,branch],value&gt;
+
+<blockquote>Display call chains using type, min percent threshold, print limit, call order, sort key, optional branch and value. Note that ordering is not fixed so any parameter can be given in an arbitrary order. One exception is the print_limit which should be preceded by threshold.
+
+<blockquote><pre>print_type can be either:
+- flat: single column, linear exposure of call chains.
+- graph: use a graph tree, displaying absolute overhead rates. (default)
+- fractal: like graph, but displays relative rates. Each branch of
+         the tree is considered as a new profiled object.
+- folded: call chains are displayed in a line, separated by semicolons
+- none: disable call chain display.
+
+threshold is a percentage value which specifies a minimum percent to be
+included in the output call graph.  Default is 0.5 (%).
+
+print_limit is only applied when stdio interface is used.  Its to limit
+number of call graph entries in a single hist entry.  Note that it needs
+to be given after threshold (but not necessarily consecutive).
+Default is 0 (unlimited).
+
+order can be either:
+- callee: callee based call graph.
+- caller: inverted caller based call graph.
+Default is caller when --children is used, otherwise callee.
+
+sort_key can be:
+- function: compare on functions (default)
+- address: compare on individual code addresses
+- srcline: compare on source filename and line number
+
+branch can be:
+- branch: include last branch information in callgraph when available.
+          Usually more convenient to use --branch-history for this.
+
+value can be:
+- percent: display overhead percent (default)
+- period: display event period
+- count: display event count</pre></blockquote></blockquote>
+--children
+
+<blockquote>Accumulate callchain of children to parent entry so that then can show up in the output. The output will have a new &quot;Children&quot; column and will be sorted on the data. It requires callchains are recorded. See the ‘overhead calculation’ section for more details. Enabled by default, disable with --no-children.
+</blockquote>
+--max-stack
+
+<blockquote>Set the stack depth limit when parsing the callchain, anything beyond the specified depth will be ignored. This is a trade-off between information loss and faster processing especially for workloads that can have a very long callchain stack. Note that when using the --itrace option the synthesized callchain size will override this value if the synthesized callchain size is bigger.
+
+<blockquote><pre>Default: 127</pre></blockquote></blockquote>
+-G, --inverted
+
+<blockquote>alias for inverted caller based call graph.
+</blockquote>
+--ignore-callees=&lt;regex&gt;
+
+<blockquote>Ignore callees of the function(s) matching the given regex. This has the effect of collecting the callers of each such function into one place in the call-graph tree.
+</blockquote>
+--pretty=&lt;key&gt;
+
+<blockquote>Pretty printing style. key: normal, raw
+</blockquote>
+--stdio
+
+<blockquote>Use the stdio interface.
+</blockquote>
+--stdio-color
+
+<blockquote>''always'', ''never'' or ''auto'', allowing configuring color output via the command line, in addition to via &quot;color.ui&quot; .perfconfig. Use ''--stdio-color always'' to generate color even when redirecting to a pipe or file. Using just ''--stdio-color'' is equivalent to using ''always''.
+</blockquote>
+--tui
+
+<blockquote>Use the TUI interface, that is integrated with annotate and allows zooming into DSOs or threads, among other features. Use of --tui requires a tty, if one is not present, as when piping to other commands, the stdio interface is used.
+</blockquote>
+--gtk
+
+<blockquote>Use the GTK2 interface.
+</blockquote>
+-k, --vmlinux=&lt;file&gt;
+
+<blockquote>vmlinux pathname
+</blockquote>
+--ignore-vmlinux
+
+<blockquote>Ignore vmlinux files.
+</blockquote>
+--kallsyms=&lt;file&gt;
+
+<blockquote>kallsyms pathname
+</blockquote>
+-m, --modules
+
+<blockquote>Load module symbols. WARNING: This should only be used with -k and a LIVE kernel.
+</blockquote>
+-f, --force
+
+<blockquote>Don’t do ownership validation.
+</blockquote>
+--symfs=&lt;directory&gt;
+
+<blockquote>Look for files with symbols relative to this directory.
+</blockquote>
+-C, --cpu
+
+<blockquote>Only report samples for the list of CPUs provided. Multiple CPUs can be provided as a comma-separated list with no space: 0,1. Ranges of CPUs are specified with -: 0-2. Default is to report samples on all CPUs.
+</blockquote>
+-M, --disassembler-style=
+
+<blockquote>Set disassembler style for objdump.
+</blockquote>
+--source
+
+<blockquote>Interleave source code with assembly code. Enabled by default, disable with --no-source.
+</blockquote>
+--asm-raw
+
+<blockquote>Show raw instruction encoding of assembly instructions.
+</blockquote>
+--show-total-period
+
+<blockquote>Show a column with the sum of periods.
+</blockquote>
+-I, --show-info
+
+<blockquote>Display extended information about the perf.data file. This adds information which may be very large and thus may clutter the display. It currently includes: cpu and numa topology of the host system.
+</blockquote>
+-b, --branch-stack
+
+<blockquote>Use the addresses of sampled taken branches instead of the instruction address to build the histograms. To generate meaningful output, the perf.data file must have been obtained using perf record -b or perf record --branch-filter xxx where xxx is a branch filter option. perf report is able to auto-detect whether a perf.data file contains branch stacks and it will automatically switch to the branch view mode, unless --no-branch-stack is used.
+</blockquote>
+--branch-history
+
+<blockquote>Add the addresses of sampled taken branches to the callstack. This allows to examine the path the program took to each sample. The data collection must have used -b (or -j) and -g.
+</blockquote>
+--objdump=&lt;path&gt;
+
+<blockquote>Path to objdump binary.
+</blockquote>
+--prefix=PREFIX, --prefix-strip=N
+
+<blockquote>Remove first N entries from source file path names in executables and add PREFIX. This allows to display source code compiled on systems with different file system layout.
+</blockquote>
+--group
+
+<blockquote>Show event group information together. It forces group output also if there are no groups defined in data file.
+</blockquote>
+--group-sort-idx
+
+<blockquote>Sort the output by the event at the index n in group. If n is invalid, sort by the first event. It can support multiple groups with different amount of events. WARNING: This should be used on grouped events.
+</blockquote>
+--demangle
+
+<blockquote>Demangle symbol names to human readable form. It’s enabled by default, disable with --no-demangle.
+</blockquote>
+--demangle-kernel
+
+<blockquote>Demangle kernel symbol names to human readable form (for C++ kernels).
+</blockquote>
+--mem-mode
+
+<blockquote>Use the data addresses of samples in addition to instruction addresses to build the histograms. To generate meaningful output, the perf.data file must have been obtained using perf record -d -W and using a special event -e cpu/mem-loads/p or -e cpu/mem-stores/p. See ''perf mem'' for simpler access.
+</blockquote>
+--percent-limit
+
+<blockquote>Do not show entries which have an overhead under that percent. (Default: 0). Note that this option also sets the percent limit (threshold) of callchains. However the default value of callchain threshold is different than the default value of hist entries. Please see the --call-graph option for details.
+</blockquote>
+--percentage
+
+<blockquote>Determine how to display the overhead percentage of filtered entries. Filters can be applied by --comms, --dsos and/or --symbols options and Zoom operations on the TUI (thread, dso, etc).
+
+<blockquote><pre>&quot;relative&quot; means its relative to filtered entries only so that the
+sum of shown entries will be always 100%.  &quot;absolute&quot; means it retains
+the original value before and after the filter is applied.</pre></blockquote></blockquote>
+--header
+
+<blockquote>Show header information in the perf.data file. This includes various information like hostname, OS and perf version, cpu/mem info, perf command line, event list and so on. Currently only --stdio output supports this feature.
+</blockquote>
+--header-only
+
+<blockquote>Show only perf.data header (forces --stdio).
+</blockquote>
+--time
+
+<blockquote>Only analyze samples within given time window: &lt;start&gt;,&lt;stop&gt;. Times have the format seconds.nanoseconds. If start is not given (i.e. time string is '',x.y'') then analysis starts at the beginning of the file. If stop time is not given (i.e. time string is ''x.y,'') then analysis goes to end of file. Multiple ranges can be separated by spaces, which requires the argument to be quoted e.g. --time &quot;1234.567,1234.789 1235,&quot;
+
+<blockquote><pre>Also support time percent with multiple time ranges. Time string is
+a%/n,b%/m,... or a%-b%,c%-%d,....
+
+For example:
+Select the second 10% time slice:
+
+perf report --time 10%/2
+
+Select from 0% to 10% time slice:
+
+perf report --time 0%-10%
+
+Select the first and second 10% time slices:
+
+perf report --time 10%/1,10%/2
+
+Select from 0% to 10% and 30% to 40% slices:
+
+perf report --time 0%-10%,30%-40%</pre></blockquote></blockquote>
+--switch-on EVENT_NAME
+
+<blockquote>Only consider events after this event is found.
+
+<blockquote><pre>This may be interesting to measure a workload only after some initialization
+phase is over, i.e. insert a perf probe at that point and then using this
+option with that probe.</pre></blockquote></blockquote>
+--switch-off EVENT_NAME
+
+<blockquote>Stop considering events after this event is found.
+</blockquote>
+--show-on-off-events
+
+<blockquote>Show the --switch-on/off events too. This has no effect in ''perf report'' now but probably we’ll make the default not to show the switch-on/off events on the --group mode and if there is only one event besides the off/on ones, go straight to the histogram browser, just like ''perf report'' with no events explicitly specified does.
+</blockquote>
+--itrace
+
+<blockquote>Options for decoding instruction tracing data. The options are:
+
+<blockquote><pre>i       synthesize instructions events
+b       synthesize branches events (branch misses for Arm SPE)
+c       synthesize branches events (calls only)
+r       synthesize branches events (returns only)
+x       synthesize transactions events
+w       synthesize ptwrite events
+p       synthesize power events (incl. PSB events for Intel PT)
+o       synthesize other events recorded due to the use
+        of aux-output (refer to perf record)
+I       synthesize interrupt or similar (asynchronous) events
+        (e.g. Intel PT Event Trace)
+e       synthesize error events
+d       create a debug log
+f       synthesize first level cache events
+m       synthesize last level cache events
+M       synthesize memory events
+t       synthesize TLB events
+a       synthesize remote access events
+g       synthesize a call chain (use with i or x)
+G       synthesize a call chain on existing event records
+l       synthesize last branch entries (use with i or x)
+L       synthesize last branch entries on existing event records
+s       skip initial number of events
+q       quicker (less detailed) decoding
+A       approximate IPC
+Z       prefer to ignore timestamps (so-called &quot;timeless&quot; decoding)
+
+The default is all events i.e. the same as --itrace=ibxwpe,
+except for perf script where it is --itrace=ce
+
+In addition, the period (default 100000, except for perf script where it is 1)
+for instructions events can be specified in units of:
+
+i       instructions
+t       ticks
+ms      milliseconds
+us      microseconds
+ns      nanoseconds (default)
+
+Also the call chain size (default 16, max. 1024) for instructions or
+transactions events can be specified.
+
+Also the number of last branch entries (default 64, max. 1024) for
+instructions or transactions events can be specified.
+
+Similar to options g and l, size may also be specified for options G and L.
+On x86, note that G and L work poorly when data has been recorded with
+large PEBS. Refer linkperf:perf-intel-pt[1] man page for details.
+
+It is also possible to skip events generated (instructions, branches, transactions,
+ptwrite, power) at the beginning. This is useful to ignore initialization code.
+
+--itrace=i0nss1000000
+
+skips the first million instructions.
+
+The e option may be followed by flags which affect what errors will or
+will not be reported. Each flag must be preceded by either + or -.
+The flags are:
+        o       overflow
+        l       trace data lost
+
+If supported, the d option may be followed by flags which affect what
+debug messages will or will not be logged. Each flag must be preceded
+by either + or -. The flags are:
+        a       all perf events
+        o       output to stdout
+
+If supported, the q option may be repeated to increase the effect.
+
+To disable decoding entirely, use --no-itrace.</pre></blockquote></blockquote>
+--full-source-path
+
+<blockquote>Show the full path for source files for srcline output.
+</blockquote>
+--show-ref-call-graph
+
+<blockquote>When multiple events are sampled, it may not be needed to collect callgraphs for all of them. The sample sites are usually nearby, and it’s enough to collect the callgraphs on a reference event. So user can use &quot;call-graph=no&quot; event modifier to disable callgraph for other events to reduce the overhead. However, perf report cannot show callgraphs for the event which disable the callgraph. This option extends the perf report to show reference callgraphs, which collected by reference event, in no callgraph event.
+</blockquote>
+--stitch-lbr
+
+<blockquote>Show callgraph with stitched LBRs, which may have more complete callgraph. The perf.data file must have been obtained using perf record --call-graph lbr. Disabled by default. In common cases with call stack overflows, it can recreate better call stacks than the default lbr call stack output. But this approach is not full proof. There can be cases where it creates incorrect call stacks from incorrect matches. The known limitations include exception handing such as setjmp/longjmp will have calls/returns not match.
+</blockquote>
+--socket-filter
+
+<blockquote>Only report the samples on the processor socket that match with this filter
+</blockquote>
+--samples=N
+
+<blockquote>Save N individual samples for each histogram entry to show context in perf report tui browser.
+</blockquote>
+--raw-trace
+
+<blockquote>When displaying traceevent output, do not use print fmt or plugins.
+</blockquote>
+--hierarchy
+
+<blockquote>Enable hierarchical output.
+</blockquote>
+--inline
+
+<blockquote>If a callgraph address belongs to an inlined function, the inline stack will be printed. Each entry is function name or file/line. Enabled by default, disable with --no-inline.
+</blockquote>
+--mmaps
+
+<blockquote>Show --tasks output plus mmap information in a format similar to /proc/&lt;PID&gt;/maps.
+
+<blockquote><pre>Please note that not all mmaps are stored, options affecting which ones
+are include perf record --data, for instance.</pre></blockquote></blockquote>
+--ns
+
+<blockquote>Show time stamps in nanoseconds.
+</blockquote>
+--stats
+
+<blockquote>Display overall events statistics without any further processing. (like the one at the end of the perf report -D command)
+</blockquote>
+--tasks
+
+<blockquote>Display monitored tasks stored in perf data. Displaying pid/tid/ppid plus the command string aligned to distinguish parent and child tasks.
+</blockquote>
+--percent-type
+
+<blockquote>Set annotation percent type from following choices: global-period, local-period, global-hits, local-hits
+
+<blockquote><pre>The local/global keywords set if the percentage is computed
+in the scope of the function (local) or the whole data (global).
+The period/hits keywords set the base the percentage is computed
+on - the samples period or the number of samples (hits).</pre></blockquote></blockquote>
+--time-quantum
+
+<blockquote>Configure time quantum for time sort key. Default 100ms. Accepts s, us, ms, ns units.
+</blockquote>
+--total-cycles
+
+<blockquote>When --total-cycles is specified, it supports sorting for all blocks by ''Sampled Cycles%''. This is useful to concentrate on the globally hottest blocks. In output, there are some new columns:
+
+<blockquote><pre>Sampled Cycles% - block sampled cycles aggregation / total sampled cycles
+Sampled Cycles  - block sampled cycles aggregation
+Avg Cycles%     - block average sampled cycles / sum of total block average
+                    sampled cycles
+Avg Cycles      - block average sampled cycles</pre></blockquote></blockquote>
+--skip-empty
+
+<blockquote>Do not print 0 results in the --stat output.
+</blockquote>
+= OVERHEAD CALCULATION =
+
+The overhead can be shown in two columns as ''Children'' and ''Self'' when perf collects callchains. The ''self'' overhead is simply calculated by adding all period values of the entry - usually a function (symbol). This is the value that perf shows traditionally and sum of all the ''self'' overhead values should be 100%.
+
+The ''children'' overhead is calculated by adding all period values of the child functions so that it can show the total overhead of the higher level functions even if they don’t directly execute much. ''Children'' here means functions that are called from another (parent) function.
+
+It might be confusing that the sum of all the ''children'' overhead values exceeds 100% since each of them is already an accumulation of ''self'' overhead of its child functions. But with this enabled, users can find which function has the most overhead even if samples are spread over the children.
+
+Consider the following example; there are three functions like below.
+
+<blockquote><pre>
+.ft C
+void foo(void) {
+    /* do something */
+}
+
+void bar(void) {
+    /* do something */
+    foo();
+}
+
+int main(void) {
+    bar()
+    return 0;
+}
+.ft
+</pre></blockquote>
+In this case ''foo'' is a child of ''bar'', and ''bar'' is an immediate child of ''main'' so ''foo'' also is a child of ''main''. In other words, ''main'' is a parent of ''foo'' and ''bar'', and ''bar'' is a parent of ''foo''.
+
+Suppose all samples are recorded in ''foo'' and ''bar'' only. When it’s recorded with callchains the output will show something like below in the usual (self-overhead-only) output of perf report:
+
+<blockquote><pre>
+.ft C
+Overhead  Symbol
+........  .....................
+  60.00%  foo
+          |
+          --- foo
+              bar
+              main
+              __libc_start_main
+
+  40.00%  bar
+          |
+          --- bar
+              main
+              __libc_start_main
+.ft
+</pre></blockquote>
+When the --children option is enabled, the ''self'' overhead values of child functions (i.e. ''foo'' and ''bar'') are added to the parents to calculate the ''children'' overhead. In this case the report could be displayed as:
+
+<blockquote><pre>
+.ft C
+Children      Self  Symbol
+........  ........  ....................
+ 100.00%     0.00%  __libc_start_main
+          |
+          --- __libc_start_main
+
+ 100.00%     0.00%  main
+          |
+          --- main
+              __libc_start_main
+
+ 100.00%    40.00%  bar
+          |
+          --- bar
+              main
+              __libc_start_main
+
+  60.00%    60.00%  foo
+          |
+          --- foo
+              bar
+              main
+              __libc_start_main
+.ft
+</pre></blockquote>
+In the above output, the ''self'' overhead of ''foo'' (60%) was add to the ''children'' overhead of ''bar'', ''main'' and ''__libc_start_main''. Likewise, the ''self'' overhead of ''bar'' (40%) was added to the ''children'' overhead of ''main'' and ''\_\_libc_start_main''.
+
+So ''\_\_libc_start_main'' and ''main'' are shown first since they have same (100%) ''children'' overhead (even though they have zero ''self'' overhead) and they are the parents of ''foo'' and ''bar''.
+
+Since v3.16 the ''children'' overhead is shown by default and the output is sorted by its values. The ''children'' overhead is disabled by specifying --no-children option on the command line or by adding ''report.children = false'' or ''top.children = false'' in the perf config file.
+
+= SEE ALSO =
+
+[[Latest Manual Page of perf-stat.1|<tt>'''perf-stat'''(1)</tt>]], [[Latest Manual Page of perf-annotate.1|<tt>'''perf-annotate'''(1)</tt>]], [[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]], [[Latest Manual Page of perf-intel-pt.1|<tt>'''perf-intel-pt'''(1)</tt>]]
+
+
+= KERNEL VERSION =
+
+This page is auto-generated.  The kernel version is v6.0-rc3
