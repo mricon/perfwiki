@@ -1,0 +1,48 @@
+---
+title: Latest Manual Pages
+---
+
+* [[Latest_Manual_Page_of_perf.1 | <tt>perf</tt>]]
+* [[Latest_Manual_Page_of_perf-annotate.1 | <tt>perf annotate</tt>]]
+* [[Latest_Manual_Page_of_perf-archive.1 | <tt>perf archive</tt>]]
+* [[Latest_Manual_Page_of_perf-arm-spe.1 | <tt>perf arm-spe</tt>]]
+* [[Latest_Manual_Page_of_perf-bench.1 | <tt>perf bench</tt>]]
+* [[Latest_Manual_Page_of_perf-buildid-cache.1 | <tt>perf buildid-cache</tt>]]
+* [[Latest_Manual_Page_of_perf-buildid-list.1 | <tt>perf buildid-list</tt>]]
+* [[Latest_Manual_Page_of_perf-c2c.1 | <tt>perf c2c</tt>]]
+* [[Latest_Manual_Page_of_perf-config.1 | <tt>perf config</tt>]]
+* [[Latest_Manual_Page_of_perf-daemon.1 | <tt>perf daemon</tt>]]
+* [[Latest_Manual_Page_of_perf-data.1 | <tt>perf data</tt>]]
+* [[Latest_Manual_Page_of_perf-diff.1 | <tt>perf diff</tt>]]
+* [[Latest_Manual_Page_of_perf-dlfilter.1 | <tt>perf dlfilter</tt>]]
+* [[Latest_Manual_Page_of_perf-evlist.1 | <tt>perf evlist</tt>]]
+* [[Latest_Manual_Page_of_perf-ftrace.1 | <tt>perf ftrace</tt>]]
+* [[Latest_Manual_Page_of_perf-help.1 | <tt>perf help</tt>]]
+* [[Latest_Manual_Page_of_perf-inject.1 | <tt>perf inject</tt>]]
+* [[Latest_Manual_Page_of_perf-intel-pt.1 | <tt>perf intel-pt</tt>]]
+* [[Latest_Manual_Page_of_perf-iostat.1 | <tt>perf iostat</tt>]]
+* [[Latest_Manual_Page_of_perf-kallsyms.1 | <tt>perf kallsyms</tt>]]
+* [[Latest_Manual_Page_of_perf-kmem.1 | <tt>perf kmem</tt>]]
+* [[Latest_Manual_Page_of_perf-kvm.1 | <tt>perf kvm</tt>]]
+* [[Latest_Manual_Page_of_perf-kwork.1 | <tt>perf kwork</tt>]]
+* [[Latest_Manual_Page_of_perf-list.1 | <tt>perf list</tt>]]
+* [[Latest_Manual_Page_of_perf-lock.1 | <tt>perf lock</tt>]]
+* [[Latest_Manual_Page_of_perf-mem.1 | <tt>perf mem</tt>]]
+* [[Latest_Manual_Page_of_perf-probe.1 | <tt>perf probe</tt>]]
+* [[Latest_Manual_Page_of_perf-record.1 | <tt>perf record</tt>]]
+* [[Latest_Manual_Page_of_perf-report.1 | <tt>perf report</tt>]]
+* [[Latest_Manual_Page_of_perf-sched.1 | <tt>perf sched</tt>]]
+* [[Latest_Manual_Page_of_perf-script.1 | <tt>perf script</tt>]]
+* [[Latest_Manual_Page_of_perf-script-perl.1 | <tt>perf script-perl</tt>]]
+* [[Latest_Manual_Page_of_perf-script-python.1 | <tt>perf script-python</tt>]]
+* [[Latest_Manual_Page_of_perf-stat.1 | <tt>perf stat</tt>]]
+* [[Latest_Manual_Page_of_perf-test.1 | <tt>perf test</tt>]]
+* [[Latest_Manual_Page_of_perf-timechart.1 | <tt>perf timechart</tt>]]
+* [[Latest_Manual_Page_of_perf-top.1 | <tt>perf top</tt>]]
+* [[Latest_Manual_Page_of_perf-trace.1 | <tt>perf trace</tt>]]
+* [[Latest_Manual_Page_of_perf-version.1 | <tt>perf version</tt>]]
+
+
+= Kernel Version =
+
+This page is auto-generated.  The kernel version is v6.0-rc3
