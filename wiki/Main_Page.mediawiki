@@ -35,3 +35,4 @@ To learn more, see the examples in the [[Tutorial]].
 * [[perf tools support for Intel&reg; Processor Trace]]
 * [[Useful Links]]: How perf tools work, examples of usage to solve real problems, observability articles, hardware manuals
 * [[Glossary]]
+* [[Latest Manual Pages]]
