@@ -1,0 +1,39 @@
+---
+title: Latest Manual Page of perf-test.1
+---
+
+
+= NAME =
+
+perf-test - Runs sanity tests.
+
+= SYNOPSIS =
+
+<pre>perf test [&lt;options&gt;] [{list &lt;test-name-fragment&gt;|[&lt;test-name-fragments&gt;|&lt;test-numbers&gt;]}]</pre>
+= DESCRIPTION =
+
+This command does assorted sanity tests, initially through linked routines but also will look for a directory with more tests in the form of scripts.
+
+To get a list of available tests use ''perf test list'', specifying a test name fragment will show all tests that have it.
+
+To run just specific tests, inform test name fragments or the numbers obtained from ''perf test list''.
+
+= OPTIONS =
+
+-s, --skip
+
+<blockquote>Tests to skip (comma separated numeric list).
+</blockquote>
+-v, --verbose
+
+<blockquote>Be more verbose.
+</blockquote>
+-F, --dont-fork
+
+<blockquote>Do not fork child for each test, run all tests within single process.
+</blockquote>
+
+
+= KERNEL VERSION =
+
+This page is auto-generated.  The kernel version is v6.0-rc3
