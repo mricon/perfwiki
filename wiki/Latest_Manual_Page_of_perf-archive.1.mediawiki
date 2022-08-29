@@ -1,0 +1,24 @@
+---
+title: Latest Manual Page of perf-archive.1
+---
+
+
+= NAME =
+
+perf-archive - Create archive with object files with build-ids found in perf.data file
+
+= SYNOPSIS =
+
+<pre>perf archive [file]</pre>
+= DESCRIPTION =
+
+This command runs perf-buildid-list --with-hits, and collects the files with the buildids found so that analysis of perf.data contents can be possible on another machine.
+
+= SEE ALSO =
+
+[[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]], [[Latest Manual Page of perf-buildid-list.1|<tt>'''perf-buildid-list'''(1)</tt>]], [[Latest Manual Page of perf-report.1|<tt>'''perf-report'''(1)</tt>]]
+
+
+= KERNEL VERSION =
+
+This page is auto-generated.  The kernel version is v6.0-rc3
