@@ -1,0 +1,94 @@
+---
+title: Latest Manual Page of perf-mem.1
+---
+
+
+= NAME =
+
+perf-mem - Profile memory accesses
+
+= SYNOPSIS =
+
+<pre>perf mem [&lt;options&gt;] (record [&lt;command&gt;] | report)</pre>
+= DESCRIPTION =
+
+&quot;perf mem record&quot; runs a command and gathers memory operation data from it, into perf.data. Perf record options are accepted and are passed through.
+
+&quot;perf mem report&quot; displays the result. It invokes perf report with the right set of options to display a memory access profile. By default, loads and stores are sampled. Use the -t option to limit to loads or stores.
+
+Note that on Intel systems the memory latency reported is the use-latency, not the pure load (or store latency). Use latency includes any pipeline queueing delays in addition to the memory subsystem latency.
+
+= OPTIONS =
+
+&lt;command&gt;...
+
+<blockquote>Any command you can specify in a shell.
+</blockquote>
+-i, --input=&lt;file&gt;
+
+<blockquote>Input file name.
+</blockquote>
+-f, --force
+
+<blockquote>Don’t do ownership validation
+</blockquote>
+-t, --type=&lt;type&gt;
+
+<blockquote>Select the memory operation type: load or store (default: load,store)
+</blockquote>
+-D, --dump-raw-samples
+
+<blockquote>Dump the raw decoded samples on the screen in a format that is easy to parse with one sample per line.
+</blockquote>
+-x, --field-separator=&lt;separator&gt;
+
+<blockquote>Specify the field separator used when dump raw samples (-D option). By default, The separator is the space character.
+</blockquote>
+-C, --cpu=&lt;cpu&gt;
+
+<blockquote>Monitor only on the list of CPUs provided. Multiple CPUs can be provided as a comma-separated list with no space: 0,1. Ranges of CPUs are specified with -: 0-2. Default is to monitor all CPUS.
+</blockquote>
+-U, --hide-unresolved
+
+<blockquote>Only display entries resolved to a symbol.
+</blockquote>
+-p, --phys-data
+
+<blockquote>Record/Report sample physical addresses
+</blockquote>
+--data-page-size
+
+<blockquote>Record/Report sample data address page size
+</blockquote>
+= RECORD OPTIONS =
+
+-e, --event &lt;event&gt;
+
+<blockquote>Event selector. Use ''perf mem record -e list'' to list available events.
+</blockquote>
+-K, --all-kernel
+
+<blockquote>Configure all used events to run in kernel space.
+</blockquote>
+-U, --all-user
+
+<blockquote>Configure all used events to run in user space.
+</blockquote>
+-v, --verbose
+
+<blockquote>Be more verbose (show counter open errors, etc)
+</blockquote>
+--ldlat &lt;n&gt;
+
+<blockquote>Specify desired latency for loads event. (x86 only)
+</blockquote>
+In addition, for report all perf report options are valid, and for record all perf record options.
+
+= SEE ALSO =
+
+[[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]], [[Latest Manual Page of perf-report.1|<tt>'''perf-report'''(1)</tt>]]
+
+
+= KERNEL VERSION =
+
+This page is auto-generated.  The kernel version is v6.0-rc3
