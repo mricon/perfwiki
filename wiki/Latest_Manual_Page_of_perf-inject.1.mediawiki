@@ -1,0 +1,164 @@
+---
+title: Latest Manual Page of perf-inject.1
+---
+
+
+= NAME =
+
+perf-inject - Filter to augment the events stream with additional information
+
+= SYNOPSIS =
+
+<pre>perf inject &lt;options&gt;</pre>
+= DESCRIPTION =
+
+perf-inject reads a perf-record event stream and repipes it to stdout. At any point the processing code can inject other events into the event stream - in this case build-ids (-b option) are read and injected as needed into the event stream.
+
+Build-ids are just the first user of perf-inject - potentially anything that needs userspace processing to augment the events stream with additional information could make use of this facility.
+
+= OPTIONS =
+
+-b, --build-ids
+
+<blockquote>Inject build-ids into the output stream
+</blockquote>
+--buildid-all: Inject build-ids of all DSOs into the output stream
+
+-v, --verbose
+
+<blockquote>Be more verbose.
+</blockquote>
+-i, --input=
+
+<blockquote>Input file name. (default: stdin)
+</blockquote>
+-o, --output=
+
+<blockquote>Output file name. (default: stdout)
+</blockquote>
+-s, --sched-stat
+
+<blockquote>Merge sched_stat and sched_switch for getting events where and how long tasks slept. sched_switch contains a callchain where a task slept and sched_stat contains a timeslice how long a task slept.
+</blockquote>
+-k, --vmlinux=&lt;file&gt;
+
+<blockquote>vmlinux pathname
+</blockquote>
+--ignore-vmlinux
+
+<blockquote>Ignore vmlinux files.
+</blockquote>
+--kallsyms=&lt;file&gt;
+
+<blockquote>kallsyms pathname
+</blockquote>
+--itrace
+
+<blockquote>Decode Instruction Tracing data, replacing it with synthesized events. Options are:
+
+<blockquote><pre>i       synthesize instructions events
+b       synthesize branches events (branch misses for Arm SPE)
+c       synthesize branches events (calls only)
+r       synthesize branches events (returns only)
+x       synthesize transactions events
+w       synthesize ptwrite events
+p       synthesize power events (incl. PSB events for Intel PT)
+o       synthesize other events recorded due to the use
+        of aux-output (refer to perf record)
+I       synthesize interrupt or similar (asynchronous) events
+        (e.g. Intel PT Event Trace)
+e       synthesize error events
+d       create a debug log
+f       synthesize first level cache events
+m       synthesize last level cache events
+M       synthesize memory events
+t       synthesize TLB events
+a       synthesize remote access events
+g       synthesize a call chain (use with i or x)
+G       synthesize a call chain on existing event records
+l       synthesize last branch entries (use with i or x)
+L       synthesize last branch entries on existing event records
+s       skip initial number of events
+q       quicker (less detailed) decoding
+A       approximate IPC
+Z       prefer to ignore timestamps (so-called &quot;timeless&quot; decoding)
+
+The default is all events i.e. the same as --itrace=ibxwpe,
+except for perf script where it is --itrace=ce
+
+In addition, the period (default 100000, except for perf script where it is 1)
+for instructions events can be specified in units of:
+
+i       instructions
+t       ticks
+ms      milliseconds
+us      microseconds
+ns      nanoseconds (default)
+
+Also the call chain size (default 16, max. 1024) for instructions or
+transactions events can be specified.
+
+Also the number of last branch entries (default 64, max. 1024) for
+instructions or transactions events can be specified.
+
+Similar to options g and l, size may also be specified for options G and L.
+On x86, note that G and L work poorly when data has been recorded with
+large PEBS. Refer linkperf:perf-intel-pt[1] man page for details.
+
+It is also possible to skip events generated (instructions, branches, transactions,
+ptwrite, power) at the beginning. This is useful to ignore initialization code.
+
+--itrace=i0nss1000000
+
+skips the first million instructions.
+
+The e option may be followed by flags which affect what errors will or
+will not be reported. Each flag must be preceded by either + or -.
+The flags are:
+        o       overflow
+        l       trace data lost
+
+If supported, the d option may be followed by flags which affect what
+debug messages will or will not be logged. Each flag must be preceded
+by either + or -. The flags are:
+        a       all perf events
+        o       output to stdout
+
+If supported, the q option may be repeated to increase the effect.</pre></blockquote></blockquote>
+--strip
+
+<blockquote>Use with --itrace to strip out non-synthesized events.
+</blockquote>
+-j, --jit
+
+<blockquote>Process jitdump files by injecting the mmap records corresponding to jitted functions. This option also generates the ELF images for each jitted function found in the jitdumps files captured in the input perf.data file. Use this option if you are monitoring environment using JIT runtimes, such as Java, DART or V8.
+</blockquote>
+-f, --force
+
+<blockquote>Don’t complain, do it.
+</blockquote>
+--vm-time-correlation[=OPTIONS]
+
+<blockquote>Some architectures may capture AUX area data which contains timestamps affected by virtualization. This option will update those timestamps in place, to correlate with host timestamps. The in-place update means that an output file is not specified, and instead the input file is modified. The options are architecture specific, except that they may start with &quot;dry-run&quot; which will cause the file to be processed but without updating it. Currently this option is supported only by Intel PT, refer [[Latest Manual Page of perf-intel-pt.1|<tt>'''perf-intel-pt'''(1)</tt>]]
+</blockquote>
+--guest-data=&lt;path&gt;,&lt;pid&gt;[,&lt;time offset&gt;[,&lt;time scale&gt;]]
+
+<blockquote>Insert events from a perf.data file recorded in a virtual machine at the same time as the input perf.data file was recorded on the host. The Process ID (PID) of the QEMU hypervisor process must be provided, and the time offset and time scale (multiplier) will likely be needed to convert guest time stamps into host time stamps. For example, for x86 the TSC Offset and Multiplier could be provided for a virtual machine using Linux command line option no-kvmclock. Currently only mmap, mmap2, comm, task, context_switch, ksymbol, and text_poke events are inserted, as well as build ID information. The QEMU option -name debug-threads=on is needed so that thread names can be used to determine which thread is running which VCPU. Note libvirt seems to use this by default. When using perf record in the guest, option --sample-identifier should be used, and also --buildid-all and --switch-events may be useful.
+</blockquote>
+--guestmount=&lt;path&gt;
+
+<blockquote>Guest OS root file system mount directory. Users mount guest OS root directories under &lt;path&gt; by a specific filesystem access method, typically, sshfs. For example, start 2 guest OS, one’s pid is 8888 and the other’s is 9999:
+
+<blockquote><pre>$ mkdir ~/guestmount
+$ cd ~/guestmount
+$ sshfs -o allow_other,direct_io -p 5551 localhost:/ 8888/
+$ sshfs -o allow_other,direct_io -p 5552 localhost:/ 9999/
+$ perf inject --guestmount=~/guestmount </pre></blockquote></blockquote>
+= SEE ALSO =
+
+[[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]], [[Latest Manual Page of perf-report.1|<tt>'''perf-report'''(1)</tt>]], [[Latest Manual Page of perf-archive.1|<tt>'''perf-archive'''(1)</tt>]], [[Latest Manual Page of perf-intel-pt.1|<tt>'''perf-intel-pt'''(1)</tt>]]
+
+
+= KERNEL VERSION =
+
+This page is auto-generated.  The kernel version is v6.0-rc3
