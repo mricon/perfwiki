@@ -1,0 +1,586 @@
+---
+title: Latest Manual Page of perf-script.1
+---
+
+
+= NAME =
+
+perf-script - Read perf.data (created by perf record) and display trace output
+
+= SYNOPSIS =
+
+<pre>perf script [&lt;options&gt;]
+perf script [&lt;options&gt;] record &lt;script&gt; [&lt;record-options&gt;] &lt;command&gt;
+perf script [&lt;options&gt;] report &lt;script&gt; [script-args]
+perf script [&lt;options&gt;] &lt;script&gt; &lt;required-script-args&gt; [&lt;record-options&gt;] &lt;command&gt;
+perf script [&lt;options&gt;] &lt;top-script&gt; [script-args]</pre>
+= DESCRIPTION =
+
+This command reads the input file and displays the trace recorded.
+
+There are several variants of perf script:
+
+<blockquote><pre>perf script to see a detailed trace of the workload that was
+recorded.
+
+You can also run a set of pre-canned scripts that aggregate and
+summarize the raw trace data in various ways (the list of scripts is
+available via perf script -l).  The following variants allow you to
+record and run those scripts:
+
+perf script record &lt;script&gt; &lt;command&gt; to record the events required
+for perf script report.  &lt;script&gt; is the name displayed in the
+output of perf script --list i.e. the actual script name minus any
+language extension.  If &lt;command&gt; is not specified, the events are
+recorded using the -a (system-wide) perf record option.
+
+perf script report &lt;script&gt; [args] to run and display the results
+of &lt;script&gt;.  &lt;script&gt; is the name displayed in the output of perf
+script --list i.e. the actual script name minus any language
+extension.  The perf.data output from a previous run of perf script
+record &lt;script&gt; is used and should be present for this command to
+succeed.  [args] refers to the (mainly optional) args expected by
+the script.
+
+perf script &lt;script&gt; &lt;required-script-args&gt; &lt;command&gt; to both
+record the events required for &lt;script&gt; and to run the &lt;script&gt;
+using live-mode i.e. without writing anything to disk.  &lt;script&gt;
+is the name displayed in the output of perf script --list i.e. the
+actual script name minus any language extension.  If &lt;command&gt; is
+not specified, the events are recorded using the -a (system-wide)
+perf record option.  If &lt;script&gt; has any required args, they
+should be specified before &lt;command&gt;.  This mode doesnt allow for
+optional script args to be specified; if optional script args are
+desired, they can be specified using separate perf script record
+and perf script report commands, with the stdout of the record step
+piped to the stdin of the report script, using the -o - and -i -
+options of the corresponding commands.
+
+perf script &lt;top-script&gt; to both record the events required for
+&lt;top-script&gt; and to run the &lt;top-script&gt; using live-mode
+i.e. without writing anything to disk.  &lt;top-script&gt; is the name
+displayed in the output of perf script --list i.e. the actual
+script name minus any language extension; a &lt;top-script&gt; is defined
+as any script name ending with the string top.
+
+[&lt;record-options&gt;] can be passed to the record steps of perf script
+record and live-mode variants; this isnt possible however for
+&lt;top-script&gt; live-mode or perf script report variants.
+
+See the SEE ALSO section for links to language-specific
+information on how to write and run your own trace scripts.</pre></blockquote>
+= OPTIONS =
+
+&lt;command&gt;...
+
+<blockquote>Any command you can specify in a shell.
+</blockquote>
+-D, --dump-raw-trace=
+
+<blockquote>Display verbose dump of the trace data.
+</blockquote>
+--dump-unsorted-raw-trace=
+
+<blockquote>Same as --dump-raw-trace but not sorted in time order.
+</blockquote>
+-L, --Latency=
+
+<blockquote>Show latency attributes (irqs/preemption disabled, etc).
+</blockquote>
+-l, --list=
+
+<blockquote>Display a list of available trace scripts.
+</blockquote>
+-s [''lang''], --script=
+
+<blockquote>Process trace data with the given script ([lang]:script[.ext]). If the string ''lang'' is specified in place of a script name, a list of supported languages will be displayed instead.
+</blockquote>
+-g, --gen-script=
+
+<blockquote>Generate perf-script.[ext] starter script for given language, using current perf.data.
+</blockquote>
+--dlfilter=&lt;file&gt;
+
+<blockquote>Filter sample events using the given shared object file. Refer [[Latest Manual Page of perf-dlfilter.1|<tt>'''perf-dlfilter'''(1)</tt>]]
+</blockquote>
+--dlarg=&lt;arg&gt;
+
+<blockquote>Pass ''arg'' as an argument to the dlfilter. --dlarg may be repeated to add more arguments.
+</blockquote>
+--list-dlfilters
+
+<blockquote>Display a list of available dlfilters. Use with option -v (must come before option --list-dlfilters) to show long descriptions.
+</blockquote>
+-a
+
+<blockquote>Force system-wide collection. Scripts run without a &lt;command&gt; normally use -a by default, while scripts run with a &lt;command&gt; normally don’t - this option allows the latter to be run in system-wide mode.
+</blockquote>
+-i, --input=
+
+<blockquote>Input file name. (default: perf.data unless stdin is a fifo)
+</blockquote>
+-d, --debug-mode
+
+<blockquote>Do various checks like samples ordering and lost events.
+</blockquote>
+-F, --fields
+
+<blockquote>Comma separated list of fields to print. Options are: comm, tid, pid, time, cpu, event, trace, ip, sym, dso, addr, symoff, srcline, period, iregs, uregs, brstack, brstacksym, flags, bpf-output, brstackinsn, brstackinsnlen, brstackoff, callindent, insn, insnlen, synth, phys_addr, metric, misc, srccode, ipc, data_page_size, code_page_size, ins_lat, machine_pid, vcpu. Field list can be prepended with the type, trace, sw or hw, to indicate to which event type the field list applies. e.g., -F sw:comm,tid,time,ip,sym and -F trace:time,cpu,trace
+
+<blockquote><pre>perf script -F &lt;fields&gt;
+
+is equivalent to:
+
+perf script -F trace:&lt;fields&gt; -F sw:&lt;fields&gt; -F hw:&lt;fields&gt;
+
+i.e., the specified fields apply to all event types if the type string
+is not given.
+
+In addition to overriding fields, it is also possible to add or remove
+fields from the defaults. For example
+
+-F -cpu,+insn
+
+removes the cpu field and adds the insn field. Adding/removing fields
+cannot be mixed with normal overriding.
+
+The arguments are processed in the order received. A later usage can
+reset a prior request. e.g.:
+
+-F trace: -F comm,tid,time,ip,sym
+
+The first -F suppresses trace events (field list is &quot;&quot;), but then the
+second invocation sets the fields to comm,tid,time,ip,sym. In this case a
+warning is given to the user:
+
+&quot;Overriding previous field request for all events.&quot;
+
+Alternatively, consider the order:
+
+-F comm,tid,time,ip,sym -F trace:
+
+The first -F sets the fields for all events and the second -F
+suppresses trace events. The user is given a warning message about
+the override, and the result of the above is that only S/W and H/W
+events are displayed with the given fields.
+
+Its possible tp add/remove fields only for specific event type:
+
+-Fsw:-cpu,-period
+
+removes cpu and period from software events.
+
+For the wildcard option if a user selected field is invalid for an
+event type, a message is displayed to the user that the option is
+ignored for that type. For example:
+
+$ perf script -F comm,tid,trace
+trace not valid for hardware events. Ignoring.
+trace not valid for software events. Ignoring.
+
+Alternatively, if the type is given an invalid field is specified it
+is an error. For example:
+
+perf script -v -F sw:comm,tid,trace
+trace not valid for software events.
+
+At this point usage is displayed, and perf-script exits.
+
+The flags field is synthesized and may have a value when Instruction
+Trace decoding. The flags are &quot;bcrosyiABExghDt&quot; which stand for branch,
+call, return, conditional, system, asynchronous, interrupt,
+transaction abort, trace begin, trace end, in transaction, VM-Entry,
+VM-Exit, interrupt disabled and interrupt disable toggle respectively.
+Known combinations of flags are printed more nicely e.g.
+&quot;call&quot; for &quot;bc&quot;, &quot;return&quot; for &quot;br&quot;, &quot;jcc&quot; for &quot;bo&quot;, &quot;jmp&quot; for &quot;b&quot;,
+&quot;int&quot; for &quot;bci&quot;, &quot;iret&quot; for &quot;bri&quot;, &quot;syscall&quot; for &quot;bcs&quot;, &quot;sysret&quot; for &quot;brs&quot;,
+&quot;async&quot; for &quot;by&quot;, &quot;hw int&quot; for &quot;bcyi&quot;, &quot;tx abrt&quot; for &quot;bA&quot;, &quot;tr strt&quot; for &quot;bB&quot;,
+&quot;tr end&quot; for &quot;bE&quot;, &quot;vmentry&quot; for &quot;bcg&quot;, &quot;vmexit&quot; for &quot;bch&quot;.
+However the &quot;x&quot;, &quot;D&quot; and &quot;t&quot; flags will be displayed separately in those
+cases e.g. &quot;jcc     (xD)&quot; for a condition branch within a transaction
+with interrupts disabled. Note, interrupts becoming disabled is &quot;t&quot;,
+whereas interrupts becoming enabled is &quot;Dt&quot;.
+
+The callindent field is synthesized and may have a value when
+Instruction Trace decoding. For calls and returns, it will display the
+name of the symbol indented with spaces to reflect the stack depth.
+
+When doing instruction trace decoding insn and insnlen give the
+instruction bytes and the instruction length of the current
+instruction.
+
+The synth field is used by synthesized events which may be created when
+Instruction Trace decoding.
+
+The ipc (instructions per cycle) field is synthesized and may have a value when
+Instruction Trace decoding.
+
+The machine_pid and vcpu fields are derived from data resulting from using
+perf inject to insert a perf.data file recorded inside a virtual machine into
+a perf.data file recorded on the host at the same time.
+
+Finally, a user may not set fields to none for all event types.
+i.e., -F &quot;&quot; is not allowed.
+
+The brstack output includes branch related information with raw addresses using the
+/v/v/v/v/cycles syntax in the following order:
+FROM: branch source instruction
+TO  : branch target instruction
+M/P/-: M=branch target mispredicted or branch direction was mispredicted, P=target predicted or direction predicted, -=not supported
+X/- : X=branch inside a transactional region, -=not in transaction region or not supported
+A/- : A=TSX abort entry, -=not aborted region or not supported
+cycles
+
+The brstacksym is identical to brstack, except that the FROM and TO addresses are printed in a symbolic form if possible.
+
+When brstackinsn is specified the full assembler sequences of branch sequences for each sample
+is printed. This is the full execution path leading to the sample. This is only supported when the
+sample was recorded with perf record -b or -j any.
+
+Use brstackinsnlen to print the brstackinsn lenght. For example, you
+can’t know the next sequential instruction after an unconditional branch unless
+you calculate that based on its length.
+
+The brstackoff field will print an offset into a specific dso/binary.
+
+With the metric option perf script can compute metrics for
+sampling periods, similar to perf stat. This requires
+specifying a group with multiple events defining metrics with the :S option
+for perf record. perf will sample on the first event, and
+print computed metrics for all the events in the group. Please note
+that the metric computed is averaged over the whole sampling
+period (since the last sample), not just for the sample point.
+
+For sample events its possible to display misc field with -F +misc option,
+following letters are displayed for each bit:
+
+PERF_RECORD_MISC_KERNEL               K
+PERF_RECORD_MISC_USER                 U
+PERF_RECORD_MISC_HYPERVISOR           H
+PERF_RECORD_MISC_GUEST_KERNEL         G
+PERF_RECORD_MISC_GUEST_USER           g
+PERF_RECORD_MISC_MMAP_DATA*           M
+PERF_RECORD_MISC_COMM_EXEC            E
+PERF_RECORD_MISC_SWITCH_OUT           S
+PERF_RECORD_MISC_SWITCH_OUT_PREEMPT   Sp
+
+$ perf script -F +misc ...
+ sched-messaging  1414 K     28690.636582:       4590 cycles ...
+ sched-messaging  1407 U     28690.636600:     325620 cycles ...
+ sched-messaging  1414 K     28690.636608:      19473 cycles ...
+misc field ___________/</pre></blockquote></blockquote>
+-k, --vmlinux=&lt;file&gt;
+
+<blockquote>vmlinux pathname
+</blockquote>
+--kallsyms=&lt;file&gt;
+
+<blockquote>kallsyms pathname
+</blockquote>
+--symfs=&lt;directory&gt;
+
+<blockquote>Look for files with symbols relative to this directory.
+</blockquote>
+-G, --hide-call-graph
+
+<blockquote>When printing symbols do not display call chain.
+</blockquote>
+--stop-bt
+
+<blockquote>Stop display of callgraph at these symbols
+</blockquote>
+-C, --cpu
+
+<blockquote>Only report samples for the list of CPUs provided. Multiple CPUs can be provided as a comma-separated list with no space: 0,1. Ranges of CPUs are specified with -: 0-2. Default is to report samples on all CPUs.
+</blockquote>
+-c, --comms=
+
+<blockquote>Only display events for these comms. CSV that understands '''file://filename''' entries.
+</blockquote>
+--pid=
+
+<blockquote>Only show events for given process ID (comma separated list).
+</blockquote>
+--tid=
+
+<blockquote>Only show events for given thread ID (comma separated list).
+</blockquote>
+-I, --show-info
+
+<blockquote>Display extended information about the perf.data file. This adds information which may be very large and thus may clutter the display. It currently includes: cpu and numa topology of the host system. It can only be used with the perf script report mode.
+</blockquote>
+--show-kernel-path
+
+<blockquote>Try to resolve the path of [kernel.kallsyms]
+</blockquote>
+--show-task-events Display task related events (e.g. FORK, COMM, EXIT).
+
+--show-mmap-events Display mmap related events (e.g. MMAP, MMAP2).
+
+--show-namespace-events Display namespace events i.e. events of type PERF_RECORD_NAMESPACES.
+
+--show-switch-events Display context switch events i.e. events of type PERF_RECORD_SWITCH or PERF_RECORD_SWITCH_CPU_WIDE.
+
+--show-lost-events Display lost events i.e. events of type PERF_RECORD_LOST.
+
+--show-round-events Display finished round events i.e. events of type PERF_RECORD_FINISHED_ROUND.
+
+--show-bpf-events Display bpf events i.e. events of type PERF_RECORD_KSYMBOL and PERF_RECORD_BPF_EVENT.
+
+--show-cgroup-events Display cgroup events i.e. events of type PERF_RECORD_CGROUP.
+
+--show-text-poke-events Display text poke events i.e. events of type PERF_RECORD_TEXT_POKE and PERF_RECORD_KSYMBOL.
+
+--demangle
+
+<blockquote>Demangle symbol names to human readable form. It’s enabled by default, disable with --no-demangle.
+</blockquote>
+--demangle-kernel
+
+<blockquote>Demangle kernel symbol names to human readable form (for C++ kernels).
+</blockquote>
+--header Show perf.data header.
+
+--header-only Show only perf.data header.
+
+--itrace
+
+<blockquote>Options for decoding instruction tracing data. The options are:
+
+<blockquote><pre>i       synthesize instructions events
+b       synthesize branches events (branch misses for Arm SPE)
+c       synthesize branches events (calls only)
+r       synthesize branches events (returns only)
+x       synthesize transactions events
+w       synthesize ptwrite events
+p       synthesize power events (incl. PSB events for Intel PT)
+o       synthesize other events recorded due to the use
+        of aux-output (refer to perf record)
+I       synthesize interrupt or similar (asynchronous) events
+        (e.g. Intel PT Event Trace)
+e       synthesize error events
+d       create a debug log
+f       synthesize first level cache events
+m       synthesize last level cache events
+M       synthesize memory events
+t       synthesize TLB events
+a       synthesize remote access events
+g       synthesize a call chain (use with i or x)
+G       synthesize a call chain on existing event records
+l       synthesize last branch entries (use with i or x)
+L       synthesize last branch entries on existing event records
+s       skip initial number of events
+q       quicker (less detailed) decoding
+A       approximate IPC
+Z       prefer to ignore timestamps (so-called &quot;timeless&quot; decoding)
+
+The default is all events i.e. the same as --itrace=ibxwpe,
+except for perf script where it is --itrace=ce
+
+In addition, the period (default 100000, except for perf script where it is 1)
+for instructions events can be specified in units of:
+
+i       instructions
+t       ticks
+ms      milliseconds
+us      microseconds
+ns      nanoseconds (default)
+
+Also the call chain size (default 16, max. 1024) for instructions or
+transactions events can be specified.
+
+Also the number of last branch entries (default 64, max. 1024) for
+instructions or transactions events can be specified.
+
+Similar to options g and l, size may also be specified for options G and L.
+On x86, note that G and L work poorly when data has been recorded with
+large PEBS. Refer linkperf:perf-intel-pt[1] man page for details.
+
+It is also possible to skip events generated (instructions, branches, transactions,
+ptwrite, power) at the beginning. This is useful to ignore initialization code.
+
+--itrace=i0nss1000000
+
+skips the first million instructions.
+
+The e option may be followed by flags which affect what errors will or
+will not be reported. Each flag must be preceded by either + or -.
+The flags are:
+        o       overflow
+        l       trace data lost
+
+If supported, the d option may be followed by flags which affect what
+debug messages will or will not be logged. Each flag must be preceded
+by either + or -. The flags are:
+        a       all perf events
+        o       output to stdout
+
+If supported, the q option may be repeated to increase the effect.
+
+To disable decoding entirely, use --no-itrace.</pre></blockquote></blockquote>
+--full-source-path
+
+<blockquote>Show the full path for source files for srcline output.
+</blockquote>
+--max-stack
+
+<blockquote>Set the stack depth limit when parsing the callchain, anything beyond the specified depth will be ignored. This is a trade-off between information loss and faster processing especially for workloads that can have a very long callchain stack. Note that when using the --itrace option the synthesized callchain size will override this value if the synthesized callchain size is bigger.
+
+<blockquote><pre>Default: 127</pre></blockquote></blockquote>
+--ns
+
+<blockquote>Use 9 decimal places when displaying time (i.e. show the nanoseconds)
+</blockquote>
+-f, --force
+
+<blockquote>Don’t do ownership validation.
+</blockquote>
+--time
+
+<blockquote>Only analyze samples within given time window: &lt;start&gt;,&lt;stop&gt;. Times have the format seconds.nanoseconds. If start is not given (i.e. time string is '',x.y'') then analysis starts at the beginning of the file. If stop time is not given (i.e. time string is ''x.y,'') then analysis goes to end of file. Multiple ranges can be separated by spaces, which requires the argument to be quoted e.g. --time &quot;1234.567,1234.789 1235,&quot;
+
+<blockquote><pre>Also support time percent with multiple time ranges. Time string is
+a%/n,b%/m,... or a%-b%,c%-%d,....
+
+For example:
+Select the second 10% time slice:
+perf script --time 10%/2
+
+Select from 0% to 10% time slice:
+perf script --time 0%-10%
+
+Select the first and second 10% time slices:
+perf script --time 10%/1,10%/2
+
+Select from 0% to 10% and 30% to 40% slices:
+perf script --time 0%-10%,30%-40%</pre></blockquote></blockquote>
+--max-blocks
+
+<blockquote>Set the maximum number of program blocks to print with brstackinsn for each sample.
+</blockquote>
+--reltime
+
+<blockquote>Print time stamps relative to trace start.
+</blockquote>
+--deltatime
+
+<blockquote>Print time stamps relative to previous event.
+</blockquote>
+--per-event-dump
+
+<blockquote>Create per event files with a &quot;perf.data.EVENT.dump&quot; name instead of printing to stdout, useful, for instance, for generating flamegraphs.
+</blockquote>
+--inline
+
+<blockquote>If a callgraph address belongs to an inlined function, the inline stack will be printed. Each entry has function name and file/line. Enabled by default, disable with --no-inline.
+</blockquote>
+--insn-trace
+
+<blockquote>Show instruction stream for intel_pt traces. Combine with --xed to show disassembly.
+</blockquote>
+--xed
+
+<blockquote>Run xed disassembler on output. Requires installing the xed disassembler.
+</blockquote>
+-S, --symbols=symbol[,symbol...]
+
+<blockquote>Only consider the listed symbols. Symbols are typically a name but they may also be hexadecimal address.
+
+<blockquote><pre>The hexadecimal address may be the start address of a symbol or
+any other address to filter the trace records
+
+For example, to select the symbol noploop or the address 0x4007a0:
+perf script --symbols=noploop,0x4007a0
+
+Support filtering trace records by symbol name, start address of
+symbol, any hexadecimal address and address range.
+
+The comparison order is:</pre></blockquote>
+<blockquote>1.
+
+symbol name comparison
+</blockquote>
+<blockquote>2.
+
+symbol start address comparison.
+</blockquote>
+<blockquote>3.
+
+any hexadecimal address comparison.
+</blockquote>
+<blockquote>4.
+
+address range comparison (see --addr-range).
+</blockquote></blockquote>
+--addr-range
+
+<blockquote>Use with -S or --symbols to list traced records within address range.
+
+<blockquote><pre>For example, to list the traced records within the address range
+[0x4007a0, 0x0x4007a9]:
+perf script -S 0x4007a0 --addr-range 10</pre></blockquote></blockquote>
+--dsos=
+
+<blockquote>Only consider symbols in these DSOs.
+</blockquote>
+--call-trace
+
+<blockquote>Show call stream for intel_pt traces. The CPUs are interleaved, but can be filtered with -C.
+</blockquote>
+--call-ret-trace
+
+<blockquote>Show call and return stream for intel_pt traces.
+</blockquote>
+--graph-function
+
+<blockquote>For itrace only show specified functions and their callees for itrace. Multiple functions can be separated by comma.
+</blockquote>
+--switch-on EVENT_NAME
+
+<blockquote>Only consider events after this event is found.
+</blockquote>
+--switch-off EVENT_NAME
+
+<blockquote>Stop considering events after this event is found.
+</blockquote>
+--show-on-off-events
+
+<blockquote>Show the --switch-on/off events too.
+</blockquote>
+--stitch-lbr
+
+<blockquote>Show callgraph with stitched LBRs, which may have more complete callgraph. The perf.data file must have been obtained using perf record --call-graph lbr. Disabled by default. In common cases with call stack overflows, it can recreate better call stacks than the default lbr call stack output. But this approach is not full proof. There can be cases where it creates incorrect call stacks from incorrect matches. The known limitations include exception handing such as setjmp/longjmp will have calls/returns not match.
+</blockquote>
+--guestmount=&lt;path&gt;
+
+<blockquote>Guest OS root file system mount directory. Users mount guest OS root directories under &lt;path&gt; by a specific filesystem access method, typically, sshfs. For example, start 2 guest OS, one’s pid is 8888 and the other’s is 9999:
+
+<blockquote><pre>$ mkdir ~/guestmount
+$ cd ~/guestmount
+$ sshfs -o allow_other,direct_io -p 5551 localhost:/ 8888/
+$ sshfs -o allow_other,direct_io -p 5552 localhost:/ 9999/
+$ perf script --guestmount=~/guestmount </pre></blockquote></blockquote>
+--guestkallsyms=&lt;path&gt;
+
+<blockquote>Guest OS /proc/kallsyms file copy. perf reads it to get guest kernel symbols. Users copy it out from guest OS.
+</blockquote>
+--guestmodules=&lt;path&gt;
+
+<blockquote>Guest OS /proc/modules file copy. perf reads it to get guest kernel module information. Users copy it out from guest OS.
+</blockquote>
+--guestvmlinux=&lt;path&gt;
+
+<blockquote>Guest OS kernel vmlinux.
+</blockquote>
+--guest-code
+
+<blockquote>Indicate that guest code can be found in the hypervisor process, which is a common case for KVM test programs.
+</blockquote>
+= SEE ALSO =
+
+[[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]], [[Latest Manual Page of perf-script-perl.1|<tt>'''perf-script-perl'''(1)</tt>]], [[Latest Manual Page of perf-script-python.1|<tt>'''perf-script-python'''(1)</tt>]], [[Latest Manual Page of perf-intel-pt.1|<tt>'''perf-intel-pt'''(1)</tt>]], [[Latest Manual Page of perf-dlfilter.1|<tt>'''perf-dlfilter'''(1)</tt>]]
+
+
+= KERNEL VERSION =
+
+This page is auto-generated.  The kernel version is v6.0-rc3
