@@ -74,8 +74,8 @@ Intel PT also has some miscellaneous abilities.
 
 ===== Virtualization =====
 
-Intel PT can trace through VM Entries / Exits, <tt>perf</tt> tools have support for tracing a host and guests, but kernel mode only.
-Refer [https://man7.org/linux/man-pages/man1/perf-intel-pt.1.html perf Intel PT man page]
+Intel PT can trace through VM Entries / Exits, <tt>perf</tt> tools have support for tracing a host and guests.
+Refer [[#Intel_PT_man_page perf|Intel PT man page]]
 
 ===== Intel&reg; Transactional Synchronization Extensions (Intel&reg; TSX) =====
 
