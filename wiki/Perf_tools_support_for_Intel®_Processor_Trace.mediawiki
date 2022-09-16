@@ -3411,3 +3411,119 @@ This shows times varying from 32ns to 855ns
             perf  1164 [005]     0.000000000:  ffffffffafea9072 restore_fpregs_from_fpstate+0x52 ([kernel.kallsyms])            xrstors64 (%rdi)
             perf  1164 [005]     0.000000198:  ffffffffafea9076 restore_fpregs_from_fpstate+0x56 ([kernel.kallsyms])            ptwriteq  (%rsp)
 </pre>
+
+== Appendix: Intel PT capabilities on different processors ==
+
+Generally, processors with the same CPU core microarchitecture can be expected to have the same Intel PT capabilities.  The Linux Intel PT driver provides capability flags in sysfs, refer [[#Intel_PT_man_page perf|Intel PT man page]]
+.  Below are some examples:
+
+=== 9th Gen Core (Skylake) ===
+<pre>
+$ grep -H . /sys/bus/event_source/devices/intel_pt/caps/*
+/sys/bus/event_source/devices/intel_pt/caps/cr3_filtering:1
+/sys/bus/event_source/devices/intel_pt/caps/cycle_thresholds:3fff
+/sys/bus/event_source/devices/intel_pt/caps/ip_filtering:1
+/sys/bus/event_source/devices/intel_pt/caps/max_subleaf:1
+/sys/bus/event_source/devices/intel_pt/caps/mtc:1
+/sys/bus/event_source/devices/intel_pt/caps/mtc_periods:249
+/sys/bus/event_source/devices/intel_pt/caps/num_address_ranges:2
+/sys/bus/event_source/devices/intel_pt/caps/output_subsys:0
+/sys/bus/event_source/devices/intel_pt/caps/payloads_lip:0
+/sys/bus/event_source/devices/intel_pt/caps/power_event_trace:0
+/sys/bus/event_source/devices/intel_pt/caps/psb_cyc:1
+/sys/bus/event_source/devices/intel_pt/caps/psb_periods:3f
+/sys/bus/event_source/devices/intel_pt/caps/ptwrite:0
+/sys/bus/event_source/devices/intel_pt/caps/single_range_output:1
+/sys/bus/event_source/devices/intel_pt/caps/topa_multiple_entries:1
+/sys/bus/event_source/devices/intel_pt/caps/topa_output:1
+</pre>
+
+=== 10th Gen Core (Ice Lake) ===
+<pre>
+# grep -H . /sys/bus/event_source/devices/intel_pt/caps/*
+/sys/bus/event_source/devices/intel_pt/caps/cr3_filtering:1
+/sys/bus/event_source/devices/intel_pt/caps/cycle_thresholds:1fff
+/sys/bus/event_source/devices/intel_pt/caps/event_trace:0
+/sys/bus/event_source/devices/intel_pt/caps/ip_filtering:1
+/sys/bus/event_source/devices/intel_pt/caps/max_subleaf:1
+/sys/bus/event_source/devices/intel_pt/caps/mtc:1
+/sys/bus/event_source/devices/intel_pt/caps/mtc_periods:249
+/sys/bus/event_source/devices/intel_pt/caps/num_address_ranges:2
+/sys/bus/event_source/devices/intel_pt/caps/output_subsys:0
+/sys/bus/event_source/devices/intel_pt/caps/payloads_lip:0
+/sys/bus/event_source/devices/intel_pt/caps/power_event_trace:0
+/sys/bus/event_source/devices/intel_pt/caps/psb_cyc:1
+/sys/bus/event_source/devices/intel_pt/caps/psb_periods:3f
+/sys/bus/event_source/devices/intel_pt/caps/ptwrite:0
+/sys/bus/event_source/devices/intel_pt/caps/single_range_output:1
+/sys/bus/event_source/devices/intel_pt/caps/tnt_disable:0
+/sys/bus/event_source/devices/intel_pt/caps/topa_multiple_entries:1
+/sys/bus/event_source/devices/intel_pt/caps/topa_output:1
+</pre>
+
+=== 11th Gen Core (Tiger Lake) ===
+<pre>
+$ grep -H . /sys/bus/event_source/devices/intel_pt/caps/*
+/sys/bus/event_source/devices/intel_pt/caps/cr3_filtering:1
+/sys/bus/event_source/devices/intel_pt/caps/cycle_thresholds:1fff
+/sys/bus/event_source/devices/intel_pt/caps/ip_filtering:1
+/sys/bus/event_source/devices/intel_pt/caps/max_subleaf:1
+/sys/bus/event_source/devices/intel_pt/caps/mtc:1
+/sys/bus/event_source/devices/intel_pt/caps/mtc_periods:249
+/sys/bus/event_source/devices/intel_pt/caps/num_address_ranges:2
+/sys/bus/event_source/devices/intel_pt/caps/output_subsys:0
+/sys/bus/event_source/devices/intel_pt/caps/payloads_lip:0
+/sys/bus/event_source/devices/intel_pt/caps/power_event_trace:0
+/sys/bus/event_source/devices/intel_pt/caps/psb_cyc:1
+/sys/bus/event_source/devices/intel_pt/caps/psb_periods:3f
+/sys/bus/event_source/devices/intel_pt/caps/ptwrite:0
+/sys/bus/event_source/devices/intel_pt/caps/single_range_output:1
+/sys/bus/event_source/devices/intel_pt/caps/topa_multiple_entries:1
+/sys/bus/event_source/devices/intel_pt/caps/topa_output:1
+</pre>
+
+=== Intel Atom (Jasper Lake) ===
+<pre>
+# grep -H . /sys/bus/event_source/devices/intel_pt/caps/*
+/sys/bus/event_source/devices/intel_pt/caps/cr3_filtering:1
+/sys/bus/event_source/devices/intel_pt/caps/cycle_thresholds:ffff
+/sys/bus/event_source/devices/intel_pt/caps/event_trace:0
+/sys/bus/event_source/devices/intel_pt/caps/ip_filtering:1
+/sys/bus/event_source/devices/intel_pt/caps/max_subleaf:1
+/sys/bus/event_source/devices/intel_pt/caps/mtc:1
+/sys/bus/event_source/devices/intel_pt/caps/mtc_periods:249
+/sys/bus/event_source/devices/intel_pt/caps/num_address_ranges:2
+/sys/bus/event_source/devices/intel_pt/caps/output_subsys:0
+/sys/bus/event_source/devices/intel_pt/caps/payloads_lip:1
+/sys/bus/event_source/devices/intel_pt/caps/power_event_trace:1
+/sys/bus/event_source/devices/intel_pt/caps/psb_cyc:1
+/sys/bus/event_source/devices/intel_pt/caps/psb_periods:3f
+/sys/bus/event_source/devices/intel_pt/caps/ptwrite:1
+/sys/bus/event_source/devices/intel_pt/caps/single_range_output:1
+/sys/bus/event_source/devices/intel_pt/caps/tnt_disable:0
+/sys/bus/event_source/devices/intel_pt/caps/topa_multiple_entries:1
+/sys/bus/event_source/devices/intel_pt/caps/topa_output:1
+</pre>
+
+=== 12th Gen Core (Alder Lake) ===
+<pre>
+# grep -H . /sys/bus/event_source/devices/intel_pt/caps/*
+/sys/bus/event_source/devices/intel_pt/caps/cr3_filtering:1
+/sys/bus/event_source/devices/intel_pt/caps/cycle_thresholds:3f
+/sys/bus/event_source/devices/intel_pt/caps/event_trace:0
+/sys/bus/event_source/devices/intel_pt/caps/ip_filtering:1
+/sys/bus/event_source/devices/intel_pt/caps/max_subleaf:1
+/sys/bus/event_source/devices/intel_pt/caps/mtc:1
+/sys/bus/event_source/devices/intel_pt/caps/mtc_periods:249
+/sys/bus/event_source/devices/intel_pt/caps/num_address_ranges:2
+/sys/bus/event_source/devices/intel_pt/caps/output_subsys:0
+/sys/bus/event_source/devices/intel_pt/caps/payloads_lip:0
+/sys/bus/event_source/devices/intel_pt/caps/power_event_trace:0
+/sys/bus/event_source/devices/intel_pt/caps/psb_cyc:1
+/sys/bus/event_source/devices/intel_pt/caps/psb_periods:3f
+/sys/bus/event_source/devices/intel_pt/caps/ptwrite:1
+/sys/bus/event_source/devices/intel_pt/caps/single_range_output:1
+/sys/bus/event_source/devices/intel_pt/caps/tnt_disable:0
+/sys/bus/event_source/devices/intel_pt/caps/topa_multiple_entries:1
+/sys/bus/event_source/devices/intel_pt/caps/topa_output:1
+</pre>
