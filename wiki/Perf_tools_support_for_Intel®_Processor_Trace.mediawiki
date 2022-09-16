@@ -3414,7 +3414,7 @@ This shows times varying from 32ns to 855ns
 
 == Appendix: Intel PT capabilities on different processors ==
 
-Generally, processors with the same CPU core microarchitecture can be expected to have the same Intel PT capabilities.  The Linux Intel PT driver provides capability flags in sysfs, refer [[#Intel_PT_man_page perf|Intel PT man page]]
+Generally, processors with the same CPU core microarchitecture can be expected to have the same Intel PT capabilities.  The Linux Intel PT driver provides capability flags in sysfs, refer [[#Intel_PT_man_page|Intel PT man page]]
 .  Below are some examples:
 
 === 9th Gen Core (Skylake) ===
