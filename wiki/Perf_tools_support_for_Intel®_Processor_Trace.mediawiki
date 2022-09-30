@@ -3412,6 +3412,88 @@ This shows times varying from 32ns to 855ns
             perf  1164 [005]     0.000000198:  ffffffffafea9076 restore_fpregs_from_fpstate+0x56 ([kernel.kallsyms])            ptwriteq  (%rsp)
 </pre>
 
+== Example: Tracing __schedule() ==
+
+We want to observe some task switches, so in this example, a kernel compile is started in the background to act as a workload:
+<pre>
+$ cd ~/git/linux
+$ make -j9 >/dev/null &
+[1] 77175
+</pre>
+This example includes kernel tracing, which requires administrator privileges.
+
+We can use <tt>'''perf record'''</tt> with options:
+* <tt>'''-Se'''</tt> snapshot mode with a snapshot at the end. This is a way to control the amount of data collected.  The root user default buffer size is 4MiB so with a single snapshot at the end, and 8 CPUs, data is limited to about 32MiB.
+* <tt>'''-a'''</tt> to trace system wide i.e. all tasks, all CPUs
+* <tt>'''--kcore'''</tt> to copy kernel object code from the /proc/kcore image (helps avoid decoding errors due to kernel self-modifying code)
+* <tt>'''-e'''</tt> to select which events, i.e. the following:
+* <tt>'''intel_pt/cyc,noretcomp,mtc_period=9/k'''</tt> to get Intel PT with cycle-accurate mode. We add <tt>'''noretcomp'''</tt> to get a Intel PT TIP packet from RET instructions, which has the side-effect of also getting a CYC timing packet, and consequently enables calculating a timestamp at that point.  The <tt>'''mtc_period'''</tt> is set as high as possible because MTC packets are collected continuously which bloats the trace.
+* <tt>'''--filter 'filter __schedule' '''</tt> specifies an address filter to trace only __schedule()
+* <tt>'''--no-switch-events'''</tt> switch events will divide up __schedule(), so disable them
+* <tt>'''--'''</tt> is a separator, indicating that the rest of the options belong to the workload
+* <tt>'''sleep 3'''</tt> is the workload.  The tracing will stop when the workload finishes, so this is simply a way of tracing for about 3 seconds.
+<pre>
+$ sudo ~/bin/perf record -Se -a --kcore -e intel_pt/cyc,noretcomp,mtc_period=9/k --filter 'filter __schedule' --no-switch-events -- sleep 3
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 34.200 MB perf.data ]
+</pre>
+Don't need the workload anymore so kill it:
+<pre>
+$ kill %1
+[1]+  Terminated              make -j9 > /dev/null
+</pre>
+Get extra packages for <tt>'''export-to-sqlite.py'''</tt> script:
+<pre>
+sudo apt-get install sqlite3 python3-pyside2.qtsql libqt5sql5-psql
+</pre>
+Refer to the script [http://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/tools/perf/scripts/python/export-to-sqlite.py export-to-sqlite.py] for more information.
+
+Export to SQLite3 database:
+<pre>
+$ perf script --itrace=be -s export-to-sqlite.py pt.db branches calls
+2022-09-30 16:34:08.522415 Creating database ...
+2022-09-30 16:34:08.526911 Writing records...
+Warning:
+2 instruction trace errors
+2022-09-30 16:34:11.191507 Adding indexes
+2022-09-30 16:34:11.215882 Dropping unused tables
+2022-09-30 16:34:11.230945 Done
+</pre>
+Have a look at the errors.
+<pre>
+$ perf script --itrace=e
+Warning:
+2 instruction trace errors
+ instruction trace error type 1 time 31840.557348019 cpu 4 pid 83275 tid 83275 ip 0xffffffffb43a6c0e code 7: Overflow packet
+ instruction trace error type 1 time 31840.557316000 cpu 0 pid 83275 tid 83275 ip 0xffffffffb43a6c0e code 7: Overflow packet
+</pre>
+Overflows are not unexpected, and there are only 2, so they can be ignored in this case.
+
+Start the viewer to look at a call graph:
+<pre>
+$ python3 ~/libexec/perf-core/scripts/python/exported-sql-viewer.py pt.db
+</pre>
+The call graph looks like this:
+<pre>
+Call Path                            Object     Count   Time (ns)   Time (%)
+▼ perf
+  ▼ 83275:83275
+    ▼ __schedule                     [kernel]    7013    47684493      100.0
+      ▶ rcu_note_context_switch     [kernel]    4773       29498        0.1
+      ▶ raw_spin_rq_lock_nested     [kernel]    4773       62676        0.1
+      ▶ update_rq_clock             [kernel]    4773       83770        0.2
+      ▶ pick_next_task              [kernel]    4773     2129516        4.5
+      ▶ psi_task_switch             [kernel]    4719     2336791        4.9
+      ▶ prepare_task_switch         [kernel]    4719      288511        0.6
+      ▶ enter_lazy_tlb              [kernel]    1117       15066        0.0
+      ▶ __switch_to_asm             [kernel]    4719    38735454       81.2
+      ▶ finish_task_switch.isra.0   [kernel]    4164     1214343        2.5
+      ▶ dequeue_task                [kernel]    2854     1183437        2.5
+      ▶ switch_mm_irqs_off          [kernel]    3602      529887        1.1
+      ▶ raw_spin_rq_unlock          [kernel]      54         515        0.0
+      ▶ asm_sysvec_reschedule_ipi   [kernel]       7        2250        0.0
+</pre>
+
 == Appendix: Intel PT capabilities on different processors ==
 
 Generally, processors with the same CPU core microarchitecture can be expected to have the same Intel PT capabilities.  The Linux Intel PT driver provides capability flags in sysfs, refer [[#Intel_PT_man_page|Intel PT man page]]
