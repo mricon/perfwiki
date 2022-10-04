@@ -24,11 +24,12 @@ The userspace <tt>perf</tt> command present a simple to use interface with comma
 * <tt>[[Tutorial#Live_analysis_with_perf_top | perf top</tt>]]: see live event count 
 * <tt>[[Tutorial#Benchmarking_with_perf_bench | perf bench</tt>]]: run different kernel microbenchmarks
 
-To learn more, see the examples in the [[Tutorial]].
+To learn more, see the examples in the [[Tutorial]] or how to do a [[Top-Down Analysis]].
 
 === Wiki Contents  ===
 
 * [[Tutorial]]
+* [[Top-Down Analysis]]
 * [[Todo]]
 * [[HardwareReference]]
 * [[perf_events kernel ABI]]
