@@ -8,7 +8,7 @@ Note, the description here is for Linux 6.1. Earlier versions of the perf tool s
 
 == What is top-down analysis? ==
 
-Top-down analysis is an approach for identifying software performance bottlenecks. It is described in [https://doi.org/10.1109/ISPASS.2014.6844459|A Top-Down method for performance analysis and counters architecture] but is often come across in Appendix B of [https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html| Intel's software development manuals]. The approach gathers a group of metrics and from these a problematic metric is identified. A group of metrics associated with the problematic metric are then measured drilling down to the metric/issue that identifies the performance problem.
+Top-down analysis is an approach for identifying software performance bottlenecks. It is described in [https://doi.org/10.1109/ISPASS.2014.6844459 A Top-Down method for performance analysis and counters architecture] but is often come across in Appendix B of [https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html Intel's Optimization Reference Manual in their software development manuals]. The approach gathers a group of metrics and from these a problematic metric is identified. A group of metrics associated with the problematic metric are then measured drilling down to the metric/issue that identifies the performance problem.
 
 == Starting at the top ==
 
