@@ -145,9 +145,9 @@ CONTENTION OPTIONS
 SEE ALSO
 .ft
 </pre></blockquote>
-'''perf'''(1)
+[[Latest Manual Page of perf.1|<tt>'''perf'''(1)</tt>]]
 
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.0-rc3
+This page is auto-generated.  The kernel version is v6.0
