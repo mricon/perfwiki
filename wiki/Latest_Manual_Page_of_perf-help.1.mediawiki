@@ -29,9 +29,9 @@ Note that perf --help ... is identical to perf help ... because the former is in
 </blockquote>
 = PERF =
 
-Part of the '''perf'''(1) suite
+Part of the [[Latest Manual Page of perf.1|<tt>'''perf'''(1)</tt>]] suite
 
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.0-rc3
+This page is auto-generated.  The kernel version is v6.0
