@@ -286,4 +286,4 @@ Support raw format:
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.0-rc3
+This page is auto-generated.  The kernel version is v6.0
