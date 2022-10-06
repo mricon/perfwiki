@@ -52,9 +52,9 @@ convert
 </blockquote>
 = SEE ALSO =
 
-'''perf'''(1) [1] Common Trace Format - '''http://www.efficios.com/ctf'''
+[[Latest Manual Page of perf.1|<tt>'''perf'''(1)</tt>]] [1] Common Trace Format - '''http://www.efficios.com/ctf'''
 
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.0-rc3
+This page is auto-generated.  The kernel version is v6.0
