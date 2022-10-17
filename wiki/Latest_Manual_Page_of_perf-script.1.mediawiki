@@ -413,6 +413,7 @@ If supported, the d option may be followed by flags which affect what
 debug messages will or will not be logged. Each flag must be preceded
 by either + or -. The flags are:
         a       all perf events
+        e       output only on errors (size configurable - see linkperf:perf-config[1])
         o       output to stdout
 
 If supported, the q option may be repeated to increase the effect.
@@ -583,4 +584,4 @@ $ perf script --guestmount=~/guestmount </pre></blockquote></blockquote>
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.0
+This page is auto-generated.  The kernel version is v6.1-rc1
