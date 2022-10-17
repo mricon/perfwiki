@@ -626,14 +626,40 @@ Note that &quot;instructions&quot;, &quot;branches&quot; and &quot;transactions&
 
 &quot;ptwrite&quot; events record the payload of the ptwrite instruction and whether &quot;fup_on_ptw&quot; was used. &quot;ptwrite&quot; events depend on PTWRITE packets which are recorded only if the &quot;ptw&quot; config term was used. Refer to the config terms section above. perf script &quot;synth&quot; field displays &quot;ptwrite&quot; information like this: &quot;ip: 0 payload: 0x123456789abcdef0&quot; where &quot;ip&quot; is 1 if &quot;fup_on_ptw&quot; was used.
 
-&quot;Power&quot; events correspond to power event packets and CBR (core-to-bus ratio) packets. While CBR packets are always recorded when tracing is enabled, power event packets are recorded only if the &quot;pwr_evt&quot; config term was used. Refer to the config terms section above. The power events record information about C-state changes, whereas CBR is indicative of CPU frequency. perf script &quot;event,synth&quot; fields display information like this: cbr: cbr: 22 freq: 2189 MHz (200%) mwait: hints: 0x60 extensions: 0x1 pwre: hw: 0 cstate: 2 sub-cstate: 0 exstop: ip: 1 pwrx: deepest cstate: 2 last cstate: 2 wake reason: 0x4 Where: &quot;cbr&quot; includes the frequency and the percentage of maximum non-turbo &quot;mwait&quot; shows mwait hints and extensions &quot;pwre&quot; shows C-state transitions (to a C-state deeper than C0) and whether initiated by hardware &quot;exstop&quot; indicates execution stopped and whether the IP was recorded exactly, &quot;pwrx&quot; indicates return to C0 For more details refer to the Intel 64 and IA-32 Architectures Software Developer Manuals.
+&quot;Power&quot; events correspond to power event packets and CBR (core-to-bus ratio) packets. While CBR packets are always recorded when tracing is enabled, power event packets are recorded only if the &quot;pwr_evt&quot; config term was used. Refer to the config terms section above. The power events record information about C-state changes, whereas CBR is indicative of CPU frequency. perf script &quot;event,synth&quot; fields display information like this:
+
+<blockquote><pre>cbr:  cbr: 22 freq: 2189 MHz (200%)
+mwait:  hints: 0x60 extensions: 0x1
+pwre:  hw: 0 cstate: 2 sub-cstate: 0
+exstop:  ip: 1
+pwrx:  deepest cstate: 2 last cstate: 2 wake reason: 0x4</pre></blockquote>
+Where:
+
+<blockquote><pre>&quot;cbr&quot; includes the frequency and the percentage of maximum non-turbo
+&quot;mwait&quot; shows mwait hints and extensions
+&quot;pwre&quot; shows C-state transitions (to a C-state deeper than C0) and
+whether initiated by hardware
+&quot;exstop&quot; indicates execution stopped and whether the IP was recorded
+exactly,
+&quot;pwrx&quot; indicates return to C0</pre></blockquote>
+For more details refer to the Intel 64 and IA-32 Architectures Software Developer Manuals.
 
 PSB events show when a PSB+ occurred and also the byte-offset in the trace. Emitting a PSB+ can cause a CPU a slight delay. When doing timing analysis of code with Intel PT, it is useful to know if a timing bubble was caused by Intel PT or not.
 
-Error events show where the decoder lost the trace. Error events are quite important. Users must know if what they are seeing is a complete picture or not. The &quot;e&quot; option may be followed by flags which affect what errors will or will not be reported. Each flag must be preceded by either ''+'' or ''-''. The flags supported by Intel PT are: -o Suppress overflow errors -l Suppress trace data lost errors For example, for errors but not overflow or data lost errors:
+Error events show where the decoder lost the trace. Error events are quite important. Users must know if what they are seeing is a complete picture or not. The &quot;e&quot; option may be followed by flags which affect what errors will or will not be reported. Each flag must be preceded by either ''+'' or ''-''. The flags supported by Intel PT are:
+
+<blockquote><pre>-o      Suppress overflow errors
+-l      Suppress trace data lost errors</pre></blockquote>
+For example, for errors but not overflow or data lost errors:
 
 <blockquote><pre>--itrace=e-o-l</pre></blockquote>
-The &quot;d&quot; option will cause the creation of a file &quot;intel_pt.log&quot; containing all decoded packets and instructions. Note that this option slows down the decoder and that the resulting file may be very large. The &quot;d&quot; option may be followed by flags which affect what debug messages will or will not be logged. Each flag must be preceded by either ''+'' or ''-''. The flags support by Intel PT are: -a Suppress logging of perf events +a Log all perf events +o Output to stdout instead of &quot;intel_pt.log&quot; By default, logged perf events are filtered by any specified time ranges, but flag +a overrides that.
+The &quot;d&quot; option will cause the creation of a file &quot;intel_pt.log&quot; containing all decoded packets and instructions. Note that this option slows down the decoder and that the resulting file may be very large. The &quot;d&quot; option may be followed by flags which affect what debug messages will or will not be logged. Each flag must be preceded by either ''+'' or ''-''. The flags support by Intel PT are:
+
+<blockquote><pre>-a      Suppress logging of perf events
++a      Log all perf events
++e      Output only on decoding errors (size configurable)
++o      Output to stdout instead of &quot;intel_pt.log&quot;</pre></blockquote>
+By default, logged perf events are filtered by any specified time ranges, but flag +a overrides that. The +e flag can be useful for analyzing errors. By default, the log size in that case is 16384 bytes, but can be altered by [[Latest Manual Page of perf-config.1|<tt>'''perf-config'''(1)</tt>]] e.g. perf config itrace.debug-log-buffer-size=30000
 
 In addition, the period of the &quot;instructions&quot; event can be specified. e.g.
 
@@ -1334,4 +1360,4 @@ Examples can be found on perf wiki page &quot;Perf tools support for Intel® Pro
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.0
+This page is auto-generated.  The kernel version is v6.1-rc1
