@@ -20,10 +20,16 @@ Build-ids are just the first user of perf-inject - potentially anything that nee
 
 -b, --build-ids
 
-<blockquote>Inject build-ids into the output stream
+<blockquote>Inject build-ids of DSOs hit by samples into the output stream. This means it needs to process all SAMPLE records to find the DSOs.
 </blockquote>
---buildid-all: Inject build-ids of all DSOs into the output stream
+--buildid-all
 
+<blockquote>Inject build-ids of all DSOs into the output stream regardless of hits and skip SAMPLE processing.
+</blockquote>
+--known-build-ids=
+
+<blockquote>Override build-ids to inject using these comma-separated pairs of build-id and path. Understands '''file://filename''' to read these pairs from a file, which can be generated with perf buildid-list.
+</blockquote>
 -v, --verbose
 
 <blockquote>Be more verbose.
@@ -122,6 +128,7 @@ If supported, the d option may be followed by flags which affect what
 debug messages will or will not be logged. Each flag must be preceded
 by either + or -. The flags are:
         a       all perf events
+        e       output only on errors (size configurable - see linkperf:perf-config[1])
         o       output to stdout
 
 If supported, the q option may be repeated to increase the effect.</pre></blockquote></blockquote>
@@ -161,4 +168,4 @@ $ perf inject --guestmount=~/guestmount </pre></blockquote></blockquote>
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.0
+This page is auto-generated.  The kernel version is v6.1-rc1
