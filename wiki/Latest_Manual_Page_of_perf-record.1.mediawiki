@@ -392,9 +392,13 @@ cond: conditional branches
 
 save_type: save branch type during sampling in case binary is not available later For the platforms with Intel Arch LBR support (12th-Gen+ client or 4th-Gen Xeon+ server), the save branch type is unconditionally enabled when the taken branch stack sampling is enabled.
 </blockquote>
+<blockquote>·
+
+priv: save privilege state during sampling in case binary is not available later
+</blockquote>
 The option requires at least one branch type among any, any_call, any_ret, ind_call, cond. The privilege levels may be omitted, in which case, the privilege levels of the associated event are applied to the branch filter. Both kernel (k) and hypervisor (hv) privilege levels are subject to permissions. When sampling on multiple events, branch stack sampling is enabled for all the sampling events. The sampled branch type is the same for all events. The various filters must be specified as a comma separated list: --branch-filter any_ret,u,k Note that this feature may not be available on all processors.
 </blockquote>
---weight
+-W, --weight
 
 <blockquote>Enable weightened sampling. An additional weight is recorded per sample and can be displayed with the weight and local_weight sort keys. This currently works for TSX abort events and some memory events in precise mode on modern Intel CPUs.
 </blockquote>
@@ -416,7 +420,7 @@ The option requires at least one branch type among any, any_call, any_ret, ind_c
 </blockquote>
 -D, --delay=
 
-<blockquote>After starting the program, wait msecs before measuring (-1: start with events disabled). This is useful to filter out the startup phase of the program, which is often very different.
+<blockquote>After starting the program, wait msecs before measuring (-1: start with events disabled), or enable events only for specified ranges of msecs (e.g. -D 10-20,30-40 means wait 10 msecs, enable for 10 msecs, wait 10 msecs, enable for 10 msecs, then stop). Note, delaying enabling of events is useful to filter out the startup phase of the program, which is often very different.
 </blockquote>
 -I, --intr-regs
 
@@ -816,4 +820,4 @@ But ''{cpu_core/cycles/,cpu_atom/instructions/}'' will return warning and disabl
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.0
+This page is auto-generated.  The kernel version is v6.1-rc1
