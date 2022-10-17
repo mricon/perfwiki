@@ -597,6 +597,10 @@ auxtrace.*, auxtrace.dumpdir
 
 <blockquote>s390 only. The directory to save the auxiliary trace buffer can be changed using this option. Ex, auxtrace.dumpdir=/tmp. If the directory does not exist or has the wrong file type, the current directory is used.
 </blockquote>
+itrace.*, debug-log-buffer-size
+
+<blockquote>Log size in bytes to output when using the option --itrace=d+e Refer ''itrace'' option of [[Latest Manual Page of perf-script.1|<tt>'''perf-script'''(1)</tt>]] or [[Latest Manual Page of perf-report.1|<tt>'''perf-report'''(1)</tt>]]. The default is 16384.
+</blockquote>
 daemon.*, daemon.base
 
 <blockquote>Base path for daemon data. All sessions data are stored under this path.
@@ -612,4 +616,4 @@ session-&lt;NAME&gt;.*, session-&lt;NAME&gt;.run
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.0
+This page is auto-generated.  The kernel version is v6.1-rc1
