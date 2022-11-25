@@ -3494,6 +3494,252 @@ Call Path                            Object     Count   Time (ns)   Time (%)
       ▶ asm_sysvec_reschedule_ipi   [kernel]       7        2250        0.0
 </pre>
 
+== Example: How to create an application that can trace itself ==
+
+An application may be able to detect unexpected conditions that warrent making a trace.  Here is an example of a program that does that:
+
+<pre>
+$ cat self-trace-example.c
+#define _GNU_SOURCE
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <stddef.h>
+
+static char perf_temp_dir[] = "/tmp/perf-control-XXXXXX";
+static char *perf_control_name;
+static char *perf_ack_name;
+static char *perf_pid_name;
+static int perf_control = -1;
+static int perf_ack = -1;
+static int perf_pid;
+
+static int control_perf(const char *cmd)
+{
+        ssize_t ret;
+        ssize_t sz = strlen(cmd);
+        char buf[16];
+
+        printf("sending cmd '%s'\n", cmd);
+        ret = write(perf_control, cmd, sz);
+        if (ret != sz)
+                return -1;
+        buf[0] = 0;
+        ret = read(perf_ack, buf, sizeof(buf));
+        if (ret < 0)
+                return ret;
+        if (ret < 4 || strncmp("ack\n", buf, 4))
+                return -1;
+        printf("Ack'ed\n");
+        return 0;
+}
+
+static int mk_perf_fifo(char *dir_name, char *name, char **fifo_name, int *fd)
+{
+        if (asprintf(fifo_name, "%s/%s", dir_name, name) < 0)
+                return -1;
+        mkfifo(*fifo_name, 0600);
+        *fd = open(*fifo_name, O_RDWR);
+        return *fd < 0 ? *fd : 0;
+}
+
+static int init_perf(void)
+{
+        char *dir_name;
+        int err;
+
+        dir_name = mkdtemp(perf_temp_dir);
+        if (!dir_name)
+                return -1;
+        if (asprintf(&perf_pid_name, "%s/perf_pid", dir_name) < 0)
+                return -1;
+        err = mk_perf_fifo(dir_name, "perf.control", &perf_control_name, &perf_control);
+        if (err < 0)
+                return err;
+        return mk_perf_fifo(dir_name, "perf.ack", &perf_ack_name, &perf_ack);
+}
+
+static int read_perf_pid(void)
+{
+        FILE *f = fopen(perf_pid_name, "r");
+
+        return (f && fscanf(f, "%d", &perf_pid) == 1) ? 0 : -1;
+}
+
+static void waitfor_perf_pid(void)
+{
+        char buf[256];
+
+        snprintf(buf, sizeof(buf), "/proc/%d", perf_pid);
+        while (!access(buf, F_OK))
+                usleep(1000);
+}
+
+static int start_perf(void)
+{
+        static bool initialized;
+        char *cmd;
+        int err;
+
+        if (!initialized) {
+                err = init_perf();
+                if (err)
+                        return err;
+                initialized = true;
+        }
+        err = asprintf(&cmd, "perf record --control fifo:%s,%s -S -e intel_pt//u -p %d & echo $! > %s", perf_control_name, perf_ack_name, getpid(), perf_pid_name);
+        if (err < 0)
+                return err;
+        printf("cmd is '%s'\n", cmd);
+        err = system(cmd);
+        free(cmd);
+        if (err)
+                return err;
+        err = control_perf("ping");
+        if (err)
+                return err;
+        return read_perf_pid();
+}
+
+/* noinline so it shows in a call trace */
+static __attribute__((noinline)) int perf_snapshot(void)
+{
+        return control_perf("snapshot");
+}
+
+volatile int dummy_var;
+
+/* noinline so it shows in a call trace */
+static __attribute__((noinline)) void work(void)
+{
+        dummy_var += 1; /* Stop work() being optimized away */
+}
+
+int main()
+{
+        int err;
+
+        err = start_perf();
+        if (err)
+                goto out;
+        work();
+        work();
+        work();
+        err = perf_snapshot();
+        if (err)
+                goto out;
+        err = control_perf("stop");
+        if (err)
+                goto out;
+        waitfor_perf_pid();
+out:
+        printf("Done, error %d\n", err);
+        return 0;
+}
+$ gcc -Wall -Wextra -g -O3 -o self-trace-example self-trace-example.c
+$ ./self-trace-example 
+cmd is 'perf record --control fifo:/tmp/perf-control-FgaFCP/perf.control,/tmp/perf-control-FgaFCP/perf.ack -S -e intel_pt//u -p 13341 & echo $! > /tmp/perf-control-FgaFCP/perf_pid'
+sending cmd 'ping'
+Ack'ed
+sending cmd 'snapshot'
+Ack'ed
+sending cmd 'stop'
+Ack'ed
+[ perf record: Woken up 3 times to write data ]
+[ perf record: Captured and wrote 0.015 MB perf.data ]
+Done, error 0
+$ perf script --call-trace
+ self-trace-exam 13341 [005] 17238.631440463:  psb offs: 0                      
+ self-trace-exam 13341 [005] 17238.631440463:  cbr: 41 freq: 4105 MHz (146%)    
+ self-trace-exam 13341 [005] 17238.631448567: (/home/ahunter/git/self-trace-example/self-trace-e )              5617e25ba190            
+ self-trace-exam 13341 [005] 17238.631448983: (/home/ahunter/git/self-trace-example/self-trace-e )              5617e25ba1b0            
+ self-trace-exam 13341 [005] 17238.631448983: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                  7fbbdde28490        
+ self-trace-exam 13341 [005] 17238.631449817: (/usr/lib/x86_64-linux-gnu/libc.so.6               )              __strncmp_sse2          
+ self-trace-exam 13341 [005] 17238.631449817: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                      7fbbdde283e0    
+ self-trace-exam 13341 [005] 17238.631450233: (/usr/lib/x86_64-linux-gnu/libc.so.6               )              __memcmpeq_sse2         
+ self-trace-exam 13341 [005] 17238.631450442: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                  __memchr_sse2       
+ self-trace-exam 13341 [005] 17238.631450442: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                      __strcmp_sse2_unaligned                         
+ self-trace-exam 13341 [005] 17238.631450442: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                          rcmd_af                                     
+ self-trace-exam 13341 [005] 17238.631450442: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                                                                      
+ self-trace-exam 13341 [005] 17238.631455233: (/home/ahunter/git/self-trace-example/self-trace-e )              5617e25ba280                                            
+ self-trace-exam 13341 [005] 17238.631455442: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                  7fbbdde28380                                        
+ self-trace-exam 13341 [005] 17238.631455858: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                  ____wcstold_l_internal                              
+ self-trace-exam 13341 [005] 17238.631456275: (/usr/lib/x86_64-linux-gnu/libc.so.6               )              __GI___strcasecmp_l_sse2                                
+ self-trace-exam 13341 [005] 17238.631456275: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                  __GI___strcasecmp_l_sse2                            
+ self-trace-exam 13341 [005] 17238.631456275: (/usr/lib/x86_64-linux-gnu/libc.so.6               )              __strncmp_sse2                                          
+ self-trace-exam 13341 [005] 17238.631456275: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                  __memcmp_sse2                                       
+ self-trace-exam 13341 [005] 17238.631456275: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                      __GI___strncasecmp_l_sse2                       
+ self-trace-exam 13341 [005] 17238.631456275: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                      __GI___strncasecmp_l_sse2                       
+ self-trace-exam 13341 [005] 17238.631456275: (/usr/lib/x86_64-linux-gnu/libc.so.6               )              __strncmp_sse2                                          
+ self-trace-exam 13341 [005] 17238.631456275: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                  __strncmp_sse2                                      
+ self-trace-exam 13341 [005] 17238.631456275: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                      rcmd_af                                         
+ self-trace-exam 13341 [005] 17238.631456483: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                                                                      
+ self-trace-exam 13341 [005] 17238.631462317: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                      __memcmp_sse2                                   
+ self-trace-exam 13341 [005] 17238.631462525: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                  __wcsxfrm_l                                         
+ self-trace-exam 13341 [005] 17238.631462525: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                          7fbbdde28600                                
+ self-trace-exam 13341 [005] 17238.631462525: (/home/ahunter/git/self-trace-example/self-trace-e )              5617e25ba1a0                                            
+ self-trace-exam 13341 [005] 17238.631462733: (/usr/lib/x86_64-linux-gnu/libc.so.6               )              _IO_file_seekoff@@GLIBC_2.2.5                           
+ self-trace-exam 13341 [005] 17238.631462942: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                  __GI___strncasecmp_l_sse2                           
+ self-trace-exam 13341 [005] 17238.631463150: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                  __GI___strcasecmp_l_sse2                            
+ self-trace-exam 13341 [005] 17238.631463150: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                      __memchr_sse2                                   
+ self-trace-exam 13341 [005] 17238.631463150: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                          __GI___strcasecmp_l_sse2                    
+ self-trace-exam 13341 [005] 17238.631463150: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                              __malloc_usable_size                    
+ self-trace-exam 13341 [005] 17238.631463150: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                                  __strcmp_sse2_unaligned             
+ self-trace-exam 13341 [005] 17238.631463150: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                                                                      
+ self-trace-exam 13341 [005] 17238.631464400: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                                      7fbbdde28380                    
+ self-trace-exam 13341 [005] 17238.631464400: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                                      ____wcstold_l_internal          
+ self-trace-exam 13341 [005] 17238.631464608: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                                      ____wcstold_l_internal          
+ self-trace-exam 13341 [005] 17238.631466900: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                                  __GI___strcasecmp_l_sse2            
+ self-trace-exam 13341 [005] 17238.631466900: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                          __memcmpeq_sse2                             
+ self-trace-exam 13341 [005] 17238.631466900: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                          __strncmp_sse2                              
+ self-trace-exam 13341 [005] 17238.631467108: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                                                                      
+ self-trace-exam 13341 [005] 17238.631469400: (/usr/lib/x86_64-linux-gnu/libc.so.6               )              _IO_file_xsgetn_mmap                                    
+ self-trace-exam 13341 [005] 17238.631471692: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                  __GI___strcasecmp_l_sse2                            
+ self-trace-exam 13341 [005] 17238.631471900: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                  __GI___strcasecmp_l_sse2                            
+ self-trace-exam 13341 [005] 17238.631471900: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                  __vfwscanf_internal                                 
+ self-trace-exam 13341 [005] 17238.631472108: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                  __GI___strncasecmp_l_sse2                           
+ self-trace-exam 13341 [005] 17238.631472317: (/home/ahunter/git/self-trace-example/self-trace-e )          work                        
+ self-trace-exam 13341 [005] 17238.631472317: (/home/ahunter/git/self-trace-example/self-trace-e )          work                        
+ self-trace-exam 13341 [005] 17238.631472317: (/home/ahunter/git/self-trace-example/self-trace-e )          work                        
+ self-trace-exam 13341 [005] 17238.631472317: (/home/ahunter/git/self-trace-example/self-trace-e )          perf_snapshot               
+ self-trace-exam 13341 [005] 17238.631472317: (/home/ahunter/git/self-trace-example/self-trace-e )                  5617e25ba1e0        
+ self-trace-exam 13341 [005] 17238.631472317: (/home/ahunter/git/self-trace-example/self-trace-e )                  5617e25ba250        
+ self-trace-exam 13341 [005] 17238.631472317: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                  __GI___pthread_tpp_change_priority                  
+ self-trace-exam 13341 [005] 17238.631472525: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                          7fbbdde284d0                                
+ self-trace-exam 13341 [005] 17238.631472525: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                      __GI___strncasecmp_l_sse2                       
+ self-trace-exam 13341 [005] 17238.631472733: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                      __strncmp_sse2                                  
+ self-trace-exam 13341 [005] 17238.631472733: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                              7fbbdde283e0                            
+ self-trace-exam 13341 [005] 17238.631472733: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                          7fbbdde28490                                
+ self-trace-exam 13341 [005] 17238.631472733: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                      __strncmp_sse2                                  
+ self-trace-exam 13341 [005] 17238.631472733: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                              7fbbdde283e0                            
+ self-trace-exam 13341 [005] 17238.631472733: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                          7fbbdde284d0                                
+ self-trace-exam 13341 [005] 17238.631472733: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                      __strncmp_sse2                                  
+ self-trace-exam 13341 [005] 17238.631472942: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                              7fbbdde283e0                            
+ self-trace-exam 13341 [005] 17238.631472942: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                          __memrchr_sse2                              
+ self-trace-exam 13341 [005] 17238.631472942: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                              __strcmp_sse2_unaligned                 
+ self-trace-exam 13341 [005] 17238.631472942: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                                  rcmd_af                             
+ self-trace-exam 13341 [005] 17238.631472942: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                                                                      
+ self-trace-exam 13341 [005] 17238.631473567: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                      __GI___strncasecmp_l_sse2                       
+ self-trace-exam 13341 [005] 17238.631473567: (/home/ahunter/git/self-trace-example/self-trace-e )                  5617e25ba1c0                                        
+ self-trace-exam 13341 [005] 17238.631473775: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                                                                      
+ self-trace-exam 13341 [005] 17238.631475442: (/home/ahunter/git/self-trace-example/self-trace-e )                  5617e25ba210                                        
+ self-trace-exam 13341 [005] 17238.631475442: (/usr/lib/x86_64-linux-gnu/libc.so.6               )                                                                      
+$ 
+</pre>
+
+Points to note:
+* The program is fairly crude and is primarily an example of how to control perf using FIFOs.
+* Snapshot mode (option -S) is used.  To also make a snapshot if the application terminates, the option -Se can be used instead.  Also the Intel PT snapshot size in bytes can be specified e.g. -Se100000
+* Default buffer sizes are used, but that can be changed with the -m option.
+* The program makes a single snapshot then stops perf and waits for it to finish.  The program could instead have made more snapshots and could stop and start a new perf process any time to enable the perf output file to be collected for later analysis or deleted.
+* perf output file name is not specified and so will use (and overwrite) "perf.data".
+* Intel PT config terms like mtc_period, psb_period, cyc, cyc_threshold, and noretcomp can affect the Intel PT overhead.
+
 == Appendix: Intel PT capabilities on different processors ==
 
 Generally, processors with the same CPU core microarchitecture can be expected to have the same Intel PT capabilities.  The Linux Intel PT driver provides capability flags in sysfs, refer [[#Intel_PT_man_page|Intel PT man page]]
