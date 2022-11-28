@@ -3740,6 +3740,146 @@ Points to note:
 * perf output file name is not specified and so will use (and overwrite) "perf.data".
 * Intel PT config terms like mtc_period, psb_period, cyc, cyc_threshold, and noretcomp can affect the Intel PT overhead.
 
+== Example: How to read perf clock ==
+
+perf tools can use different clock IDs but Intel PT only supports the default perf clock.  While regular clocks can be read using POSIX clock_gettime() API, perf clock can be calculated from TSC, however the conversion parameters need to be read from a perf event.  This is a little awkward, but does offer the advantage of being a bit faster because it does not have to call into the kernel to get the clock value.  Here is an example:
+
+<pre>
+$ cat perf-clock.c
+#include <linux/perf_event.h>
+#include <sys/syscall.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <errno.h>
+
+#define rmb() asm volatile("lfence" ::: "memory")
+
+struct perf_tsc_conversion {
+        __u16 time_shift;
+        __u32 time_mult;
+        __u64 time_zero;
+};
+
+static struct perf_tsc_conversion perf_tsc_conversion;
+
+static int perf_read_tsc_conversion(const struct perf_event_mmap_page *pc,
+                                    struct perf_tsc_conversion *tc)
+{
+        int cap_user_time_zero;
+        __u32 seq;
+        int i = 0;
+
+        while (1) {
+                seq = pc->lock;
+                rmb();
+                tc->time_mult = pc->time_mult;
+                tc->time_shift = pc->time_shift;
+                tc->time_zero = pc->time_zero;
+                cap_user_time_zero = pc->cap_user_time_zero;
+                rmb();
+                if (pc->lock == seq && !(seq & 1))
+                        break;
+                if (++i > 10000) {
+                        errno = EINVAL;
+                        return -1;
+                }
+        }
+
+        if (!cap_user_time_zero) {
+                errno = EOPNOTSUPP;
+                return -1;
+        }
+
+        return 0;
+}
+
+static int perf_clock_init(void)
+{
+        struct perf_event_attr attr = {
+                .type   = PERF_TYPE_SOFTWARE,
+                .size = sizeof(attr),
+                .config = PERF_COUNT_SW_DUMMY,
+                .disabled = 1,
+                .exclude_kernel = 1,
+                .exclude_hv = 1,
+        };
+        long page_size = sysconf(_SC_PAGE_SIZE);
+        struct perf_event_mmap_page *pc;
+        size_t len;
+        int ret;
+        int fd;
+
+        if (page_size < 0)
+                return -1;
+        fd = syscall(__NR_perf_event_open, &attr, 0, 0, -1, 0);
+        if (fd < 0)
+                return -1;
+        len = page_size * 2;
+        pc = mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0);
+        close(fd);
+        if (pc == MAP_FAILED)
+                return -1;
+        ret = perf_read_tsc_conversion(pc, &perf_tsc_conversion);
+        munmap(pc, len);
+
+        return ret;
+}
+
+static __u64 rdtsc_ordered(void)
+{
+        unsigned int low, high;
+
+        asm volatile("rdtscp" : "=a" (low), "=d" (high));
+        asm volatile("lfence");
+        return low | ((__u64)high) << 32;
+}
+
+static __u64 tsc_to_perf_time(__u64 cyc, const struct perf_tsc_conversion *tc)
+{
+        __u64 quot, rem;
+
+        quot = cyc >> tc->time_shift;
+        rem  = cyc & (((__u64)1 << tc->time_shift) - 1);
+        return tc->time_zero + quot * tc->time_mult +
+               ((rem * tc->time_mult) >> tc->time_shift);
+}
+
+__u64 perf_clock(void)
+{
+        return tsc_to_perf_time(rdtsc_ordered(), &perf_tsc_conversion);
+}
+
+#define CNT 4
+
+int main()
+{
+        unsigned long long t[CNT];
+        int i;
+
+        if (perf_clock_init()) {
+                fprintf(stderr, "Failed!\n");
+                return 1;
+        }
+        for (i = 0; i < CNT; i++)
+                t[i] = perf_clock();
+        for (i = 0; i < CNT; i++)
+                printf("%llu\n", t[i]);
+        return 0;
+}
+$ gcc -Wall -Wextra -o perf-clock perf-clock.c 
+$ ./perf-clock 
+2411326242381
+2411326242491
+2411326242570
+2411326242648
+$ 
+</pre>
+
+Points to note:
+* For systems that support Intel PT, the conversion parameters should not change while the system is running.  Notable exceptions are Hibernation (because it actually involves a reboot), and inside a Virtual Machine (because TSC might be virtualized).
+
 == Appendix: Intel PT capabilities on different processors ==
 
 Generally, processors with the same CPU core microarchitecture can be expected to have the same Intel PT capabilities.  The Linux Intel PT driver provides capability flags in sysfs, refer [[#Intel_PT_man_page|Intel PT man page]]
