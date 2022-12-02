@@ -33,3 +33,4 @@ __TOC__
 * [https://software.intel.com/content/www/us/en/develop/download/intel-64-and-ia-32-architectures-optimization-reference-manual.html Intel PMU event tables], in particular Appendix B of the Intel® 64 and IA-32 Architectures Optimization Reference Manual
 * [https://developer.amd.com/resources/developer-guides-manuals/ AMD PMU event table], the Processor Programming Reference Manual for AMD 17h family see Section 2.1.15 Performance Monitor Counters.
 * [https://developer.arm.com/architectures/cpu-architecture/a-profile/docs ARM PMU event tables], see Chapter D7. The Performance Monitors Extension, of the Arm Architecture Reference Manual Armv8, for Armv8-A architecture profile.
+* [https://documentation-service.arm.com/static/62cfe21e31ea212bb6627393?token= ARM Neovese N2 PMU guide].
