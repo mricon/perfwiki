@@ -216,4 +216,4 @@ The dlfilter .so file will be dependent on shared libraries. If those change, it
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.1-rc1
+This page is auto-generated.  The kernel version is v6.1
