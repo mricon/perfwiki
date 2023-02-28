@@ -40,7 +40,7 @@ If there is no debug info in the object, then annotated assembly is displayed.
 </blockquote>
 -q, --quiet
 
-<blockquote>Do not show any message. (Suppress -v)
+<blockquote>Do not show any warnings or messages. (Suppress -v)
 </blockquote>
 -n, --show-nr-samples
 
@@ -233,4 +233,4 @@ on - the samples period or the number of samples (hits).</pre></blockquote></blo
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.1
+This page is auto-generated.  The kernel version is v6.2
