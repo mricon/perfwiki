@@ -48,7 +48,7 @@ This command defines dynamic tracepoint events, by symbol and registers without 
 </blockquote>
 -q, --quiet
 
-<blockquote>Be quiet (do not show any messages including errors). Can not use with -v.
+<blockquote>Do not show any warnings or messages. Can not use with -v.
 </blockquote>
 -a, --add=
 
@@ -248,4 +248,4 @@ Since the perf probe commands read the vmlinux (for kernel) and/or the debuginfo
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.1
+This page is auto-generated.  The kernel version is v6.2
