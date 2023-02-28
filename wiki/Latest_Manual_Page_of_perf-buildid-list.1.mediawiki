@@ -49,4 +49,4 @@ It can also be used to show the build id of the running kernel or in an ELF file
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.1
+This page is auto-generated.  The kernel version is v6.2
