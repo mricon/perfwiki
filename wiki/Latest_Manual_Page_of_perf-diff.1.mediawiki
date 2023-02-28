@@ -60,7 +60,7 @@ If no parameters are passed the samples will be sorted by dso and symbol. As the
 </blockquote>
 -q, --quiet
 
-<blockquote>Do not show any message. (Suppress -v)
+<blockquote>Do not show any warnings or messages. (Suppress -v)
 </blockquote>
 -f, --force
 
@@ -278,4 +278,4 @@ If specified the ''[Program Block Range] Cycles Diff'' column is displayed. It d
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.1
+This page is auto-generated.  The kernel version is v6.2
