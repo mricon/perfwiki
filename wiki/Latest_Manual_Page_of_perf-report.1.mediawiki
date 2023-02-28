@@ -26,7 +26,7 @@ This command displays the performance counter profile information recorded via p
 </blockquote>
 -q, --quiet
 
-<blockquote>Do not show any message. (Suppress -v)
+<blockquote>Do not show any warnings or messages. (Suppress -v)
 </blockquote>
 -n, --show-nr-samples
 
@@ -813,4 +813,4 @@ Since v3.16 the ''children'' overhead is shown by default and the output is sort
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.1
+This page is auto-generated.  The kernel version is v6.2
