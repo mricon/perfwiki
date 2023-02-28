@@ -39,7 +39,7 @@ perf lock contention shows contention statistics.</pre></blockquote>
 </blockquote>
 -q, --quiet
 
-<blockquote>Do not show any message. (Suppress -v)
+<blockquote>Do not show any warnings or messages. (Suppress -v)
 </blockquote>
 -D, --dump-raw-trace
 
@@ -134,30 +134,49 @@ CONTENTION OPTIONS
         System-wide collection from all CPUs.
 
 -C::
---cpu::
+--cpu=&lt;value&gt;::
         Collect samples only on the list of CPUs provided. Multiple CPUs can be
         provided as a comma-separated list with no space: 0,1. Ranges of CPUs
         are specified with -: 0-2.  Default is to monitor all CPUs.
 
 -p::
---pid=::
+--pid=&lt;value&gt;::
         Record events on existing process ID (comma separated list).
 
---tid=::
+--tid=&lt;value&gt;::
         Record events on existing thread ID (comma separated list).
 
---map-nr-entries::
+--map-nr-entries=&lt;value&gt;::
         Maximum number of BPF map entries (default: 10240).
 
---max-stack::
+--max-stack=&lt;value&gt;::
         Maximum stack depth when collecting lock contention (default: 8).
 
---stack-skip
+--stack-skip=&lt;value&gt;::
         Number of stack depth to skip when finding a lock caller (default: 3).
 
 -E::
 --entries=&lt;value&gt;::
         Display this many entries.
+
+-l::
+--lock-addr::
+        Show lock contention stat by address
+
+-Y::
+--type-filter=&lt;value&gt;::
+        Show lock contention only for given lock types (comma separated list).
+        Available values are:
+          semaphore, spinlock, rwlock, rwlock:R, rwlock:W, rwsem, rwsem:R, rwsem:W,
+          rtmutex, rwlock-rt, rwlock-rt:R, rwlock-rt:W, pcpu-sem, pcpu-sem:R, pcpu-sem:W,
+          mutex
+
+        Note that RW-variant of locks have :R and :W suffix.  Names without the
+        suffix are shortcuts for the both variants.  Ex) rwsem = rwsem:R + rwsem:W.
+
+-L::
+--lock-filter=&lt;value&gt;::
+        Show lock contention only for given lock addresses or names (comma separated list).
 
 
 SEE ALSO
@@ -168,4 +187,4 @@ SEE ALSO
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.1
+This page is auto-generated.  The kernel version is v6.2
