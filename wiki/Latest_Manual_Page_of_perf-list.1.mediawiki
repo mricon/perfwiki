@@ -41,9 +41,13 @@ This command displays the symbolic event types which can be selected in the vari
 
 <blockquote>Print deprecated events. By default the deprecated events are hidden.
 </blockquote>
---cputype
+--unit
 
-<blockquote>Print events applying cpu with this type for hybrid platform (e.g. --cputype core or --cputype atom)
+<blockquote>Print PMU events and metrics limited to the specific PMU name. (e.g. --unit cpu, --unit msr, --unit cpu_core, --unit cpu_atom)
+</blockquote>
+-j, --json
+
+<blockquote>Output in JSON format.
 </blockquote>
 = EVENT MODIFIERS =
 
@@ -286,4 +290,4 @@ Support raw format:
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.1
+This page is auto-generated.  The kernel version is v6.2
