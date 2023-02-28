@@ -221,10 +221,6 @@ Multiple filters can be separated with space or comma.</pre></blockquote></block
 
 <blockquote>Number of mmap data pages (must be a power of two) or size specification with appended unit character - B/K/M/G. The size is rounded up to have nearest pages power of two value. Also, by adding a comma, the number of mmap pages for AUX area tracing can be specified.
 </blockquote>
---group
-
-<blockquote>Put all events in a single event group. This precedes the --event option and remains only for backward compatibility. See --event.
-</blockquote>
 -g
 
 <blockquote>Enables call-graph (stack chain/backtrace) recording for both kernel space and user space.
@@ -264,7 +260,7 @@ by default.  User can change the number by passing it after comma
 like &quot;--call-graph fp,32&quot;.</pre></blockquote></blockquote>
 -q, --quiet
 
-<blockquote>Don’t print any message, useful for scripting.
+<blockquote>Don’t print any warnings or messages, useful for scripting.
 </blockquote>
 -v, --verbose
 
@@ -358,6 +354,10 @@ ind_call: any indirect branch
 </blockquote>
 <blockquote>·
 
+ind_jmp: any indirect jump
+</blockquote>
+<blockquote>·
+
 call: direct calls, including far (to/from kernel) calls
 </blockquote>
 <blockquote>·
@@ -387,6 +387,22 @@ abort_tx: only when the target is a hardware transaction abort
 <blockquote>·
 
 cond: conditional branches
+</blockquote>
+<blockquote>·
+
+call_stack: save call stack
+</blockquote>
+<blockquote>·
+
+no_flags: don’t save branch flags e.g prediction, misprediction etc
+</blockquote>
+<blockquote>·
+
+no_cycles: don’t save branch cycles
+</blockquote>
+<blockquote>·
+
+hw_index: save branch hardware index
 </blockquote>
 <blockquote>·
 
@@ -820,4 +836,4 @@ But ''{cpu_core/cycles/,cpu_atom/instructions/}'' will return warning and disabl
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.1
+This page is auto-generated.  The kernel version is v6.2
