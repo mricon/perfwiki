@@ -96,8 +96,24 @@ While it is possible to create scripts to analyze the data, an alternative appro
 
 There is also script intel-pt-events.py which provides an example of how to unpack the raw data for power events and PTWRITE. The script also displays branches, and supports 2 additional modes selected by option:
 
-<blockquote><pre>--insn-trace - instruction trace
---src-trace - source trace</pre></blockquote>
+<blockquote>·
+
+--insn-trace - instruction trace
+</blockquote>
+<blockquote>·
+
+--src-trace - source trace
+</blockquote>
+The intel-pt-events.py script also has options:
+
+<blockquote>·
+
+--all-switch-events - display all switch events, not only the last consecutive.
+</blockquote>
+<blockquote>·
+
+--interleave [&lt;n&gt;] - interleave sample output for the same timestamp so that no more than n samples for a CPU are displayed in a row. ''n'' defaults to 4. Note this only affects the order of output, and only when the timestamp is the same.
+</blockquote>
 As mentioned above, it is easy to capture too much data. One way to limit the data captured is to use ''snapshot'' mode which is explained further below. Refer to ''new snapshot option'' and ''Intel PT modes of operation'' further below.
 
 Another problem that will be experienced is decoder errors. They can be caused by inability to access the executed image, self-modified or JIT-ed code, or the inability to match side-band information (such as context switches and mmaps) which results in the decoder not knowing what code was executed.
@@ -1360,4 +1376,4 @@ Examples can be found on perf wiki page &quot;Perf tools support for Intel® Pro
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.1
+This page is auto-generated.  The kernel version is v6.2
