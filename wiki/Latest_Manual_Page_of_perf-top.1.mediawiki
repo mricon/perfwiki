@@ -44,10 +44,6 @@ This command generates and displays a performance counter profile in real time.
 
 <blockquote>Only display functions with more events than this.
 </blockquote>
---group
-
-<blockquote>Put the counters into a counter group.
-</blockquote>
 --group-sort-idx
 
 <blockquote>Sort the output by the event at the index n in group. If n is invalid, sort by the first event. It can support multiple groups with different amount of events. WARNING: This should be used on grouped events.
@@ -273,10 +269,10 @@ will start counting when a broadcast packet arrives:
 
 perf top -e cycles,probe:icmp_rcv --switch-on=probe:icmp_rcv
 
-Alternatively one can ask for --group and then two overhead columns
+Alternatively one can ask for a group and then two overhead columns
 will appear, the first for cycles and the second for the switch-on event.
 
-perf top --group -e cycles,probe:icmp_rcv --switch-on=probe:icmp_rcv
+perf top -e {cycles,probe:icmp_rcv} --switch-on=probe:icmp_rcv
 
 This may be interesting to measure a workload only after some initialization
 phase is over, i.e. insert a perf probe at that point and use the above
@@ -432,4 +428,4 @@ Since v3.16 the ''children'' overhead is shown by default and the output is sort
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.1
+This page is auto-generated.  The kernel version is v6.2
