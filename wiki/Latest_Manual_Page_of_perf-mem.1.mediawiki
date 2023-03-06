@@ -18,6 +18,8 @@ perf-mem - Profile memory accesses
 
 Note that on Intel systems the memory latency reported is the use-latency, not the pure load (or store latency). Use latency includes any pipeline queueing delays in addition to the memory subsystem latency.
 
+On Arm64 this uses SPE to sample load and store operations, therefore hardware and kernel support is required. See [[Latest Manual Page of perf-arm-spe.1|<tt>'''perf-arm-spe'''(1)</tt>]] for a setup guide. Due to the statistical nature of SPE sampling, not every memory operation will be sampled.
+
 = OPTIONS =
 
 &lt;command&gt;...
@@ -86,9 +88,9 @@ In addition, for report all perf report options are valid, and for record all pe
 
 = SEE ALSO =
 
-[[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]], [[Latest Manual Page of perf-report.1|<tt>'''perf-report'''(1)</tt>]]
+[[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]], [[Latest Manual Page of perf-report.1|<tt>'''perf-report'''(1)</tt>]], [[Latest Manual Page of perf-arm-spe.1|<tt>'''perf-arm-spe'''(1)</tt>]]
 
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.2
+This page is auto-generated.  The kernel version is v6.3-rc1
