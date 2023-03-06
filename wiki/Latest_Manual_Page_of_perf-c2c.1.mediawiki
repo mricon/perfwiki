@@ -18,7 +18,7 @@ C2C stands for Cache To Cache.
 
 The perf c2c tool provides means for Shared Data C2C/HITM analysis. It allows you to track down the cacheline contentions.
 
-On Intel, the tool is based on load latency and precise store facility events provided by Intel CPUs. On PowerPC, the tool uses random instruction sampling with thresholding feature. On AMD, the tool uses IBS op pmu (due to hardware limitations, perf c2c is not supported on Zen3 cpus).
+On Intel, the tool is based on load latency and precise store facility events provided by Intel CPUs. On PowerPC, the tool uses random instruction sampling with thresholding feature. On AMD, the tool uses IBS op pmu (due to hardware limitations, perf c2c is not supported on Zen3 cpus). On Arm64 it uses SPE to sample load and store operations, therefore hardware and kernel support is required. See [[Latest Manual Page of perf-arm-spe.1|<tt>'''perf-arm-spe'''(1)</tt>]] for a setup guide. Due to the statistical nature of Arm SPE sampling, not every memory operation will be sampled.
 
 These events provide: - memory address of the access - type of the access (load and store details) - latency (in cycles) of the load access
 
@@ -104,7 +104,11 @@ The basic workflow with this tool follows the standard record/report phase. User
 </blockquote>
 --stitch-lbr
 
-<blockquote>Show callgraph with stitched LBRs, which may have more complete callgraph. The perf.data file must have been obtained using perf c2c record --call-graph lbr. Disabled by default. In common cases with call stack overflows, it can recreate better call stacks than the default lbr call stack output. But this approach is not full proof. There can be cases where it creates incorrect call stacks from incorrect matches. The known limitations include exception handing such as setjmp/longjmp will have calls/returns not match.
+<blockquote>Show callgraph with stitched LBRs, which may have more complete callgraph. The perf.data file must have been obtained using perf c2c record --call-graph lbr. Disabled by default. In common cases with call stack overflows, it can recreate better call stacks than the default lbr call stack output. But this approach is not foolproof. There can be cases where it creates incorrect call stacks from incorrect matches. The known limitations include exception handing such as setjmp/longjmp will have calls/returns not match.
+</blockquote>
+--double-cl
+
+<blockquote>Group the detection of shared cacheline events into double cacheline granularity. Some architectures have an Adjacent Cacheline Prefetch feature, which causes cacheline sharing to behave like the cacheline size is doubled.
 </blockquote>
 = C2C RECORD =
 
@@ -277,9 +281,9 @@ Check Joe’s blog on c2c tool for detailed use case explanation: '''https://joe
 
 = SEE ALSO =
 
-[[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]], [[Latest Manual Page of perf-mem.1|<tt>'''perf-mem'''(1)</tt>]]
+[[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]], [[Latest Manual Page of perf-mem.1|<tt>'''perf-mem'''(1)</tt>]], [[Latest Manual Page of perf-arm-spe.1|<tt>'''perf-arm-spe'''(1)</tt>]]
 
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.2
+This page is auto-generated.  The kernel version is v6.3-rc1
