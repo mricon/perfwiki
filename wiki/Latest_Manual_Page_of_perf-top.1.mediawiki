@@ -287,7 +287,7 @@ examples replacing probe:icmp_rcv with the just-after-init probe.</pre></blockqu
 </blockquote>
 --stitch-lbr
 
-<blockquote>Show callgraph with stitched LBRs, which may have more complete callgraph. The option must be used with --call-graph lbr recording. Disabled by default. In common cases with call stack overflows, it can recreate better call stacks than the default lbr call stack output. But this approach is not full proof. There can be cases where it creates incorrect call stacks from incorrect matches. The known limitations include exception handing such as setjmp/longjmp will have calls/returns not match.
+<blockquote>Show callgraph with stitched LBRs, which may have more complete callgraph. The option must be used with --call-graph lbr recording. Disabled by default. In common cases with call stack overflows, it can recreate better call stacks than the default lbr call stack output. But this approach is not foolproof. There can be cases where it creates incorrect call stacks from incorrect matches. The known limitations include exception handing such as setjmp/longjmp will have calls/returns not match.
 </blockquote>
 = INTERACTIVE PROMPTING KEYS =
 
@@ -428,4 +428,4 @@ Since v3.16 the ''children'' overhead is shown by default and the output is sort
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.2
+This page is auto-generated.  The kernel version is v6.3-rc1
