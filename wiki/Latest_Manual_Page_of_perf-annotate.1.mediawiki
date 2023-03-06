@@ -63,6 +63,7 @@ If there is no debug info in the object, then annotated assembly is displayed.
 <blockquote>Options for decoding instruction tracing data. The options are:
 
 <blockquote><pre>i       synthesize instructions events
+y       synthesize cycles events
 b       synthesize branches events (branch misses for Arm SPE)
 c       synthesize branches events (calls only)
 r       synthesize branches events (returns only)
@@ -89,7 +90,7 @@ q       quicker (less detailed) decoding
 A       approximate IPC
 Z       prefer to ignore timestamps (so-called &quot;timeless&quot; decoding)
 
-The default is all events i.e. the same as --itrace=ibxwpe,
+The default is all events i.e. the same as --itrace=iybxwpe,
 except for perf script where it is --itrace=ce
 
 In addition, the period (default 100000, except for perf script where it is 1)
@@ -233,4 +234,4 @@ on - the samples period or the number of samples (hits).</pre></blockquote></blo
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.2
+This page is auto-generated.  The kernel version is v6.3-rc1
