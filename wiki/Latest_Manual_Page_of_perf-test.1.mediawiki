@@ -32,8 +32,12 @@ To run just specific tests, inform test name fragments or the numbers obtained f
 
 <blockquote>Do not fork child for each test, run all tests within single process.
 </blockquote>
+--dso
+
+<blockquote>Specify a DSO for the &quot;Symbols&quot; test.
+</blockquote>
 
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.2
+This page is auto-generated.  The kernel version is v6.3-rc1
