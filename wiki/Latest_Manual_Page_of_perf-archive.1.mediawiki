@@ -21,4 +21,4 @@ This command runs perf-buildid-list --with-hits, and collects the files with the
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.2
+This page is auto-generated.  The kernel version is v6.3-rc1
