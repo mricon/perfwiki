@@ -66,7 +66,7 @@ See [[#evsel|evsel]].
  TODO
 
 ===Off-CPU===
- Off-CPU is data collected when a [[#Task|task]] gets context switched. Brendan Gregg discusses [https://www.brendangregg.com/offcpuanalysis.html Off-CPU analysis]. Combining on-CPU time, measured with a performance counter, with off-CPU time will give wall clock time. Linux perf 5.20 adds a command line option to ''perf record'' to gather off-CPU data.
+ Off-CPU is data collected when a [[#Task|task]] gets context switched. Brendan Gregg discusses [https://www.brendangregg.com/offcpuanalysis.html Off-CPU analysis]. Combining on-CPU time, measured with a performance <br />counter, with off-CPU time will give wall clock time. Linux perf 5.20 adds a command line option to ''perf record'' to gather off-CPU data.
 
 ==P==
 
