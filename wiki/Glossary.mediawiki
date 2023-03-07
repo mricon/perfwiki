@@ -58,7 +58,7 @@ See [[#evsel|evsel]].
  Taking multiple performance counters, typcally in ''perf stat'', and then computing a human meaningful value like memory bandwidth.
 
 ===Multiplexing===
- When the number of events is greater than the hardware counters the kernel will multiplex the events. Each event is scheduled for a period of time (by default 1kHz) and then rotated.
+ When the number of events is greater than the hardware counters the kernel will multiplex the events. Each event is scheduled for a period of time<br />(by default 1kHz) and then rotated.
 
 ==O==
 
