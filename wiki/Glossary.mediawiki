@@ -8,7 +8,7 @@ title: Glossary
  [https://en.wikipedia.org/wiki/Berkeley_Packet_Filter Berkeley Packet Filter].
 
 ===BPF Counter===
- An option on ''perf stat'' where a BPF program reads counters to a BPF map rather then the regular ''read'' of a perf event file descriptor. The BPF program reads the counter on context switches from an event in system wide mode. If the number of system wide per CPU events is less than the number of threads or cgroups, this option can reduce file descriptor overhead.
+ An option on ''perf stat'' where a BPF program reads counters to a BPF map rather than the regular ''read'' of a perf event file descriptor. The BPF program <br />reads the counter on context switches from an event in system wide mode. If the number of system wide per CPU events is less than the number of threads <br />or cgroups, this option can reduce file descriptor overhead.
 
 ==C==
 
