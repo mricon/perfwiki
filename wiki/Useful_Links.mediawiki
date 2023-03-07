@@ -15,6 +15,7 @@ __TOC__
 * [https://opensource.com/article/18/7/fun-perf-and-python Paul Clarke reimplements AIX's 'curt' command using perf python scripting support, detailing the whole process on "How to analyze your system with perf and Python"]
 * [https://biriukov.dev/docs/page-cache/0-linux-page-cache-for-sre/ Viacheslav Biriukov mentions using perf to get more info about page cache activity in the "Advanced tools" section in his "SRE deep dive into Linux Page Cache" series of articles]
 * [https://doordash.engineering/2021/04/01/examining-problematic-memory-with-bpf-perf-and-memcheck/ Filip Busic uses perf and other BPF tools in "Examining Problematic Memory in C/C++ Applications with BPF, perf, and Memcheck"]
+* (French) [https://grasland.pages.in2p3.fr/tp-perf/html/ Hadrien Grasland's perf tutorial (designed to be run on a specific system, but could be adapted to self-study without too much effort)]
 
 =Useful web sites about profilers=
 
