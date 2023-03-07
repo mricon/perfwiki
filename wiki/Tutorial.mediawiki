@@ -1277,7 +1277,7 @@ The second step is merging sched_start and sched_switch events. It can be done w
 == Other Resources ==
 
 === Linux sourcecode ===
-The <tt>perf tools</tt> sourcecode lives in the Linux kernel tree under [http://lxr.linux.no/linux+v2.6.39/tools/perf/| <tt>/tools/perf</tt>]. You will find much more documentation in [http://lxr.linux.no/linux+v2.6.39/tools/perf/Documentation/ | <tt>/tools/perf/Documentation</tt>]. To build manpages, info pages and more, install these tools:
+The perf tools sourcecode lives in the Linux kernel tree under [http://lxr.linux.no/linux+v2.6.39/tools/perf/ <tt>/tools/perf</tt>]. You will find much more documentation in [http://lxr.linux.no/linux+v2.6.39/tools/perf/Documentation/ <tt>/tools/perf/Documentation</tt>]. To build manpages, info pages and more, install these tools:
 
 * asciidoc
 * tetex-fonts
