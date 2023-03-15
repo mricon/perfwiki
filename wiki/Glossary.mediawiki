@@ -21,6 +21,9 @@ title: Glossary
 
 ==E==
 
+===Events===
+ The list of measurable events is supported by the perf tool. 
+
 ===Event Selector===
 
 See [[#evsel|evsel]].
@@ -52,6 +55,11 @@ See [[#evsel|evsel]].
 ===Hyperthread===
  Intel/x86 term for [[#SMT|SMT]].
 
+==K==
+
+===KVM===
+ KVM stands for Kernel-based Virtual Machine, perf command with kvm helps us to trace/measure kvm guest os
+
 ==M==
 
 ===Metric===
@@ -81,6 +89,8 @@ See [[#evsel|evsel]].
  Pinned events are scheduled at a higher priority to flexible events. If they can't be scheduled within the kernel they don't multiplex and enter an error state.
 
 ==S==
+==Software Event==
+ They are kernel/os-based low-level counters. To identify the list of supported software events use the command: perf list software
 
 ===SMT===
  [https://en.wikipedia.org/wiki/Simultaneous_multithreading Simultaneous multithreading].
