@@ -114,6 +114,7 @@ List of pre-defined events (to be used in -e):
  branch-instructions OR branches            [Hardware event]
  branch-misses                              [Hardware event]
  bus-cycles                                 [Hardware event]
+ ref-cycles                                 [Hardware event]
 
  cpu-clock                                  [Software event]
  task-clock                                 [Software event]
@@ -124,6 +125,9 @@ List of pre-defined events (to be used in -e):
  cpu-migrations OR migrations               [Software event]
  alignment-faults                           [Software event]
  emulation-faults                           [Software event]
+ bpf-output                                 [Software event]
+ cgroup-switches                            [Software event]
+ dummy                                      [Software event]
 
  L1-dcache-loads                            [Hardware cache event]
  L1-dcache-load-misses                      [Hardware cache event]
@@ -177,11 +181,11 @@ counted.
 ====  Hardware events ====
 
 PMU hardware events are CPU specific and documented by the CPU vendor. The <tt>perf</tt> tool, if linked against the <tt>libpfm4</tt>
-library, provides some short description of the events. For a listing of PMU hardware events for Intel and AMD
+the library provides some short description of the events. For a listing of PMU hardware events for Intel and AMD
 processors, see
 
 * Intel PMU event tables: Appendix A of manual [http://www.intel.com/Assets/PDF/manual/253669.pdf here]
-* AMD PMU event table: section 3.14 of manual [http://support.amd.com/us/Processor_TechDocs/31116.pdf here]
+* AMD PMU event table: section 3.14 of manual [https://www.amd.com/system/files/TechDocs/31116.pdf here]
 
 ==  Counting with <tt>perf stat</tt> ==
 For any of the supported events, perf can keep a running count during process execution.
