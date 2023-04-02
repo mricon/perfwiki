@@ -4325,6 +4325,34 @@ $ sudo perf script --itrace=i0nse  -F-dso,+addr,-comm,-tid,-period,+insn --xed -
 [001] 17127.087617674:              instructions:k: ffffffffabd72381 ffffffffacd2fc15 _raw_spin_lock+0x25               retq  
 </pre>
 
+== Example: How to run perf on a different CPU to the workload ==
+
+The taskset utility can be used to run perf on a different CPU to the workload.  For example, in a 8 CPU system, to run perf on CPU 0 and the workload on CPUs 1 to 7:
+
+<pre>
+$ taskset --cpu 0 perf record -e intel_pt//u -- taskset --cpu 1-7 uname
+Linux
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.049 MB perf.data ]
+</pre>
+
+Here it can be seen perf is restricted to CPU 0 but uname is running on CPU 2:
+
+<pre>
+$ perf script --itrace=bieqq
+       perf-exec 11353 [000] 26597.875924:          1 instructions:  ffffffffabca5248 native_write_msr+0x8 ([kernel.kallsyms])
+         taskset 11353 [000] 26597.876033:          1 instructions:  ffffffffac302b6d ima_file_mmap+0x2d ([kernel.kallsyms])
+         taskset 11353 [000] 26597.876130:          1 instructions:  fffffffface01264 asm_exc_page_fault+0x4 ([kernel.kallsyms])
+         taskset 11353 [000] 26597.876201:          1 instructions:      7f3f4be379cc _nl_intern_locale_data+0xdc (/usr/lib/x86_64-linux-gnu/libc.so.6)
+         taskset 11353 [002] 26597.876280:          1 instructions:  ffffffffabca5248 native_write_msr+0x8 ([kernel.kallsyms])
+         taskset 11353 [002] 26597.876386:          1 instructions:  ffffffffabd92645 __rcu_read_unlock+0x25 ([kernel.kallsyms])
+         taskset 11353 [002] 26597.876460:          1 instructions:  ffffffffabf2a9ba folio_mark_accessed+0x2a ([kernel.kallsyms])
+           uname 11353 [002] 26597.876547:          1 instructions:      7f8dcb95f66f __GI___tunables_init+0x10f (/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2)
+           uname 11353 [002] 26597.876663:          1 instructions:      7f8dcb9594e8 _dl_relocate_object+0x788 (/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2)
+           uname 11353 [002] 26597.876752:          1 instructions:  ffffffffabf196d1 filemap_map_pages+0x651 ([kernel.kallsyms])
+           uname 11353 [002] 26597.876817:          1 instructions:  ffffffffabf2a9ba folio_mark_accessed+0x2a ([kernel.kallsyms])
+</pre>
+
 == Appendix: Intel PT capabilities on different processors ==
 
 Generally, processors with the same CPU core microarchitecture can be expected to have the same Intel PT capabilities.  The Linux Intel PT driver provides capability flags in sysfs, refer [[#Intel_PT_man_page|Intel PT man page]]
