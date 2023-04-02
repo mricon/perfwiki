@@ -3880,6 +3880,451 @@ $
 Points to note:
 * For systems that support Intel PT, the conversion parameters should not change while the system is running.  Notable exceptions are Hibernation (because it actually involves a reboot), and inside a Virtual Machine (because TSC might be virtualized).
 
+== Example: Tracing kernel raw spin locks ==
+
+In a v6.2 kernel, the raw spin lock functions are conveniently together:
+
+<pre>
+$ sudo cat /proc/kallsyms | sort | grep -C30 ' _raw_spin_lock' 
+ffffffffacd2e940 t native_safe_halt
+ffffffffacd2e960 t __pfx_native_halt
+ffffffffacd2e970 t native_halt
+ffffffffacd2e990 t __pfx_cpu_idle_poll.isra.0
+ffffffffacd2e9a0 t cpu_idle_poll.isra.0
+ffffffffacd2eaa0 T __pfx_default_idle_call
+ffffffffacd2eab0 T default_idle_call
+ffffffffacd2ebb0 t __pfx_intel_idle_s2idle
+ffffffffacd2ebc0 t intel_idle_s2idle
+ffffffffacd2ec40 t __pfx_intel_idle_xstate
+ffffffffacd2ec50 t intel_idle_xstate
+ffffffffacd2eca0 t __pfx_intel_idle_irq
+ffffffffacd2ecb0 t intel_idle_irq
+ffffffffacd2ed10 t __pfx_intel_idle
+ffffffffacd2ed20 t intel_idle
+ffffffffacd2ed70 t __pfx_intel_idle_ibrs
+ffffffffacd2ed80 t intel_idle_ibrs
+ffffffffacd2ee40 t __pfx_acpi_idle_do_entry
+ffffffffacd2ee50 t acpi_idle_do_entry
+ffffffffacd2eeb0 t __pfx_acpi_idle_enter_bm
+ffffffffacd2eec0 t acpi_idle_enter_bm
+ffffffffacd2f0c0 t __pfx_acpi_idle_enter
+ffffffffacd2f0d0 t acpi_idle_enter
+ffffffffacd2f240 t __pfx_acpi_idle_enter_s2idle
+ffffffffacd2f250 t acpi_idle_enter_s2idle
+ffffffffacd2f330 t __pfx_poll_idle
+ffffffffacd2f340 t poll_idle
+ffffffffacd2f3fa T __cpuidle_text_end
+ffffffffacd2f400 T __lock_text_start
+ffffffffacd2f400 T __pfx__raw_spin_lock_irqsave
+ffffffffacd2f410 T _raw_spin_lock_irqsave
+ffffffffacd2f470 T __pfx__raw_spin_trylock
+ffffffffacd2f480 T _raw_spin_trylock
+ffffffffacd2f4e0 T __pfx__raw_spin_unlock_irqrestore
+ffffffffacd2f4f0 T _raw_spin_unlock_irqrestore
+ffffffffacd2f540 T __pfx__raw_read_trylock
+ffffffffacd2f550 T _raw_read_trylock
+ffffffffacd2f5c0 T __pfx__raw_write_trylock
+ffffffffacd2f5d0 T _raw_write_trylock
+ffffffffacd2f630 T __pfx__raw_read_unlock
+ffffffffacd2f640 T _raw_read_unlock
+ffffffffacd2f680 T __pfx__raw_write_unlock
+ffffffffacd2f690 T _raw_write_unlock
+ffffffffacd2f6c0 T __pfx__raw_read_unlock_irq
+ffffffffacd2f6d0 T _raw_read_unlock_irq
+ffffffffacd2f710 T __pfx__raw_write_unlock_irq
+ffffffffacd2f720 T _raw_write_unlock_irq
+ffffffffacd2f760 T __pfx__raw_read_unlock_irqrestore
+ffffffffacd2f770 T _raw_read_unlock_irqrestore
+ffffffffacd2f7c0 T __pfx__raw_write_unlock_irqrestore
+ffffffffacd2f7d0 T _raw_write_unlock_irqrestore
+ffffffffacd2f810 T __pfx__raw_read_unlock_bh
+ffffffffacd2f820 T _raw_read_unlock_bh
+ffffffffacd2f840 T __pfx__raw_write_unlock_bh
+ffffffffacd2f850 T _raw_write_unlock_bh
+ffffffffacd2f870 T __pfx__raw_read_lock_irqsave
+ffffffffacd2f880 T _raw_read_lock_irqsave
+ffffffffacd2f8e0 T __pfx__raw_write_lock_irqsave
+ffffffffacd2f8f0 T _raw_write_lock_irqsave
+ffffffffacd2f950 T __pfx__raw_spin_trylock_bh
+ffffffffacd2f960 T _raw_spin_trylock_bh
+ffffffffacd2f9b0 T __pfx__raw_write_lock
+ffffffffacd2f9c0 T _raw_write_lock
+ffffffffacd2fa00 T __pfx__raw_read_lock
+ffffffffacd2fa10 T _raw_read_lock
+ffffffffacd2fa50 T __pfx__raw_read_lock_bh
+ffffffffacd2fa60 T _raw_read_lock_bh
+ffffffffacd2faa0 T __pfx__raw_write_lock_bh
+ffffffffacd2fab0 T _raw_write_lock_bh
+ffffffffacd2faf0 T __pfx__raw_write_lock_nested
+ffffffffacd2fb00 T _raw_write_lock_nested
+ffffffffacd2fb40 T __pfx__raw_read_lock_irq
+ffffffffacd2fb50 T _raw_read_lock_irq
+ffffffffacd2fb90 T __pfx__raw_write_lock_irq
+ffffffffacd2fba0 T _raw_write_lock_irq
+ffffffffacd2fbe0 T __pfx__raw_spin_lock
+ffffffffacd2fbf0 T _raw_spin_lock
+ffffffffacd2fc30 T __pfx__raw_spin_lock_bh
+ffffffffacd2fc40 T _raw_spin_lock_bh
+ffffffffacd2fc80 T __pfx__raw_spin_lock_irq
+ffffffffacd2fc90 T _raw_spin_lock_irq
+ffffffffacd2fce0 T __pfx__raw_spin_unlock_bh
+ffffffffacd2fcf0 T _raw_spin_unlock_bh
+ffffffffacd2fd10 T __pfx__raw_spin_unlock
+ffffffffacd2fd20 T _raw_spin_unlock
+ffffffffacd2fd60 T __pfx__raw_spin_unlock_irq
+ffffffffacd2fd70 T _raw_spin_unlock_irq
+ffffffffacd2fdb0 T __pfx___raw_callee_save___pv_queued_spin_unlock_slowpath
+ffffffffacd2fdc0 T __raw_callee_save___pv_queued_spin_unlock_slowpath
+ffffffffacd2fdf0 T __pfx___raw_callee_save___pv_queued_spin_unlock
+ffffffffacd2fe00 T __raw_callee_save___pv_queued_spin_unlock
+ffffffffacd2fe1a t .slowpath
+ffffffffacd2fe30 T __pfx_native_queued_spin_lock_slowpath
+ffffffffacd2fe40 T native_queued_spin_lock_slowpath
+ffffffffacd30160 T __pfx___pv_queued_spin_lock_slowpath
+ffffffffacd30170 T __pv_queued_spin_lock_slowpath
+ffffffffacd30530 T __pfx___pv_queued_spin_unlock_slowpath
+ffffffffacd30540 T __pv_queued_spin_unlock_slowpath
+ffffffffacd306c0 T __pfx_queued_read_lock_slowpath
+ffffffffacd306d0 T queued_read_lock_slowpath
+ffffffffacd30800 T __pfx_queued_write_lock_slowpath
+ffffffffacd30810 T queued_write_lock_slowpath
+ffffffffacd30942 T __lock_text_end
+ffffffffacd30950 T __kprobes_text_end
+ffffffffacd30950 T __kprobes_text_start
+ffffffffacd30950 T __pfx___do_softirq
+ffffffffacd30950 T __softirqentry_text_start
+ffffffffacd30960 T __do_softirq
+ffffffffacd30ccd T __indirect_thunk_start
+ffffffffacd30ccd T __softirqentry_text_end
+ffffffffacd30ce0 T __x86_indirect_thunk_array
+</pre>
+
+So an address filter can be used from __lock_text_start to __lock_text_end.
+
+For this example, fio will be used as a workload, with a runtime of just 1 second:
+
+<pre>
+$ cat fio-rand-read.fio 
+[global]
+name=fio-rand-read
+filename=fio-read
+allow_file_create=0
+rw=randread
+bs=4K
+direct=1
+numjobs=8
+time_based=1
+runtime=1
+group_reporting=1
+
+[file1]
+size=1G
+ioengine=libaio
+iodepth=128
+</pre>
+
+To reduce overflows, the mtc_period is increased to maximum (9 in this case), and to get accurate timing, cycle accurate mode is used.
+
+The NMI handler (asm_exc_nmi in this case) is also traced to see if there are NMIs during the spin locking.
+
+And the lock contention trace points are added to show up lock contention.
+
+<pre>
+$ sudo perf record --kcore -a  -e intel_pt/cyc,mtc_period=9/k --filter 'filter __lock_text_start / __lock_text_end , filter asm_exc_nmi' -e lock:*  -- fio ./fio-rand-read.fio 
+file1: (g=0): rw=randread, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=128
+...
+fio-3.28
+Starting 4 processes
+Jobs: 4 (f=4)
+file1: (groupid=0, jobs=4): err= 0: pid=9051: Sun Apr  2 13:29:59 2023
+  read: IOPS=92.7k, BW=362MiB/s (380MB/s)(365MiB/1007msec)
+    slat (nsec): min=945, max=183448, avg=1376.99, stdev=1321.13
+    clat (usec): min=734, max=13668, avg=5512.61, stdev=891.87
+     lat (usec): min=739, max=13670, avg=5514.05, stdev=891.74
+    clat percentiles (usec):
+     |  1.00th=[ 2868],  5.00th=[ 4293], 10.00th=[ 4621], 20.00th=[ 4883],
+     | 30.00th=[ 5145], 40.00th=[ 5276], 50.00th=[ 5473], 60.00th=[ 5669],
+     | 70.00th=[ 5866], 80.00th=[ 6128], 90.00th=[ 6521], 95.00th=[ 6915],
+     | 99.00th=[ 7767], 99.50th=[ 8356], 99.90th=[11076], 99.95th=[11731],
+     | 99.99th=[12649]
+   bw (  KiB/s): min=370784, max=372152, per=100.00%, avg=371468.00, stdev=233.09, samples=8
+   iops        : min=92696, max=93038, avg=92867.00, stdev=58.27, samples=8
+  lat (usec)   : 750=0.01%, 1000=0.02%
+  lat (msec)   : 2=0.31%, 4=2.55%, 10=96.93%, 20=0.19%
+  cpu          : usr=1.99%, sys=6.98%, ctx=84145, majf=0, minf=564
+  IO depths    : 1=0.1%, 2=0.1%, 4=0.1%, 8=0.1%, 16=0.1%, 32=0.1%, >=64=99.7%
+     submit    : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
+     complete  : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.1%
+     issued rwts: total=93375,0,0,0 short=0,0,0,0 dropped=0,0,0,0
+     latency   : target=0, window=0, percentile=100.00%, depth=128
+
+Run status group 0 (all jobs):
+   READ: bw=362MiB/s (380MB/s), 362MiB/s-362MiB/s (380MB/s-380MB/s), io=365MiB (382MB), run=1007-1007msec
+
+Disk stats (read/write):
+  nvme0n1: ios=83164/0, merge=0/0, ticks=456685/0, in_queue=456685, util=89.88%
+[ perf record: Woken up 147 times to write data ]
+[ perf record: Captured and wrote 109.608 MB perf.data ]
+</pre>
+
+In this case 109 MB of data is manageable to process.
+
+Check the errors:
+
+<pre>
+$ sudo perf script --itrace=e | grep error
+ instruction trace error type 1 time 17126.002595342 cpu 0 pid 0 tid 0 ip 0xffffffffabdb5ac5 code 7: Overflow packet
+ instruction trace error type 1 time 17126.203301006 cpu 7 pid 0 tid 0 ip 0xffffffffabdb5944 code 7: Overflow packet
+ instruction trace error type 1 time 17126.240656254 cpu 4 pid 0 tid 0 ip 0xffffffffabdb5944 code 7: Overflow packet
+ instruction trace error type 1 time 17126.394446279 cpu 5 pid 0 tid 0 ip 0xffffffffabdb5944 code 7: Overflow packet
+ instruction trace error type 1 time 17126.424700733 cpu 5 pid 0 tid 0 ip 0xffffffffabdb5944 code 7: Overflow packet
+ instruction trace error type 1 time 17126.615614220 cpu 7 pid 82 tid 82 ip 0xffffffffacc7597e code 7: Overflow packet
+ instruction trace error type 1 time 17126.788347553 cpu 5 pid 1115 tid 1320 ip 0xffffffffc062f8c2 code 7: Overflow packet
+ instruction trace error type 1 time 17126.863253778 cpu 0 pid 0 tid 0 ip 0xffffffffabdb5944 code 7: Overflow packet
+ instruction trace error type 1 time 17126.906410486 cpu 2 pid 0 tid 0 ip 0xffffffffabdb5944 code 7: Overflow packet
+ instruction trace error type 1 time 17127.091705727 cpu 2 pid 0 tid 0 ip 0xffffffffabdb5944 code 7: Overflow packet
+Warning:
+10 instruction trace errors
+$
+</pre>
+
+All the errors are overflows.  The overflows represent small losses of trace data, so we are not seeing a perfect picture, however overflows clear fast (e.g. 10us) so it is not too bad.
+
+Because spin lock functions run to completion on the same CPU, a relatively simple script can be used to analyze the times:
+
+<pre>
+from perf_trace_context import perf_set_itrace_options
+
+glb_last = {}
+glb_data = []
+glb_count = 0
+
+def get_optional(perf_dict, field, dflt):
+	if field in perf_dict:
+		return perf_dict[field]
+	return dflt
+
+def process_event(param_dict):
+	name = param_dict["ev_name"]
+	if name[0:8] != "branches":
+		return
+	sample      = param_dict["sample"]
+	flags       = get_optional(sample, "flags", "")
+	addr_symbol = get_optional(sample, "addr_symbol", "[unknown]")
+	addr_symoff = get_optional(sample, "addr_symoff", "[unknown]")
+	symbol      = get_optional(param_dict, "symbol", "[unknown]")
+	ts          = sample["time"]
+	cpu         = sample["cpu"]
+	if "B" in flags and addr_symoff == 0:
+		# Address filter beginning trace, so record call information
+		glb_last[cpu] = (ts, addr_symbol)
+	elif "E" in flags and "r" in flags and cpu in glb_last:
+		call_ts, call_sym = glb_last[cpu]
+		if call_sym == symbol:
+			# Address filter ending trace, so record return information
+			glb_data.append((cpu, call_ts, ts, symbol, addr_symbol, addr_symoff))
+			del glb_last[cpu]
+	global glb_count
+	glb_count += 1
+	if glb_count % 100000 == 0:
+		print("\rProcessed", glb_count, end = "")
+
+def trace_begin():
+	perf_set_itrace_options(perf_script_context, "be")
+
+def timestamp(x):
+	s = str(x)
+	r = s[-9:]
+	l = s[:len(s) - len(r)]
+	if len(l):
+		return l + "." + ("000000000" + r)[-9:]
+	return "0." + ("000000000" + r)[-9:]
+
+def trace_end():
+	print("\rProcessed", glb_count)
+	print("Aggregating...")
+	syms = {}
+	least = 0
+	topn = []
+	N = 10
+	# Aggregate by symbol
+	for cpu, call_ts, ret_ts, symbol, from_sym, from_symoff in glb_data:
+		if symbol not in syms:
+			syms[symbol] = (0, 0, 0, -1)
+		tot, cnt, max, min = syms[symbol]
+		dur = ret_ts - call_ts
+		tot += dur
+		cnt += 1
+		if dur > max:
+			max = dur
+		if min == -1 or dur < min:
+			min = dur
+		syms[symbol] = (tot, cnt, max, min)
+		if dur > least:
+			topn.append((dur, cpu, call_ts, ret_ts, symbol, from_sym, from_symoff))
+			topn = sorted(topn, key=lambda x: x[0])
+			n = len(topn)
+			if n > N:
+				del topn[0]
+			least = topn[0][0]
+	print("\nFunction duration:")
+	print("Symbol                                        Count     Avg (ns)   Max (ns)   Min (ns)")
+	for x in sorted(syms.keys()):
+		tot, cnt, max, min = syms[x]
+		print("%-40s %10u %12.1f %10u %10u" % (x, cnt, tot / cnt, max, min))
+	print("\nTop", N, ":")
+	print("Symbol                                Duration (ns)  CPU            Start              End  Returns to")
+	topn.reverse()
+	for d in topn:
+		dur, cpu, call_ts, ret_ts, symbol, from_sym, from_symoff = d
+		call_ts = str(call_ts)
+		call_ts = call_ts
+		print("%-40s %10u %4u %16s %16s  %s+%#x" % (symbol, dur, cpu, timestamp(call_ts), timestamp(ret_ts), from_sym, from_symoff))
+
+def auxtrace_error(typ, code, cpu, pid, tid, ip, ts, msg, cpumode, *x):
+	if cpu in glb_last:
+		del glb_last[cpu]
+</pre>
+
+The results are:
+
+<pre>
+$ time sudo perf script fn-durations.py 
+ProcessedWarning:0
+10 instruction trace errors
+Processed 15804761
+Aggregating...
+
+Function duration:
+Symbol                                        Count     Avg (ns)   Max (ns)   Min (ns)
+_raw_read_lock                               242755         23.2      14119          8
+_raw_read_lock_bh                                60         35.5        140          8
+_raw_read_lock_irqsave                          122         45.5        338          7
+_raw_read_unlock                             242778          8.2       2050          5
+_raw_read_unlock_irqrestore                     122         10.5        113          5
+_raw_spin_lock                               767672         11.8      19064          4
+_raw_spin_lock_bh                                62         19.6        135          9
+_raw_spin_lock_irq                            36660         15.7       2467          5
+_raw_spin_lock_irqsave                       808035         15.5      93655          6
+_raw_spin_trylock                             32357         11.2       1371          5
+_raw_spin_unlock                             799630          3.9       1946          1
+_raw_spin_unlock_irq                          31435          5.8        506          2
+_raw_spin_unlock_irqrestore                  813481          4.6       3790          1
+_raw_write_lock                               26842         11.8        266          7
+_raw_write_lock_bh                               34         15.2         42          6
+_raw_write_lock_irq                             175         26.7        354          9
+_raw_write_unlock                             26841          3.3        289          1
+_raw_write_unlock_irq                           177          6.7        194          2
+
+Top 10 :
+Symbol                                Duration (ns)  CPU            Start              End  Returns to
+_raw_spin_lock_irqsave                        93655    5  17127.007313673  17127.007407328  fwtable_write32+0x63
+_raw_spin_lock                                19064    2  17126.745592947  17126.745612011  tick_do_update_jiffies64+0x25
+_raw_spin_lock                                14544    1  17127.151604551  17127.151619095  __queue_work+0x18c
+_raw_spin_lock                                14363    1  17127.087603311  17127.087617674  handle_irq_event+0x51
+_raw_spin_lock                                14123    5  17127.084610854  17127.084624977  raw_spin_rq_lock_nested+0x23
+_raw_read_lock                                14119    2  17127.085605857  17127.085619976  ext4_es_lookup_extent+0x55
+_raw_spin_lock_irqsave                        13484    1  17127.073606372  17127.073619856  hrtimer_next_event_without+0x43
+_raw_spin_lock                                11660    4  17126.615990730  17126.616002390  handle_edge_irq+0x1f
+_raw_spin_lock_irqsave                        11256    0  17126.014614808  17126.014626064  hrtimer_get_next_event+0x3e
+_raw_spin_lock                                 9598    1  17126.617729578  17126.617739176  handle_edge_irq+0x1f
+
+real    1m50.786s
+user    0m0.005s
+sys     0m0.012s
+</pre>
+
+Note the processing of 109 MB took nearly 2 minutes.
+
+The average lock times are very low, and consequently not very interesting.
+
+To look at the worst case:
+
+<pre>
+$ sudo perf script --itrace=crpe -F+flags,-dso,+addr,-comm,-tid,-period --ns  --time 17127.007313673,17127.007407328 -C 5
+[005] 17127.007313673:                         cbr:                          cbr: 41 freq: 4105 MHz (146%)    ffffffffacd2f410                0 [unknown]
+[005] 17127.007313673:                  branches:k:   tr strt                               0 [unknown] => ffffffffacd2f410 _raw_spin_lock_irqsave+0x0
+[005] 17127.007313675:                  branches:k:   tr end  call           ffffffffacd2f433 _raw_spin_lock_irqsave+0x23 => ffffffffabd168b0 preempt_count_add+0x0
+[005] 17127.007313677:                  branches:k:   tr strt                               0 [unknown] => ffffffffacd2f438 _raw_spin_lock_irqsave+0x28
+[005] 17127.007313709:                  branches:k:   call                   ffffffffacd2f455 _raw_spin_lock_irqsave+0x45 => ffffffffacd2fe40 native_queued_spin_lock_slowpath+0x0
+[005] 17127.007407328:                  branches:k:   return                 ffffffffacd2fed1 native_queued_spin_lock_slowpath+0x91 => ffffffffacd2f45a _raw_spin_lock_irqsave+0x4a
+[005] 17127.007407328:                  branches:k:   tr end  return         ffffffffacd2f461 _raw_spin_lock_irqsave+0x51 => ffffffffc07ed873 fwtable_write32+0x63
+</pre>
+
+The call to native_queued_spin_lock_slowpath() indicates a contended spin lock.  Interestingly, the lock contention tracepoint is missing in the case.  A review of the source code of queued_spin_lock_slowpath() shows why: the tracepoints are only triggered in the "queue:" path.  Checking the address shows it spinning instead here when the "queue:" path has not been taken:
+
+<pre>
+	/*
+	 * We're pending, wait for the owner to go away.
+	 *
+	 * 0,1,1 -> 0,1,0
+	 *
+	 * this wait loop must be a load-acquire such that we match the
+	 * store-release that clears the locked bit and create lock
+	 * sequentiality; this is because not all
+	 * clear_pending_set_locked() implementations imply full
+	 * barriers.
+	 */
+	if (val & _Q_LOCKED_MASK)
+		atomic_cond_read_acquire(&lock->val, !(VAL & _Q_LOCKED_MASK));
+</pre>
+
+A look at the next worst case shows it was interrupted by an NMI:
+
+<pre>
+$ sudo perf script --itrace=crpe -F+flags,-dso,+addr,-comm,-tid,-period --ns  --time 17126.745592947,17126.745612011 -C 2
+[002] 17126.745592947:                         cbr:                          cbr:  4 freq:  400 MHz ( 14%)    ffffffffacd2fbf0                0 [unknown]
+[002] 17126.745592947:                  branches:k:   tr strt                               0 [unknown] => ffffffffacd2fbf0 _raw_spin_lock+0x0
+[002] 17126.745592952:                  branches:k:   tr end  call           ffffffffacd2fc02 _raw_spin_lock+0x12 => ffffffffabd168b0 preempt_count_add+0x0
+[002] 17126.745592957:                  branches:k:   tr strt                               0 [unknown] => ffffffffacd2fc07 _raw_spin_lock+0x17
+[002] 17126.745594638:                         psb:                          psb offs: 0x800190                              0 ffffffffacd2fc12 _raw_spin_lock+0x22
+[002] 17126.745596360:                  branches:k:   hw int                 ffffffffacd2fc12 _raw_spin_lock+0x22 => fffffffface01cd0 asm_exc_nmi+0x0
+[002] 17126.745596430:                  branches:k:   tr end  jcc            fffffffface01df4 first_nmi+0x0 => fffffffface01df4 first_nmi+0x0
+[002] 17126.745611938:                  branches:k:   tr strt                               0 [unknown] => ffffffffacd2fc12 _raw_spin_lock+0x22
+[002] 17126.745612011:                  branches:k:   tr end
+</pre>
+
+A look at the next worst case shows it was undergoing a change in CPU frequency from 400 MHz to 1301 MHz:
+
+<pre>
+$ sudo perf script --itrace=crpe -F+flags,-dso,+addr,-comm,-tid,-period --ns  --time 17127.151604551,17127.151619095 -C 1
+[001] 17127.151604551:                         cbr:                          cbr:  4 freq:  400 MHz ( 14%)    ffffffffacd2fbf0                0 [unknown]
+[001] 17127.151604551:                  branches:k:   tr strt                               0 [unknown] => ffffffffacd2fbf0 _raw_spin_lock+0x0
+[001] 17127.151604581:                  branches:k:   tr end  call           ffffffffacd2fc02 _raw_spin_lock+0x12 => ffffffffabd168b0 preempt_count_add+0x0
+[001] 17127.151604618:                  branches:k:   tr strt                               0 [unknown] => ffffffffacd2fc07 _raw_spin_lock+0x17
+[001] 17127.151612757:                         cbr:   call                   cbr: 13 freq: 1301 MHz ( 46%)                   0 ffffffffacd2fc07 _raw_spin_lock+0x17
+[001] 17127.151619095:                  branches:k:   tr end  return         ffffffffacd2fc15 _raw_spin_lock+0x25 => ffffffffabcf900c __queue_work+0x18c
+</pre>
+
+A look at the next worst case shows it really did take that long:
+
+<pre>
+$ sudo perf script --itrace=bpe -F+flags,-dso,+addr,-comm,-tid,-period --ns  --time 17127.087603311,17127.087617674
+[001] 17127.087603311:                         cbr:                          cbr: 41 freq: 4105 MHz (146%)    ffffffffacd2fbf0                0 [unknown]
+[001] 17127.087603311:                  branches:k:   tr strt                               0 [unknown] => ffffffffacd2fbf0 _raw_spin_lock+0x0
+[001] 17127.087603312:                  branches:k:   tr end  call           ffffffffacd2fc02 _raw_spin_lock+0x12 => ffffffffabd168b0 preempt_count_add+0x0
+[001] 17127.087603447:                  branches:k:   tr strt                               0 [unknown] => ffffffffacd2fc07 _raw_spin_lock+0x17
+[001] 17127.087617674:                  branches:k:   tr end  return         ffffffffacd2fc15 _raw_spin_lock+0x25 => ffffffffabd72381 handle_irq_event+0x51
+</pre>
+
+Looking at the instructions, presumably it was the atomic operation "lock cmpxchgl  %edx, (%rbx)" that took unusually long:
+
+<pre>
+$ sudo perf script --itrace=i0nse  -F-dso,+addr,-comm,-tid,-period,+insn --xed --ns  --time 17127.087603311,17127.087617674  
+[001] 17127.087603311:              instructions:k:                0 ffffffffacd2fbf0 _raw_spin_lock+0x0                nop %edi, %edx
+[001] 17127.087603311:              instructions:k:                0 ffffffffacd2fbf4 _raw_spin_lock+0x4                nopl  %eax, (%rax,%rax,1)
+[001] 17127.087603311:              instructions:k:                0 ffffffffacd2fbf9 _raw_spin_lock+0x9                pushq  %rbx
+[001] 17127.087603311:              instructions:k:                0 ffffffffacd2fbfa _raw_spin_lock+0xa                mov %rdi, %rbx
+[001] 17127.087603311:              instructions:k:                0 ffffffffacd2fbfd _raw_spin_lock+0xd                mov $0x1, %edi
+[001] 17127.087603312:              instructions:k: ffffffffabd168b0 ffffffffacd2fc02 _raw_spin_lock+0x12               callq  0xffffffffaacfd55e
+[001] 17127.087603447:              instructions:k:                0 ffffffffacd2fc07 _raw_spin_lock+0x17               xor %eax, %eax
+[001] 17127.087603447:              instructions:k:                0 ffffffffacd2fc09 _raw_spin_lock+0x19               mov $0x1, %edx
+[001] 17127.087603447:              instructions:k:                0 ffffffffacd2fc0e _raw_spin_lock+0x1e               lock cmpxchgl  %edx, (%rbx)
+[001] 17127.087617673:              instructions:k:                0 ffffffffacd2fc12 _raw_spin_lock+0x22               jnz 0xffffffffacd2fc1a
+[001] 17127.087617673:              instructions:k:                0 ffffffffacd2fc14 _raw_spin_lock+0x24               popq  %rbx
+[001] 17127.087617674:              instructions:k: ffffffffabd72381 ffffffffacd2fc15 _raw_spin_lock+0x25               retq  
+</pre>
+
 == Appendix: Intel PT capabilities on different processors ==
 
 Generally, processors with the same CPU core microarchitecture can be expected to have the same Intel PT capabilities.  The Linux Intel PT driver provides capability flags in sysfs, refer [[#Intel_PT_man_page|Intel PT man page]]
