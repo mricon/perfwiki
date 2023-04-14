@@ -9,9 +9,9 @@ title: Development
 You'll need to install ''perf'' in your system. ''perf'' uses CPU performance counters( Performance Monitoring Counters or PMCs). 
 
 1) Install Required Packages like ''libelf-dev'' ''libdw-dev'' ''binutils-dev''  
-''libaudit-dev'' by using the following command
+''libaudit-dev'' by using the following command 
  sudo apt-get install build-essential libelf-dev libdw-dev binutils-dev 
- libaudit-dev 
+ libaudit-dev libtraceevent-dev systemtap-sdt-dev libunwind-dev libslang2-dev libperl-dev libzstd-dev libbabeltrace-ctf-dev
 
 2) Download the Source code for perf-tools v6.3 using the following command
  git clone https://git.kernel.org/pub/scm/linux/kernel/git/acme/linux.git/
