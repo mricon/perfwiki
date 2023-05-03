@@ -26,6 +26,7 @@ __TOC__
 =Presentations=
 
 * [https://youtu.be/aUDtN0qjxD0 Easyperf Twitter Spaces with Arnaldo Carvalho de Melo and Denis Bakhvalov] October 2021
+* [https://static.linaro.org/connect/lvc21/presentations/lvc21-302.pdf Integration Arm SPE in Perf for Memory Profiling] Spring 2021
 * [https://protools19.github.io/slides/Eranian_KeynoteSC19.pdf Stephane Eranian's keynote at SuperComputing ProTools 2019: Hardware Performance Monitoring Landscape]
 * [https://youtu.be/nXaxk27zwlk CppCon 2015: Chandler Carruth "Tuning C++: Benchmarks, and CPUs, and Compilers! Oh My!"]
 * [http://indico.cern.ch/materialDisplay.py?contribId=20&sessionId=4&materialId=slides&confId=141309 Roberto Vitillo's presentation on Perf events] June 2011
