@@ -17,6 +17,7 @@ __TOC__
 * [https://doordash.engineering/2021/04/01/examining-problematic-memory-with-bpf-perf-and-memcheck/ Filip Busic uses perf and other BPF tools in "Examining Problematic Memory in C/C++ Applications with BPF, perf, and Memcheck"]
 * (French) [https://grasland.pages.in2p3.fr/tp-perf/html/ Hadrien Grasland's perf tutorial (designed to be run on a specific system, but could be adapted to self-study without too much effort)]
 * [https://people.linaro.org/~leo.yan/debug/perf/Diving_into_Linux_Perf_Ring_Buffer.pdf Leo Yan, Diving into Linux Perf Ring Buffer]
+* [https://developer.ibm.com/tutorials/migrate-from-oprofile-to-perf/ Paul Clarke helps transitioning from OProfile to perf]
 
 =Useful web sites about profilers=
 
