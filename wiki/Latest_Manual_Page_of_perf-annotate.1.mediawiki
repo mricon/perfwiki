@@ -191,6 +191,10 @@ To disable decoding entirely, use --no-itrace.</pre></blockquote></blockquote>
 
 <blockquote>Set disassembler style for objdump.
 </blockquote>
+--addr2line=&lt;path&gt;
+
+<blockquote>Path to addr2line binary.
+</blockquote>
 --objdump=&lt;path&gt;
 
 <blockquote>Path to objdump binary.
@@ -234,4 +238,4 @@ on - the samples period or the number of samples (hits).</pre></blockquote></blo
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.3
+This page is auto-generated.  The kernel version is v6.4-rc1
