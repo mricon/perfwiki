@@ -192,6 +192,10 @@ addr: (Full) virtual address of the sampled instruction
 <blockquote>·
 
 retire_lat: On X86, this reports pipeline stall of this instruction compared to the previous instruction in cycles. And currently supported only on X86
+</blockquote>
+<blockquote>·
+
+simd: Flags describing a SIMD operation. &quot;e&quot; for empty Arm SVE predicate. &quot;p&quot; for partial Arm SVE predicate
 
 <blockquote><pre>By default, comm, dso and symbol keys are used.
 (i.e. --sort comm,dso,symbol)
@@ -489,6 +493,10 @@ value can be:
 --branch-history
 
 <blockquote>Add the addresses of sampled taken branches to the callstack. This allows to examine the path the program took to each sample. The data collection must have used -b (or -j) and -g.
+</blockquote>
+--addr2line=&lt;path&gt;
+
+<blockquote>Path to addr2line binary.
 </blockquote>
 --objdump=&lt;path&gt;
 
@@ -818,4 +826,4 @@ Since v3.16 the ''children'' overhead is shown by default and the output is sort
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.3
+This page is auto-generated.  The kernel version is v6.4-rc1
