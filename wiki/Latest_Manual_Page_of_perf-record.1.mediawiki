@@ -112,7 +112,7 @@ a group of events surrounded by a pair of brace (&quot;{event1,event2,...}&quot;
 </blockquote></blockquote>
 --filter=&lt;filter&gt;
 
-<blockquote>Event filter. This option should follow an event selector (-e) which selects either tracepoint event(s) or a hardware trace PMU (e.g. Intel PT or CoreSight).
+<blockquote>Event filter. This option should follow an event selector (-e). If the event is a tracepoint, the filter string will be parsed by the kernel. If the event is a hardware trace PMU (e.g. Intel PT or CoreSight), it’ll be processed as an address filter. Otherwise it means a general filter using BPF which can be applied for any kind of event.
 
 <blockquote>·
 
@@ -168,7 +168,59 @@ The kernel may not be able to configure a trace region if it is not
 within a single mapping.  MMAP events (or /proc/&lt;pid&gt;/maps) can be
 examined to determine if that is a possibility.
 
-Multiple filters can be separated with space or comma.</pre></blockquote></blockquote></blockquote>
+Multiple filters can be separated with space or comma.</pre></blockquote></blockquote>
+<blockquote>·
+
+bpf filters
+
+<blockquote><pre>A BPF filter can access the sample data and make a decision based on the
+data.  Users need to set an appropriate sample type to use the BPF
+filter.  BPF filters need root privilege.
+
+The sample data field can be specified in lower case letter.  Multiple
+filters can be separated with comma.  For example,
+
+  --filter period &gt; 1000, cpu == 1
+or
+  --filter mem_op == load || mem_op == store, mem_lvl &gt; l1
+
+The former filter only accept samples with period greater than 1000 AND
+CPU number is 1.  The latter one accepts either load and store memory
+operations but it should have memory level above the L1.  Since the
+mem_op and mem_lvl fields come from the (memory) data_source, itd only
+work with some events which set the data_source field.
+
+Also user should request to collect that information (with -d option in
+the above case).  Otherwise, the following message will be shown.
+
+$ sudo perf record -e cycles --filter mem_op == load
+Error: cycles event does not have PERF_SAMPLE_DATA_SRC
+ Hint: please add -d option to perf record.
+failed to set filter &quot;BPF&quot; on event cycles with 22 (Invalid argument)
+
+Essentially the BPF filter expression is:
+
+&lt;term&gt; &lt;operator&gt; &lt;value&gt; ((&quot;,&quot; | &quot;||&quot;) &lt;term&gt; &lt;operator&gt; &lt;value&gt;)*
+
+The &lt;term&gt; can be one of:
+  ip, id, tid, pid, cpu, time, addr, period, txn, weight, phys_addr,
+  code_pgsz, data_pgsz, weight1, weight2, weight3, ins_lat, retire_lat,
+  p_stage_cyc, mem_op, mem_lvl, mem_snoop, mem_remote, mem_lock,
+  mem_dtlb, mem_blk, mem_hops
+
+The &lt;operator&gt; can be one of:
+  ==, !=, &gt;, &gt;=, &lt;, &lt;=, &amp;
+
+The &lt;value&gt; can be one of:
+  &lt;number&gt; (for any term)
+  na, load, store, pfetch, exec (for mem_op)
+  l1, l2, l3, l4, cxl, io, any_cache, lfb, ram, pmem (for mem_lvl)
+  na, none, hit, miss, hitm, fwd, peer (for mem_snoop)
+  remote (for mem_remote)
+  na, locked (for mem_locked)
+  na, l1_hit, l1_miss, l2_hit, l2_miss, any_hit, any_miss, walk, fault (for mem_dtlb)
+  na, by_data, by_addr (for mem_blk)
+  hops0, hops1, hops2, hops3 (for mem_hops)</pre></blockquote></blockquote></blockquote>
 --exclude-perf
 
 <blockquote>Don’t record events issued by perf itself. This option should follow an event selector (-e) which selects tracepoint event(s). It adds a filter expression ''common_pid != $PERFPID'' to filters. If other ''--filter'' exists, the new filter expression will be combined with them by ''&amp;&amp;''.
@@ -836,4 +888,4 @@ But ''{cpu_core/cycles/,cpu_atom/instructions/}'' will return warning and disabl
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.3
+This page is auto-generated.  The kernel version is v6.4-rc1
