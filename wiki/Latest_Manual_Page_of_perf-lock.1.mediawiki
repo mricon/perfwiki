@@ -146,8 +146,10 @@ CONTENTION OPTIONS
 --tid=&lt;value&gt;::
         Record events on existing thread ID (comma separated list).
 
+-M::
 --map-nr-entries=&lt;value&gt;::
-        Maximum number of BPF map entries (default: 10240).
+        Maximum number of BPF map entries (default: 16384).
+        This will be aligned to a power of 2.
 
 --max-stack=&lt;value&gt;::
         Maximum stack depth when collecting lock contention (default: 8).
@@ -198,4 +200,4 @@ SEE ALSO
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.3
+This page is auto-generated.  The kernel version is v6.4-rc1
