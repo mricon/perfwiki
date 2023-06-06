@@ -207,11 +207,19 @@ buildid-cache.*
 annotate.*
 
 <blockquote>These are in control of addresses, jump function, source code in lines of assembly code from a specific program.
+</blockquote>
+annotate.addr2line
 
-<blockquote><pre>annotate.disassembler_style:
-        Use this to change the default disassembler style to some other value
-        supported by binutils, such as &quot;intel&quot;, see the -M option help in the
-        objdump man page.</pre></blockquote></blockquote>
+<blockquote>addr2line binary to use for file names and line numbers.
+</blockquote>
+annotate.objdump
+
+<blockquote>objdump binary to use for disassembly and annotations.
+</blockquote>
+annotate.disassembler_style
+
+<blockquote>Use this to change the default disassembler style to some other value supported by binutils, such as &quot;intel&quot;, see the ''-M'' option help in the ''objdump'' man page.
+</blockquote>
 annotate.hide_src_code
 
 <blockquote>If a program which is analyzed has source code, this option lets ''annotate'' print a list of assembly code with the source code. For example, let’s see a part of a program. There’re four lines. If this option is ''true'', they can be printed without source code from a program as below.
@@ -616,4 +624,4 @@ session-&lt;NAME&gt;.*, session-&lt;NAME&gt;.run
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.3
+This page is auto-generated.  The kernel version is v6.4-rc1
