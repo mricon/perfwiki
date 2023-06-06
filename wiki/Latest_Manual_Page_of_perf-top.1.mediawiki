@@ -150,6 +150,14 @@ automatically.</pre></blockquote></blockquote>
 
 <blockquote>Set disassembler style for objdump.
 </blockquote>
+--addr2line=&lt;path&gt;
+
+<blockquote>Path to addr2line binary.
+</blockquote>
+--objdump=&lt;path&gt;
+
+<blockquote>Path to objdump binary.
+</blockquote>
 --prefix=PREFIX, --prefix-strip=N
 
 <blockquote>Remove first N entries from source file path names in executables and add PREFIX. This allows to display source code compiled on systems with different file system layout.
@@ -217,6 +225,10 @@ levels are subject to permissions.  When sampling on multiple events, branch sta
 is enabled for all the sampling events. The sampled branch type is the same for all events.
 The various filters must be specified as a comma separated list: --branch-filter any_ret,u,k
 Note that this feature may not be available on all processors.</pre></blockquote></blockquote>
+--branch-history
+
+<blockquote>Add the addresses of sampled taken branches to the callstack. This allows to examine the path the program took to each sample.
+</blockquote>
 --raw-trace
 
 <blockquote>When displaying traceevent output, do not use print fmt or plugins.
@@ -428,4 +440,4 @@ Since v3.16 the ''children'' overhead is shown by default and the output is sort
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.3
+This page is auto-generated.  The kernel version is v6.4-rc1
