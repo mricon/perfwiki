@@ -4353,6 +4353,81 @@ $ perf script --itrace=bieqq
            uname 11353 [002] 26597.876817:          1 instructions:  ffffffffabf2a9ba folio_mark_accessed+0x2a ([kernel.kallsyms])
 </pre>
 
+== Example: Intel PT Event Trace ==
+
+Some processors like Alder Lake-N support Intel PT Event Trace.  Whether it is supported can be determined by the event_trace capability:
+
+<pre>
+$ cat /sys/bus/event_source/devices/intel_pt/caps/event_trace 
+1
+</pre>
+
+"1" means it is supported.  "0" means it is not supported.  If the file is missing, then the kernel does not have support.
+
+=== Intel PT Event Trace : Asynchronous Events ===
+
+Intel PT Event Trace records asynchronous events like interrupts, exceptions, faults, and NMI.  Branch tracing can be done at the same time but is not necessary.
+
+We can use <tt>'''perf record'''</tt> with options:
+* <tt>'''-e'''</tt> to select which events, i.e. the following:
+* <tt>'''intel_pt/event,branch=0/u'''</tt> to get Intel PT Event Trace and disable branch tracing, user space only.
+* <tt>'''uname'''</tt> is the workload.
+<pre>
+$ perf record -e intel_pt/event,branch=0/u uname
+Linux
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.031 MB perf.data ]
+</pre>
+
+To list the events, use <tt>perf script</tt> with options:
+* <tt>'''--itrace=eI'''</tt> to show errors (e) and events (I)
+* <tt>'''--ns'''</tt> to show the timestamp to nanoseconds instead of the default microseconds
+The output shows INTR for interrupts, exceptions, faults, and NMI.  In this case the PFA (Page Fault Linear Address) indicates that they are page faults.  IRET indicates a return to user space.
+<pre>
+$ perf script --itrace=Ie --ns | head -10
+           uname   253 [007]  1719.062059042:                       evt:  cfe: IRET IP: 0 vector: 0                        0 [unknown] ([unknown])
+           uname   253 [007]  1719.062059042:                     iflag:  IFLAG: 0->1 non branch                7f7371368059 [unknown] (/lib/ld64-uClibc-1.0.39.so)
+           uname   253 [007]  1719.062060708:                       evt:  cfe: INTR IP: 1 vector: 14 PFA: 0x7f7371368059     7f7371368059 [unknown] (/lib/ld64-uClibc-1.0.39.so)
+           uname   253 [007]  1719.062065292:                       evt:  cfe: IRET IP: 0 vector: 0             7f7371368059 [unknown] (/lib/ld64-uClibc-1.0.39.so)
+           uname   253 [007]  1719.062068000:                       evt:  cfe: INTR IP: 1 vector: 14 PFA: 0x7f7371366004     7f737136bbdb [unknown] (/lib/ld64-uClibc-1.0.39.so)
+           uname   253 [007]  1719.062070083:                       evt:  cfe: IRET IP: 0 vector: 0             7f737136bbdb [unknown] (/lib/ld64-uClibc-1.0.39.so)
+           uname   253 [007]  1719.062071333:                       evt:  cfe: INTR IP: 1 vector: 14 PFA: 0x7f737136dff8     7f737136bc42 [unknown] (/lib/ld64-uClibc-1.0.39.so)
+           uname   253 [007]  1719.062073417:                       evt:  cfe: IRET IP: 0 vector: 0             7f737136bc42 [unknown] (/lib/ld64-uClibc-1.0.39.so)
+           uname   253 [007]  1719.062078417:                       evt:  cfe: INTR IP: 1 vector: 14 PFA: 0x7f737136de88     7f737136bcd3 [unknown] (/lib/ld64-uClibc-1.0.39.so)
+           uname   253 [007]  1719.062084250:                       evt:  cfe: IRET IP: 0 vector: 0             7f737136bcd3 [unknown] (/lib/ld64-uClibc-1.0.39.so)
+</pre>
+The timestamps are accurate only to the MTC period.  By default, mtc_period is 3 which means 8 (2^3) times the period of ART (Always Running Timer).  We can get the information needed to determine the ART frequency as follows:
+<pre>
+$ cat /sys/bus/event_source/devices/intel_pt/tsc_art_ratio 
+84:2
+$ dmesg | grep TSC
+[    0.000000] tsc: Detected 1612.800 MHz TSC
+[    0.018522] TSC deadline timer available
+</pre>
+ART frequency is 1612.800 MHz / 42.  MTC period is 8 / ART frequency, which is 208 ns.  So, in this case, the timestamps are accurate to +/-208 ns.
+It is important to note that this cannot be improved by using Cycle-Accurate Mode alone.  That is because the CFE and EVT packets are not CYC-eligible.  To get more accurate timestamps, we need to do a branch trace also, but we do not need TNT packets to get timestamps on asynchronous or indirect branches, so the <tt>'''perf record'''</tt> command becomes:
+<pre>
+$ perf record -e intel_pt/event,cyc,notnt/u uname
+Linux
+[ perf record: Woken up 2 times to write data ]
+[ perf record: Captured and wrote 0.036 MB perf.data ]
+</pre>
+Now the corresponding branches can be displayed also, with more accurate timestamps.
+<pre>
+$ perf script --itrace=eIb --ns | head -11
+           uname   274 [003]  4513.329990775:                        evt:  cfe: IRET IP: 0 vector: 0                        0 [unknown] ([unknown])
+           uname   274 [003]  4513.329990794:                      iflag:  IFLAG: 0->1 via branch                           0 [unknown] ([unknown])
+           uname   274 [003]  4513.329990794:          1                branches:uH:                 0 [unknown] ([unknown]) =>     7fdd2d39b059 [unknown] (/lib/ld64-uClibc-1.0.39.so)
+           uname   274 [003]  4513.329991489:                        evt:  cfe: INTR IP: 1 vector: 14 PFA: 0x7fdd2d39b059     7fdd2d39b059 [unknown] (/lib/ld64-uClibc-1.0.39.so)
+           uname   274 [003]  4513.329991489:          1                branches:uH:      7fdd2d39b059 [unknown] (/lib/ld64-uClibc-1.0.39.so) =>                0 [unknown] ([unknown])
+           uname   274 [003]  4513.329993275:                        evt:  cfe: IRET IP: 0 vector: 0             7fdd2d39b059 [unknown] (/lib/ld64-uClibc-1.0.39.so)
+           uname   274 [003]  4513.329993391:          1                branches:uH:                 0 [unknown] ([unknown]) =>     7fdd2d39b059 [unknown] (/lib/ld64-uClibc-1.0.39.so)
+           uname   274 [003]  4513.329994447:                        evt:  cfe: INTR IP: 1 vector: 14 PFA: 0x7ffe3db37de0     7fdd2d39eb6b [unknown] (/lib/ld64-uClibc-1.0.39.so)
+           uname   274 [003]  4513.329994447:          1                branches:uH:      7fdd2d39eb6b [unknown] (/lib/ld64-uClibc-1.0.39.so) =>                0 [unknown] ([unknown])
+           uname   274 [003]  4513.329995775:                        evt:  cfe: IRET IP: 0 vector: 0             7fdd2d39eb6b [unknown] (/lib/ld64-uClibc-1.0.39.so)
+           uname   274 [003]  4513.329995950:          1                branches:uH:                 0 [unknown] ([unknown]) =>     7fdd2d39eb6b [unknown] (/lib/ld64-uClibc-1.0.39.so)
+</pre>
+
 == Appendix: Intel PT capabilities on different processors ==
 
 Generally, processors with the same CPU core microarchitecture can be expected to have the same Intel PT capabilities.  The Linux Intel PT driver provides capability flags in sysfs, refer [[#Intel_PT_man_page|Intel PT man page]]
