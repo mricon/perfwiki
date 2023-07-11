@@ -252,6 +252,10 @@ If the metric exists, it is calculated by the counts generated in this interval 
 
 <blockquote>Aggregate counts per processor die for system-wide mode measurements. This is a useful mode to detect imbalance between dies. To enable this mode, use --per-die in addition to -a. (system-wide). The output includes the die number and the number of online processors on that die. This is useful to gauge the amount of aggregation.
 </blockquote>
+--per-cache
+
+<blockquote>Aggregate counts per cache instance for system-wide mode measurements. By default, the aggregation happens for the cache level at the highest index in the system. To specify a particular level, mention the cache level alongside the option in the format [Ll][1-9][0-9]*. For example: Using option &quot;--per-cache=l3&quot; or &quot;--per-cache=L3&quot; will aggregate the information at the boundary of the level 3 cache in the system.
+</blockquote>
 --per-core
 
 <blockquote>Aggregate counts per physical processor for system-wide mode measurements. This is a useful mode to detect imbalance between physical cores. To enable this mode, use --per-core in addition to -a. (system-wide). The output includes the core number and the number of online logical processors on that physical processor.
@@ -279,6 +283,10 @@ If the metric exists, it is calculated by the counts generated in this interval 
 --metric-no-merge
 
 <blockquote>By default metric events in different weak groups can be shared if one group contains all the events needed by another. In such cases one group will be eliminated reducing event multiplexing and making it so that certain groups of metrics sum to 100%. A downside to sharing a group is that the group may require multiplexing and so accuracy for a small group that need not have multiplexing is lowered. This option forbids the event merging logic from sharing events between groups and may be used to increase accuracy in this case.
+</blockquote>
+--metric-no-threshold
+
+<blockquote>Metric thresholds may increase the number of events necessary to compute whether a metric has exceeded its threshold expression. This may not be desirable, for example, as the events can introduce multiplexing. This option disables the adding of threshold expression events for a metric. However, if there are sufficient events to compute the threshold then the threshold is still computed and used to color the metric’s computed value.
 </blockquote>
 --quiet
 
@@ -308,6 +316,10 @@ Reads and reports stat data from perf data file.
 
 <blockquote>Aggregate counts per processor die for system-wide mode measurements.
 </blockquote>
+--per-cache
+
+<blockquote>Aggregate counts per cache instance for system-wide mode measurements. By default, the aggregation happens for the cache level at the highest index in the system. To specify a particular level, mention the cache level alongside the option in the format [Ll][1-9][0-9]*. For example: Using option &quot;--per-cache=l3&quot; or &quot;--per-cache=L3&quot; will aggregate the information at the boundary of the level 3 cache in the system.
+</blockquote>
 --per-core
 
 <blockquote>Aggregate counts per physical processor for system-wide mode measurements.
@@ -315,7 +327,12 @@ Reads and reports stat data from perf data file.
 -M, --metrics
 
 <blockquote>Print metrics or metricgroups specified in a comma separated list. For a group all metrics from the group are added. The events from the metrics are automatically measured. See perf list output for the possible metrics and metricgroups.
-</blockquote>
+
+<blockquote><pre>When threshold information is available for a metric, the
+color red is used to signify a metric has exceeded a threshold
+while green shows it hasnt. The default color means that
+no threshold information was available or the threshold
+couldnt be computed.</pre></blockquote></blockquote>
 -A, --no-aggr
 
 <blockquote>Do not aggregate counts across all monitored CPUs.
@@ -698,4 +715,4 @@ metric-unit : optional unit of metric
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.4
+This page is auto-generated.  The kernel version is v6.5-rc1
