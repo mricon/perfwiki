@@ -177,4 +177,4 @@ $ perf kvm --host --guest --guestmount=~/guestmount top</pre></blockquote></bloc
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.4-rc1
+This page is auto-generated.  The kernel version is v6.4
