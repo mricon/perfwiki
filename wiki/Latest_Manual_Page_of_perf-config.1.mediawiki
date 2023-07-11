@@ -555,7 +555,7 @@ llvm.*, llvm.clang-path
 </blockquote>
 llvm.clang-bpf-cmd-template
 
-<blockquote>Cmdline template. Below lines show its default value. Environment variable is used to pass options. &quot;$CLANG_EXEC -D''KERNEL'' -D''NR_CPUS''=$NR_CPUS &quot;\ &quot;-DLINUX_VERSION_CODE=$LINUX_VERSION_CODE &quot; \ &quot;$CLANG_OPTIONS $PERF_BPF_INC_OPTIONS $KERNEL_INC_OPTIONS &quot; \ &quot;-Wno-unused-value -Wno-pointer-sign &quot; \ &quot;-working-directory $WORKING_DIR &quot; \ &quot;-c \&quot;$CLANG_SOURCE\&quot; -target bpf $CLANG_EMIT_LLVM -O2 -o - $LLVM_OPTIONS_PIPE&quot;
+<blockquote>Cmdline template. Below lines show its default value. Environment variable is used to pass options. &quot;$CLANG_EXEC -D''KERNEL'' -D''NR_CPUS''=$NR_CPUS &quot;\ &quot;-DLINUX_VERSION_CODE=$LINUX_VERSION_CODE &quot; \ &quot;$CLANG_OPTIONS $PERF_BPF_INC_OPTIONS $KERNEL_INC_OPTIONS &quot; \ &quot;-Wno-unused-value -Wno-pointer-sign &quot; \ &quot;-working-directory $WORKING_DIR &quot; \ &quot;-c \&quot;$CLANG_SOURCE\&quot; --target=bpf $CLANG_EMIT_LLVM -O2 -o - $LLVM_OPTIONS_PIPE&quot;
 </blockquote>
 llvm.clang-opt
 
@@ -624,4 +624,4 @@ session-&lt;NAME&gt;.*, session-&lt;NAME&gt;.run
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.4
+This page is auto-generated.  The kernel version is v6.5-rc1
