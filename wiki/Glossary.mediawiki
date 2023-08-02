@@ -4,6 +4,9 @@ title: Glossary
 
 ==B==
 
+===Beat===
+ An individual transfer within a burst. For example, a burst can comprise of multiple beats. From the [https://developer.arm.com/documentation/105565/0200/B Arm Glossary]
+
 ===BPF===
  [https://en.wikipedia.org/wiki/Berkeley_Packet_Filter Berkeley Packet Filter].
 
