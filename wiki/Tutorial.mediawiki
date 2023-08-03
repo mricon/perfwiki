@@ -757,7 +757,9 @@ usage: perf script gecko [<options>] [<command>]
 [--user-colour]			Color for user category
 [--kernel-colour]		Color for kernel category
 [--save-only]  			Save the output to a file
-</pre> 
+
+TODO: NEED TO ADD USAGE INFORMATION
+</pre>
 
 ===  Firefox Profiler (External) ===
 [https://profiler.firefox.com/ Firefox profiler] is a Web-based app used to analyze and review Firefox's performance. It can also be used to display the <tt>perf report</tt> in a new UI format. It becomes very effortless and simple to analyze perf reports using the Firefox profiler.
