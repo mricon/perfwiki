@@ -758,7 +758,14 @@ usage: perf script gecko [<options>] [<command>]
 [--kernel-colour]		Color for kernel category
 [--save-only]  			Save the output to a file
 
-TODO: NEED TO ADD USAGE INFORMATION
+Commands:
+perf script gecko -a sleep 60
+
+or 
+
+perf record -a -g -F 99 sleep 60
+perf script report gecko
+
 </pre>
 
 ===  Firefox Profiler (External) ===
