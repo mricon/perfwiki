@@ -748,7 +748,7 @@ firefox perf.svg  # or any other web browser, etc.
 </pre>
 
 ===  Firefox Profiler (Internal) ===
-[https://profiler.firefox.com/ Firefox profiler] is a powerful tool developed by Mozilla to analyze and optimize the performance of web applications and websites. It allows developers to gain deep insights into the behaviour of their code and identify performance bottlenecks, making it an invaluable asset for web development and debugging.
+[https://profiler.firefox.com/ Firefox profiler] is a powerful tool developed by Mozilla to analyze and optimize the performance of web applications and websites. It allows developers to gain deep insights into the behaviour of their code and identify performance bottlenecks, making it an invaluable asset for web development and debugging. Here is the [https://chat.mozilla.org/#/room/#profiler:mozilla.org matrix channel] for firefox profiler discussion, we can reach out in case any doubt or issue arise. 
 One of the key components of the Firefox Profiler is the [https://github.com/firefox-devtools/profiler/blob/main/docs-developer/gecko-profile-format.md/ Gecko format]. It is a specialized data format used to store performance data collected during the profiling process. The Gecko format is particularly beneficial because it offers a comprehensive and structured representation of performance data, enabling developers to visualize and interpret complex metrics in a more manageable way.  The gecko script is available under scripts/python 
 
 <pre>
