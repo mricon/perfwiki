@@ -752,7 +752,7 @@ firefox perf.svg  # or any other web browser, etc.
 One of the key components of the Firefox Profiler is the [https://github.com/firefox-devtools/profiler/blob/main/docs-developer/gecko-profile-format.md/ Gecko format]. It is a specialized data format used to store performance data collected during the profiling process. The Gecko format is particularly beneficial because it offers a comprehensive and structured representation of performance data, enabling developers to visualize and interpret complex metrics in a more manageable way.  The gecko script is available under scripts/python 
 
 <pre>
-perf script gecko -h
+perf script gecko -h [TODO]
 usage: perf script gecko [<options>] [<command>]
 [--user-colour]			Color for user category
 [--kernel-colour]		Color for kernel category
