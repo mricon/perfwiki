@@ -767,6 +767,10 @@ or
 perf record -a -g -F 99 sleep 60
 perf script report gecko
 
+</pre>
+
+<pre>
+
 If you are looking for gecko to show you for any specific process then you can:
 
 perf record -p <pid>
