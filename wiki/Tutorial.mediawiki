@@ -771,14 +771,16 @@ perf script report gecko
 
 <pre>
 
-If you are looking for gecko to show you for any specific process then you can:
+If you're seeking to visualize the behaviour of a gecko for a particular process, you have a couple of options:
 
 perf record -p <pid>
 perf script report gecko
 
 or 
 
-perf report; click on the specific process; Then click on run script for that particular process or all the process
+1. Run perf report
+2. Identify and select the specific process you're interested in.
+3. Opt to run a script for either the chosen process or all processes.
 
 </pre>
 
