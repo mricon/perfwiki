@@ -771,7 +771,7 @@ NOTE: If you want to use command line args for gecko script then you need to use
 
 </pre>
 
-If you're seeking to visualize the behaviour of a gecko for a particular process, you have a couple of options:
+If you're seeking to visualize the behaviour for a particular process, you have a couple of options:
 <pre>
 perf record -p <pid>
 perf script report gecko
