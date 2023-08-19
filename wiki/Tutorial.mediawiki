@@ -767,7 +767,7 @@ or
 perf record -a -g -F 99 sleep 60
 perf script report gecko 
 
-NOTE: If you want to use command line args for gecko script then you need to use it as "perf script report gecko --save-only=profiled.json"
+NOTE: If you want to use command line args for gecko script then you need to use it as "perf script report gecko [<options>]"
 
 </pre>
 
