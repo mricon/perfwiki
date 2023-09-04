@@ -209,4 +209,4 @@ SEE ALSO
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.5-rc1
+This page is auto-generated.  The kernel version is v6.5
