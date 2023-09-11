@@ -76,8 +76,16 @@ The following options apply to perf ftrace.
 </blockquote>
 --func-opts
 
-<blockquote>List of options allowed to set: call-graph - Display kernel stack trace for function tracer. irq-info - Display irq context info for function tracer.
+<blockquote>List of options allowed to set:
+
+<blockquote>·
+
+call-graph - Display kernel stack trace for function tracer.
 </blockquote>
+<blockquote>·
+
+irq-info - Display irq context info for function tracer.
+</blockquote></blockquote>
 -G, --graph-funcs=
 
 <blockquote>Select function_graph tracer and set graph filter on the given function (or a glob pattern). This is useful to trace for functions executed from the given function. This can be used more than once to specify multiple functions. It will be passed to ''set_graph_function'' in tracefs.
@@ -88,8 +96,28 @@ The following options apply to perf ftrace.
 </blockquote>
 --graph-opts
 
-<blockquote>List of options allowed to set: nosleep-time - Measure on-CPU time only for function_graph tracer. noirqs - Ignore functions that happen inside interrupt. verbose - Show process names, PIDs, timestamps, etc. thresh=&lt;n&gt; - Setup trace duration threshold in microseconds. depth=&lt;n&gt; - Set max depth for function graph tracer to follow.
+<blockquote>List of options allowed to set:
+
+<blockquote>·
+
+nosleep-time - Measure on-CPU time only for function_graph tracer.
 </blockquote>
+<blockquote>·
+
+noirqs - Ignore functions that happen inside interrupt.
+</blockquote>
+<blockquote>·
+
+verbose - Show process names, PIDs, timestamps, etc.
+</blockquote>
+<blockquote>·
+
+thresh=&lt;n&gt; - Setup trace duration threshold in microseconds.
+</blockquote>
+<blockquote>·
+
+depth=&lt;n&gt; - Set max depth for function graph tracer to follow.
+</blockquote></blockquote>
 = OPTIONS FOR FIPERF FTRACE LATENCYFR =
 
 -T, --trace-funcs=
@@ -111,4 +139,4 @@ The following options apply to perf ftrace.
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.5
+This page is auto-generated.  The kernel version is v6.6-rc1
