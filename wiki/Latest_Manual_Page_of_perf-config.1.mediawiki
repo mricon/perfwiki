@@ -102,11 +102,7 @@ Given a $HOME/.perfconfig like this:
         queue-size = 0
         children = true
         group = true
-        skip-empty = true
-
-[llvm]
-        dump-obj = true
-        clang-opt = -g</pre></blockquote>
+        skip-empty = true</pre></blockquote>
 You can hide source code of annotate feature setting the config to false with
 
 <blockquote><pre>% perf config annotate.hide_src_code=true</pre></blockquote>
@@ -549,34 +545,6 @@ ftrace.*, ftrace.tracer
 
 <blockquote>Can be used to select the default tracer when neither -G nor -F option is not specified. Possible values are ''function'' and ''function_graph''.
 </blockquote>
-llvm.*, llvm.clang-path
-
-<blockquote>Path to clang. If omit, search it from $PATH.
-</blockquote>
-llvm.clang-bpf-cmd-template
-
-<blockquote>Cmdline template. Below lines show its default value. Environment variable is used to pass options. &quot;$CLANG_EXEC -D''KERNEL'' -D''NR_CPUS''=$NR_CPUS &quot;\ &quot;-DLINUX_VERSION_CODE=$LINUX_VERSION_CODE &quot; \ &quot;$CLANG_OPTIONS $PERF_BPF_INC_OPTIONS $KERNEL_INC_OPTIONS &quot; \ &quot;-Wno-unused-value -Wno-pointer-sign &quot; \ &quot;-working-directory $WORKING_DIR &quot; \ &quot;-c \&quot;$CLANG_SOURCE\&quot; --target=bpf $CLANG_EMIT_LLVM -O2 -o - $LLVM_OPTIONS_PIPE&quot;
-</blockquote>
-llvm.clang-opt
-
-<blockquote>Options passed to clang.
-</blockquote>
-llvm.kbuild-dir
-
-<blockquote>kbuild directory. If not set, use /lib/modules/uname -r/build. If set to &quot;&quot; deliberately, skip kernel header auto-detector.
-</blockquote>
-llvm.kbuild-opts
-
-<blockquote>Options passed to ''make'' when detecting kernel header options.
-</blockquote>
-llvm.dump-obj
-
-<blockquote>Enable perf dump BPF object files compiled by LLVM.
-</blockquote>
-llvm.opts
-
-<blockquote>Options passed to llc.
-</blockquote>
 samples.*, samples.context
 
 <blockquote>Define how many ns worth of time to show around samples in perf report sample context browser.
@@ -624,4 +592,4 @@ session-&lt;NAME&gt;.*, session-&lt;NAME&gt;.run
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.5
+This page is auto-generated.  The kernel version is v6.6-rc1
