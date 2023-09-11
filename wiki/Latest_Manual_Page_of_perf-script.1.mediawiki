@@ -588,4 +588,4 @@ $ perf script --guestmount=~/guestmount </pre></blockquote></blockquote>
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.5
+This page is auto-generated.  The kernel version is v6.6-rc1
