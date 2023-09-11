@@ -96,18 +96,6 @@ a hardware breakpoint event in the form of ''\mem:addr[/len][:access]'' where ad
 </blockquote>
 <blockquote>·
 
-a BPF source file (ending in .c) or a precompiled object file (ending in .o) selects one or more BPF events. The BPF program can attach to various perf events based on the ELF section names.
-
-<blockquote><pre>When processing a .c file, perf searches an installed LLVM to compile it
-into an object file first. Optional clang options can be passed via the
---clang-opt command line option, e.g.:
-
-perf record --clang-opt &quot;-DLINUX_VERSION_CODE=0x50000&quot; \
-            -e tests/bpf-script-example.c
-
-Note: --clang-opt must be placed before --event/-e.</pre></blockquote></blockquote>
-<blockquote>·
-
 a group of events surrounded by a pair of brace (&quot;{event1,event2,...}&quot;). Each event is separated by commas and the group should be quoted to prevent the shell interpretation. You also need to use --group on &quot;perf report&quot; to view group events together.
 </blockquote></blockquote>
 --filter=&lt;filter&gt;
@@ -508,8 +496,16 @@ The option requires at least one branch type among any, any_call, any_ret, ind_c
 </blockquote>
 -S, --snapshot
 
-<blockquote>Select AUX area tracing Snapshot Mode. This option is valid only with an AUX area tracing event. Optionally, certain snapshot capturing parameters can be specified in a string that follows this option: ''e'': take one last snapshot on exit; guarantees that there is at least one snapshot in the output file; &lt;size&gt;: if the PMU supports this, specify the desired snapshot size.
+<blockquote>Select AUX area tracing Snapshot Mode. This option is valid only with an AUX area tracing event. Optionally, certain snapshot capturing parameters can be specified in a string that follows this option:
+
+<blockquote>·
+
+''e'': take one last snapshot on exit; guarantees that there is at least one snapshot in the output file;
 </blockquote>
+<blockquote>·
+
+&lt;size&gt;: if the PMU supports this, specify the desired snapshot size.
+</blockquote></blockquote>
 In Snapshot Mode trace data is captured only when signal SIGUSR2 is received and on exit if the above ''e'' option is given.
 
 --aux-sample[=OPTIONS]
@@ -523,14 +519,6 @@ In Snapshot Mode trace data is captured only when signal SIGUSR2 is received and
 --switch-events
 
 <blockquote>Record context switch events i.e. events of type PERF_RECORD_SWITCH or PERF_RECORD_SWITCH_CPU_WIDE. In some cases (e.g. Intel PT, CoreSight or Arm SPE) switch events will be enabled automatically, which can be suppressed by by the option --no-switch-events.
-</blockquote>
---clang-path=PATH
-
-<blockquote>Path to clang binary to use for compiling BPF scriptlets. (enabled when BPF support is on)
-</blockquote>
---clang-opt=OPTIONS
-
-<blockquote>Options passed to clang when compiling BPF scriptlets. (enabled when BPF support is on)
 </blockquote>
 --vmlinux=PATH
 
@@ -550,8 +538,16 @@ In Snapshot Mode trace data is captured only when signal SIGUSR2 is received and
 </blockquote>
 --affinity=mode
 
-<blockquote>Set affinity mask of trace reading thread according to the policy defined by ''mode'' value: node - thread affinity mask is set to NUMA node cpu mask of the processed mmap buffer cpu - thread affinity mask is set to cpu of the processed mmap buffer
+<blockquote>Set affinity mask of trace reading thread according to the policy defined by ''mode'' value:
+
+<blockquote>·
+
+node - thread affinity mask is set to NUMA node cpu mask of the processed mmap buffer
 </blockquote>
+<blockquote>·
+
+cpu - thread affinity mask is set to cpu of the processed mmap buffer
+</blockquote></blockquote>
 --mmap-flush=number
 
 <blockquote>Specify minimal number of bytes that is extracted from mmap data pages and processed for output. One can specify the number using B/K/M/G suffixes.
@@ -594,12 +590,24 @@ Don’t use both --kernel-callchains and --user-callchains at the same time or n
 </blockquote>
 --switch-output[=mode]
 
-<blockquote>Generate multiple perf.data files, timestamp prefixed, switching to a new one based on ''mode'' value: &quot;signal&quot; - when receiving a SIGUSR2 (default value) or &lt;size&gt; - when reaching the size threshold, size is expected to be a number with appended unit character - B/K/M/G &lt;time&gt; - when reaching the time threshold, size is expected to be a number with appended unit character - s/m/h/d
+<blockquote>Generate multiple perf.data files, timestamp prefixed, switching to a new one based on ''mode'' value:
+
+<blockquote>·
+
+&quot;signal&quot; - when receiving a SIGUSR2 (default value) or
+</blockquote>
+<blockquote>·
+
+&lt;size&gt; - when reaching the size threshold, size is expected to be a number with appended unit character - B/K/M/G
+</blockquote>
+<blockquote>·
+
+&lt;time&gt; - when reaching the time threshold, size is expected to be a number with appended unit character - s/m/h/d
 
 <blockquote><pre>Note: the precision of  the size  threshold  hugely depends
 on your configuration  - the number and size of  your  ring
 buffers (-m). It is generally more precise for higher sizes
-(like &gt;5M), for lower values expect different sizes.</pre></blockquote></blockquote>
+(like &gt;5M), for lower values expect different sizes.</pre></blockquote></blockquote></blockquote>
 A possible use case is to, given an external event, slice the perf.data file that gets then processed, possibly via a perf script, to decide if that particular perf.data snapshot should be kept or not.
 
 Implies --timestamp-filename, --no-buildid and --no-buildid-cache. The reason for the latter two is to reduce the data file switching overhead. You can still switch them on with:
@@ -629,7 +637,27 @@ This sideband thread is also used to other purposes, like processing the PERF_RE
 </blockquote>
 Kernel (and some other) events are recorded regardless of the choice in this option. For example, --synth=no would have MMAP events for kernel and modules.
 
-Available types are: ''task'' - synthesize FORK and COMM events for each task ''mmap'' - synthesize MMAP events for each process (implies ''task'') ''cgroup'' - synthesize CGROUP events for each cgroup ''all'' - synthesize all events (default) ''no'' - do not synthesize any of the above events
+Available types are:
+
+<blockquote>·
+
+''task'' - synthesize FORK and COMM events for each task
+</blockquote>
+<blockquote>·
+
+''mmap'' - synthesize MMAP events for each process (implies ''task'')
+</blockquote>
+<blockquote>·
+
+''cgroup'' - synthesize CGROUP events for each cgroup
+</blockquote>
+<blockquote>·
+
+''all'' - synthesize all events (default)
+</blockquote>
+<blockquote>·
+
+''no'' - do not synthesize any of the above events
 
 --tail-synthesize
 
@@ -638,7 +666,7 @@ Available types are: ''task'' - synthesize FORK and COMM events for each task ''
 --overwrite
 
 <blockquote>Makes all events use an overwritable ring buffer. An overwritable ring buffer works like a flight recorder: when it gets full, the kernel will overwrite the oldest records, that thus will never make it to the perf.data file.
-</blockquote>
+</blockquote></blockquote>
 When ''--overwrite'' and ''--switch-output'' are used perf records and drops events until it receives a signal, meaning that something unusual was detected that warrants taking a snapshot of the most current events, those fitting in the ring buffer at that moment.
 
 ''overwrite'' attribute can also be set or canceled for an event using config terms. For example: ''cycles/overwrite/'' and ''instructions/no-overwrite/''.
@@ -661,12 +689,43 @@ Implies --tail-synthesize.
 
 <blockquote>ctl-fifo / ack-fifo are opened and used as ctl-fd / ack-fd as follows. Listen on ctl-fd descriptor for command to control measurement.
 </blockquote>
-Available commands: ''enable'' : enable events ''disable'' : disable events ''enable name'' : enable event ''name'' ''disable name'' : disable event ''name'' ''snapshot'' : AUX area tracing snapshot). ''stop'' : stop perf record ''ping'' : ping
+Available commands:
 
-<blockquote><pre>evlist [-v|-g|-F] : display all events
-                     -F  Show just the sample frequency used for each event.
-                     -v  Show all fields.
-                     -g  Show event group information.</pre></blockquote>
+<blockquote>·
+
+''enable'' : enable events
+</blockquote>
+<blockquote>·
+
+''disable'' : disable events
+</blockquote>
+<blockquote>·
+
+''enable name'' : enable event ''name''
+</blockquote>
+<blockquote>·
+
+''disable name'' : disable event ''name''
+</blockquote>
+<blockquote>·
+
+''snapshot'' : AUX area tracing snapshot).
+</blockquote>
+<blockquote>·
+
+''stop'' : stop perf record
+</blockquote>
+<blockquote>·
+
+''ping'' : ping
+</blockquote>
+<blockquote>·
+
+evlist [-v|-g|-F] : display all events
+
+<blockquote><pre>-F  Show just the sample frequency used for each event.
+-v  Show all fields.
+-g  Show event group information.</pre></blockquote></blockquote>
 Measurements can be started with events disabled using --delay=-1 option. Optionally send control command completion (''ack\n'') to ack-fd descriptor to synchronize with the controlling process. Example of bash shell script to enable and disable events during measurements:
 
 <blockquote><pre>#!/bin/bash
@@ -713,10 +772,22 @@ specifies parallel threads layout that consists of two threads, the first thread
 
 &lt;spec&gt; value can also be a string meaning predefined parallel threads layout:
 
-<blockquote><pre>cpu    - create new data streaming thread for every monitored cpu
-core   - create new thread to monitor CPUs grouped by a core
+<blockquote>·
+
+cpu - create new data streaming thread for every monitored cpu
+</blockquote>
+<blockquote>·
+
+core - create new thread to monitor CPUs grouped by a core
+</blockquote>
+<blockquote>·
+
 package - create new thread to monitor CPUs grouped by a package
-numa   - create new threed to monitor CPUs grouped by a NUMA domain</pre></blockquote>
+</blockquote>
+<blockquote>·
+
+numa - create new threed to monitor CPUs grouped by a NUMA domain
+</blockquote>
 Predefined layouts can be used on systems with large number of CPUs in order not to spawn multiple per-cpu streaming threads but still avoid LOST events in data directory files. Option specified with no or empty value defaults to CPU layout. Masks defined or provided by the option value are filtered through the mask provided by -C option.
 
 --debuginfod[=URLs]
@@ -888,4 +959,4 @@ But ''{cpu_core/cycles/,cpu_atom/instructions/}'' will return warning and disabl
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.5
+This page is auto-generated.  The kernel version is v6.6-rc1
