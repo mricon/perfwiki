@@ -77,6 +77,10 @@ This ''perf bench'' command is a general framework for benchmark suites.
 
 <blockquote>Benchmark internal perf functionality.
 </blockquote>
+''uprobe''
+
+<blockquote>Benchmark overhead of uprobe + BPF.
+</blockquote>
 ''all''
 
 <blockquote>All benchmark subsystems.
@@ -272,4 +276,4 @@ options (20 sender and receiver processes per group)
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.5
+This page is auto-generated.  The kernel version is v6.6-rc1
