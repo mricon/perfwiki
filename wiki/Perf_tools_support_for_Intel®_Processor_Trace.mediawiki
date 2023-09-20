@@ -4428,6 +4428,64 @@ $ perf script --itrace=eIb --ns | head -11
            uname   274 [003]  4513.329995950:          1                branches:uH:                 0 [unknown] ([unknown]) =>     7fdd2d39eb6b [unknown] (/lib/ld64-uClibc-1.0.39.so)
 </pre>
 
+=== Tracing JIT-compiled code like Java™ with OpenJDK ===
+
+Intel PT decoding needs to walk the object code to reconstruct control flow from trace packets, so how does this work if the code is created at runtime by a JIT compiler.
+
+The answer is that some JIT compilers like OpenJDK Java provide an interface to record the JIT-compiled code.  For Java it is called Java™ Virtual Machine Tool Interface (JVM TI).  <tt>'''perf'''</tt> provides library <u>libperf-jvmti.so</u> to make use of the interface.  To make it work:
+* java option <tt>'''-agentpath'''</tt> is used to tell java to use <u>libperf-jvmti.so</u> which produces a '''''jitdump file'''''
+* <tt>'''perf inject'''</tt> must be used to inject information from the '''''jitdump file''''' into the output perf.data file
+
+Below is a small example using HelloWorldApp from The Java™ Tutorials.  Note that the recorded perf.data file is called java.perf.data and the injected perf.data file is called java.perf.data.jitted.
+
+<pre>
+$ cat HelloWorldApp.java
+/**
+ * The HelloWorldApp class implements an application that
+ * simply prints "Hello World!" to standard output.
+ */
+class HelloWorldApp {
+    public static void main(String[] args) {
+        System.out.println("Hello World!"); // Display the string.
+    }
+}
+$ javac HelloWorldApp.java
+$ perf record -m,16M -e intel_pt//u -o java.perf.data java -agentpath:$HOME/lib64/libperf-jvmti.so HelloWorldApp
+java: jvmti: jitdump in /home/ahunter/.debug/jit/java-jit-20230920.XXVLk6o0/jit-162584.dump
+Hello World!
+[ perf record: Woken up 3 times to write data ]
+[ perf record: Captured and wrote 15.469 MB java.perf.data ]
+$ perf inject -i java.perf.data --jit -o java.perf.data.jitted
+$ perf script --itrace=qqi -i java.perf.data.jitted | grep jitted | head
+            java  162586 [006] 779113.252541:          1 instructions:uH:      7f7bc860008b flush_icache_stub+0xb (/home/ahunter/.debug/jit/java-jit-20230920.XXVLk6o0/jitted-162584-1.so)
+            java  162586 [006] 779113.257527:          1 instructions:uH:      7f7bc8614007 Interpreter+0xb487 (/home/ahunter/.debug/jit/java-jit-20230920.XXVLk6o0/jitted-162584-29.so)
+            java  162586 [006] 779113.259374:          1 instructions:uH:      7f7bc8611617 Interpreter+0x8a97 (/home/ahunter/.debug/jit/java-jit-20230920.XXVLk6o0/jitted-162584-29.so)
+            java  162586 [006] 779113.259391:          1 instructions:uH:      7f7bc8618c3d Interpreter+0x100bd (/home/ahunter/.debug/jit/java-jit-20230920.XXVLk6o0/jitted-162584-29.so)
+            java  162586 [006] 779113.259411:          1 instructions:uH:      7f7bc86146a7 Interpreter+0xbb27 (/home/ahunter/.debug/jit/java-jit-20230920.XXVLk6o0/jitted-162584-29.so)
+            java  162586 [006] 779113.259426:          1 instructions:uH:      7f7bc861a823 Interpreter+0x11ca3 (/home/ahunter/.debug/jit/java-jit-20230920.XXVLk6o0/jitted-162584-29.so)
+            java  162586 [006] 779113.259444:          1 instructions:uH:      7f7bc8618b3f Interpreter+0xffbf (/home/ahunter/.debug/jit/java-jit-20230920.XXVLk6o0/jitted-162584-29.so)
+            java  162586 [006] 779113.259458:          1 instructions:uH:      7f7bc8621514 Interpreter+0x18994 (/home/ahunter/.debug/jit/java-jit-20230920.XXVLk6o0/jitted-162584-29.so)
+            java  162586 [006] 779113.259473:          1 instructions:uH:      7f7bc860f684 Interpreter+0x6b04 (/home/ahunter/.debug/jit/java-jit-20230920.XXVLk6o0/jitted-162584-29.so)
+            java  162586 [006] 779113.259489:          1 instructions:uH:      7f7bc861e401 Interpreter+0x15881 (/home/ahunter/.debug/jit/java-jit-20230920.XXVLk6o0/jitted-162584-29.so)
+$ 
+</pre>
+
+'''Note''' that OpenJDK does '''not''' provide all JIT-compiled code via JVMTI so there are still decode errors:
+
+<pre>
+$ perf script --itrace=e -i java.perf.data.jitted | head
+ instruction trace error type 1 time 779113.256448669 cpu 6 pid 162584 tid 162586 ip 0x7f7bc8657180 code 5: Failed to get instruction
+ instruction trace error type 1 time 779113.256449353 cpu 6 pid 162584 tid 162586 ip 0x7f7be7902b8c code 6: Trace doesn't match instruction
+ instruction trace error type 1 time 779113.256562002 cpu 6 pid 162584 tid 162586 ip 0x7f7bc8657180 code 5: Failed to get instruction
+ instruction trace error type 1 time 779113.256567103 cpu 6 pid 162584 tid 162586 ip 0x7f7bc860fa2e code 6: Trace doesn't match instruction
+ instruction trace error type 1 time 779113.256567276 cpu 6 pid 162584 tid 162586 ip 0x7f7be75739df code 6: Trace doesn't match instruction
+ instruction trace error type 1 time 779113.256567282 cpu 6 pid 162584 tid 162586 ip 0x7f7be7e3797e code 6: Trace doesn't match instruction
+ instruction trace error type 1 time 779113.256567458 cpu 6 pid 162584 tid 162586 ip 0x7f7be787eeb8 code 6: Trace doesn't match instruction
+ instruction trace error type 1 time 779113.256590771 cpu 6 pid 162584 tid 162586 ip 0x7f7bc8657180 code 5: Failed to get instruction
+ instruction trace error type 1 time 779113.256666104 cpu 6 pid 162584 tid 162586 ip 0x7f7bc8657180 code 5: Failed to get instruction
+ instruction trace error type 1 time 779113.256666673 cpu 6 pid 162584 tid 162586 ip 0x7f7be7b8159b code 6: Trace doesn't match instruction
+</pre>
+
 == Appendix: Intel PT capabilities on different processors ==
 
 Generally, processors with the same CPU core microarchitecture can be expected to have the same Intel PT capabilities.  The Linux Intel PT driver provides capability flags in sysfs, refer [[#Intel_PT_man_page|Intel PT man page]]
