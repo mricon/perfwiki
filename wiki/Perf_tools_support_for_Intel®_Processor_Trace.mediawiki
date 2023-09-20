@@ -4428,7 +4428,7 @@ $ perf script --itrace=eIb --ns | head -11
            uname   274 [003]  4513.329995950:          1                branches:uH:                 0 [unknown] ([unknown]) =>     7fdd2d39eb6b [unknown] (/lib/ld64-uClibc-1.0.39.so)
 </pre>
 
-=== Tracing JIT-compiled code like Java™ with OpenJDK ===
+== Tracing JIT-compiled code like Java™ with OpenJDK ==
 
 Intel PT decoding needs to walk the object code to reconstruct control flow from trace packets, so how does this work if the code is created at runtime by a JIT compiler.
 
