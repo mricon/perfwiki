@@ -4486,6 +4486,211 @@ $ perf script --itrace=e -i java.perf.data.jitted | head
  instruction trace error type 1 time 779113.256666673 cpu 6 pid 162584 tid 162586 ip 0x7f7be7b8159b code 6: Trace doesn't match instruction
 </pre>
 
+== Using perf dlfilter interface to disassemble executed instructions ==
+
+perf provides an API to link a user-provided library for filtering or processing of data.  Such a library is refered to as a dlfilter.
+Refer to the [https://perf.wiki.kernel.org/index.php/Latest_Manual_Page_of_perf-dlfilter.1 perf dlfilter] man page for details.
+The advantage of using a dlfilter is that it can be much faster than processing with the perf Python API.
+
+Below is a perf dlfilter program to disassemble Intel PT traces.  It could be modified to filter based on particular kinds of instructions,
+but at the moment just prints a disassembly.  The [http://intelxed.github.io/ Intel X86 Encoder Decoder (XED)] is used.  Refer to [[#Example: Tracing your own code : Hello World]]
+for how to install XED.
+
+<pre>
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * perf dlfilter to disassemble Intel PT trace
+ */
+
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+
+#include <perf/perf_dlfilter.h>
+
+#include <xed/xed-interface.h>
+
+#define MAX_CPU 4096
+
+static __u64 last_branch_addr[MAX_CPU];
+
+#define BUFSZ 65536
+
+static __u8 ibuf[BUFSZ];
+
+#define BRANCHES_EVENT "branches"
+
+static const char *branches = BRANCHES_EVENT;
+static const size_t branches_len = (sizeof(BRANCHES_EVENT) - 1);
+
+struct perf_dlfilter_fns perf_dlfilter_fns;
+
+int start(void **data, void *ctx)
+{
+	xed_tables_init();
+	return 0;
+}
+
+static void print_instruction(xed_decoded_inst_t *inst, __u64 from_addr)
+{
+	char obuf[256];
+
+	if (!xed_format_context(XED_SYNTAX_ATT, inst, obuf, sizeof(obuf), from_addr, NULL, NULL)) {
+		printf("xed_format_context failed\n");
+		return;
+	}
+
+	printf("%16llx  %s\n", from_addr, obuf);
+}
+
+static void disassemble_buffer(__u64 from_addr, __u64 to_addr, bool is_64_bit, bool inclusive, __u8 *buf, __s32 len)
+{
+	xed_error_enum_t xed_ret;
+	xed_decoded_inst_t inst;
+	__u8 *p = buf;
+
+	xed_decoded_inst_zero(&inst);
+
+	if (is_64_bit)
+		xed_decoded_inst_set_mode(&inst, XED_MACHINE_MODE_LONG_64, XED_ADDRESS_WIDTH_64b);
+	else
+		xed_decoded_inst_set_mode(&inst, XED_MACHINE_MODE_LEGACY_32, XED_ADDRESS_WIDTH_32b);
+
+	/* Bump up 'to_addr' to make the loop include that instruction also */
+	if (inclusive)
+		to_addr += 1;
+
+	while (len > 0 && from_addr < to_addr) {
+		xed_uint_t ilen;
+
+		xed_decoded_inst_zero_keep_mode(&inst);
+
+		xed_ret = xed_decode(&inst, p, len);
+		if (xed_ret != XED_ERROR_NONE) {
+			printf("xed_decode failed, error %d\n", xed_ret);
+			return;
+		}
+
+		print_instruction(&inst, from_addr);
+
+		ilen = xed_decoded_inst_get_length(&inst);
+
+		p += ilen;
+		len -= ilen;
+		from_addr += ilen;
+	}
+}
+
+static void disassemble_range(void *ctx, __u64 from_addr, __u64 to_addr, bool is_64_bit, bool inclusive, __u8 *buf, size_t buf_len)
+{
+	__u64 sz;
+	__u64 read_sz;
+	__s32 nr_bytes;
+
+	sz = to_addr - from_addr;
+	if (sz == 0 && !inclusive)
+		return;
+
+	/* 'inclusive' means also read last instruction */
+	read_sz = inclusive ? sz + XED_MAX_INSTRUCTION_BYTES : sz;
+
+	if (read_sz > buf_len) {
+		printf("Cannot disassemble from %llx to %llx, buffer too small\n", from_addr, to_addr);
+		return;
+	}
+
+	/* Read object code, return numbers of bytes read */
+	nr_bytes = perf_dlfilter_fns.object_code(ctx, from_addr, ibuf, read_sz);
+	if (nr_bytes < sz) {
+		printf("Failed to read object code\n");
+		return;
+	}
+
+	disassemble_buffer(from_addr, to_addr, is_64_bit, inclusive, buf, nr_bytes);
+}
+
+int filter_event_early(void *data, const struct perf_dlfilter_sample *sample, void *ctx)
+{
+	const struct perf_dlfilter_al *al;
+	__u64 from_addr, to_addr;
+	bool async;
+
+	/* Only process per-cpu branch events */
+	if (strncmp(sample->event, branches, branches_len) ||
+	    sample->cpu < 0 ||
+	    !sample->addr_correlates_sym)
+		return 0;
+
+	from_addr = last_branch_addr[sample->cpu];
+	to_addr = sample->ip;
+
+	if (!from_addr || !to_addr)
+		goto out;
+
+	if (to_addr < from_addr) {
+		printf("Cannot disassemble from %llx to %llx\n", from_addr, to_addr);
+		goto out;
+	}
+
+	al = perf_dlfilter_fns.resolve_ip(ctx);
+	if (!al) {
+		printf("Cannot resolve address %llx\n", sample->ip);
+		goto out;
+	}
+
+	/* Asynchronous means the instruction at the branch address was not executed */
+	async = sample->flags & PERF_DLFILTER_FLAG_ASYNC;
+
+	disassemble_range(ctx, from_addr, to_addr, al->is_64_bit, !async, ibuf, sizeof(ibuf));
+
+out:
+	if (sample->flags & PERF_DLFILTER_FLAG_TRACE_END)
+		last_branch_addr[sample->cpu] = 0;
+	else
+		last_branch_addr[sample->cpu] = sample->addr;
+
+	return 0;
+}
+
+const char *filter_description(const char **long_description)
+{
+	static char *long_desc = "Requires an Intel PT branch trace (not config term branch=0).  "
+		"Per-thread recording is not supported.  Example: "
+		"perf record -e intel_pt//u uname ; "
+		"perf script --itrace=be --dlfilter dlfilter-x86-disasm.so --ns -F-period,-event,+addr,+flags";
+
+	*long_description = long_desc;
+	return "Disassemble Intel PT trace";
+}
+</pre>
+
+To compile the dlfilter:
+
+<pre>
+$ gcc -c -o dlfilter-x86-disasm.o -I ~/include -fpic dlfilter-x86-disasm.c
+$ gcc -shared -o dlfilter-x86-disasm.so dlfilter-x86-disasm.o -lxed
+</pre>
+
+To record a simple trace and disassemble:
+
+<pre>
+$ perf record -e intel_pt//u uname
+Linux
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.044 MB perf.data ]
+$ perf script --itrace=be --dlfilter dlfilter-x86-disasm.so --ns -F-period,-event,+addr,+flags | head
+           uname    7834 [000] 15899.089119450:   tr strt                               0 [unknown] ([unknown]) =>     7fb0daf7b2f0 _start+0x0 (/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2)
+           uname    7834 [000] 15899.089119659:   tr end  async              7fb0daf7b2f0 _start+0x0 (/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2) =>                0 [unknown] ([unknown])
+           uname    7834 [000] 15899.089122367:   tr strt                               0 [unknown] ([unknown]) =>     7fb0daf7b2f0 _start+0x0 (/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2)
+    7fb0daf7b2f0  mov %rsp, %rdi
+    7fb0daf7b2f3  callq  0x7fb0daf7c090
+           uname    7834 [000] 15899.089122367:   call                       7fb0daf7b2f3 _start+0x3 (/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2) =>     7fb0daf7c090 _dl_start+0x0 (/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2)
+    7fb0daf7c090  nop %edi, %edx
+    7fb0daf7c094  pushq  %rbp
+    7fb0daf7c095  mov %rsp, %rbp
+    7fb0daf7c098  pushq  %r15
+</pre>
+
 == Appendix: Intel PT capabilities on different processors ==
 
 Generally, processors with the same CPU core microarchitecture can be expected to have the same Intel PT capabilities.  The Linux Intel PT driver provides capability flags in sysfs, refer [[#Intel_PT_man_page|Intel PT man page]]
