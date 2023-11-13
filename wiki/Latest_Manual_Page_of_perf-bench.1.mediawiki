@@ -144,6 +144,10 @@ options (20 sender and receiver processes per group)
 <blockquote>-l, --loop=
 
 <blockquote>Specify number of loops.
+</blockquote>
+-G, --cgroups=
+
+<blockquote>Names of cgroups for sender and receiver, separated by a comma. This is useful to check cgroup context switching overhead. Note that perf doesn’t create nor delete the cgroups, so users should make sure that the cgroups exist and are accessible before use.
 </blockquote></blockquote>
 <br />
 
@@ -165,6 +169,16 @@ options (20 sender and receiver processes per group)
         Total time:0.016 sec
                 16.948000 usecs/op
                 59004 ops/sec
+
+% perf bench sched pipe -G AAA,BBB
+(executing 1000000 pipe operations between cgroups)
+# Running sched/pipe benchmark:
+# Executed 1000000 pipe operations between two processes
+
+     Total time: 6.886 [sec]
+
+       6.886208 usecs/op
+         145217 ops/sec
 .ft
 </pre></blockquote></blockquote>
 == SUITES FOR ''syscall'' ==
@@ -276,4 +290,4 @@ options (20 sender and receiver processes per group)
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.6-rc1
+This page is auto-generated.  The kernel version is v6.7-rc1
