@@ -286,4 +286,4 @@ Check Joe’s blog on c2c tool for detailed use case explanation: '''https://joe
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.6-rc1
+This page is auto-generated.  The kernel version is v6.7-rc1
