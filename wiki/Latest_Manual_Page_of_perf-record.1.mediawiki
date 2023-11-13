@@ -354,6 +354,8 @@ like &quot;--call-graph fp,32&quot;.</pre></blockquote></blockquote>
 
 <blockquote>Collect samples only on the list of CPUs provided. Multiple CPUs can be provided as a comma-separated list with no space: 0,1. Ranges of CPUs are specified with -: 0-2. In per-thread mode with inheritance mode on (default), samples are captured only when the thread executes on the designated CPUs. Default is to monitor all CPUs.
 </blockquote>
+User space tasks can migrate between CPUs, so when tracing selected CPUs, a dummy event is created to track sideband for all CPUs.
+
 -B, --no-buildid
 
 <blockquote>Do not save the build ids of binaries in the perf.data files. This skips post processing after recording, which sometimes makes the final step in the recording process to take a long time, as it needs to process all events looking for mmap records. The downside is that it can misresolve symbols if the workload binaries used when recording get locally rebuilt or upgraded, because the only key available in this case is the pathname. You can also set the &quot;record.build-id&quot; config variable to skip to have this behaviour permanently.
@@ -959,4 +961,4 @@ But ''{cpu_core/cycles/,cpu_atom/instructions/}'' will return warning and disabl
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.6-rc1
+This page is auto-generated.  The kernel version is v6.7-rc1
