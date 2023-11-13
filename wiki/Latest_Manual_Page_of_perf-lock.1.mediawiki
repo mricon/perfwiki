@@ -200,6 +200,13 @@ CONTENTION OPTIONS
         Show results using a CSV-style output to make it easy to import directly
         into spreadsheets. Columns are separated by the string specified in SEP.
 
+--lock-cgroup::
+        Show lock contention stat by cgroup.  Requires --use-bpf.
+
+-G::
+--cgroup-filter=&lt;value&gt;::
+        Show lock contention only in the given cgroups (comma separated list).
+
 
 SEE ALSO
 .ft
@@ -209,4 +216,4 @@ SEE ALSO
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.6-rc1
+This page is auto-generated.  The kernel version is v6.7-rc1
