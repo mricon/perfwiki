@@ -180,4 +180,4 @@ Excessively large perf.data file size
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.7-rc1
+This page is auto-generated.  The kernel version is v6.7
