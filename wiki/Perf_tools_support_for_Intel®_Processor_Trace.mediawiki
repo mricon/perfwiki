@@ -4898,4 +4898,7 @@ Alder Lake-N has only E-Cores and more Intel PT features like Event Trace and TN
 /sys/bus/event_source/devices/intel_pt/caps/tnt_disable:0
 /sys/bus/event_source/devices/intel_pt/caps/topa_multiple_entries:1
 /sys/bus/event_source/devices/intel_pt/caps/topa_output:1
+
+# echo -n "PEBS output to Intel PT Capability (PERF_CAPABILITIES MSR 0x345 bit-16) : " ;  rdmsr -p 0 -f 16:16 0x345
+PEBS output to Intel PT Capability (PERF_CAPABILITIES MSR 0x345 bit-16) : 0
 </pre>
