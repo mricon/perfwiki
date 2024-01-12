@@ -4876,3 +4876,26 @@ Alder Lake-N has only E-Cores and more Intel PT features like Event Trace and TN
 /sys/bus/event_source/devices/intel_pt/caps/topa_multiple_entries:1
 /sys/bus/event_source/devices/intel_pt/caps/topa_output:1
 </pre>
+
+=== 13th Gen Core (Raptor Lake) ===
+<pre>
+# grep -H . /sys/bus/event_source/devices/intel_pt/caps/*
+/sys/bus/event_source/devices/intel_pt/caps/cr3_filtering:1
+/sys/bus/event_source/devices/intel_pt/caps/cycle_thresholds:3f
+/sys/bus/event_source/devices/intel_pt/caps/event_trace:0
+/sys/bus/event_source/devices/intel_pt/caps/ip_filtering:1
+/sys/bus/event_source/devices/intel_pt/caps/max_subleaf:1
+/sys/bus/event_source/devices/intel_pt/caps/mtc:1
+/sys/bus/event_source/devices/intel_pt/caps/mtc_periods:249
+/sys/bus/event_source/devices/intel_pt/caps/num_address_ranges:2
+/sys/bus/event_source/devices/intel_pt/caps/output_subsys:0
+/sys/bus/event_source/devices/intel_pt/caps/payloads_lip:0
+/sys/bus/event_source/devices/intel_pt/caps/power_event_trace:0
+/sys/bus/event_source/devices/intel_pt/caps/psb_cyc:1
+/sys/bus/event_source/devices/intel_pt/caps/psb_periods:3f
+/sys/bus/event_source/devices/intel_pt/caps/ptwrite:1
+/sys/bus/event_source/devices/intel_pt/caps/single_range_output:1
+/sys/bus/event_source/devices/intel_pt/caps/tnt_disable:0
+/sys/bus/event_source/devices/intel_pt/caps/topa_multiple_entries:1
+/sys/bus/event_source/devices/intel_pt/caps/topa_output:1
+</pre>
