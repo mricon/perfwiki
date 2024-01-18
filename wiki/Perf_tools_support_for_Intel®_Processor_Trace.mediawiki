@@ -4691,6 +4691,328 @@ $ perf script --itrace=be --dlfilter dlfilter-x86-disasm.so --ns -F-period,-even
     7fb0daf7c098  pushq  %r15
 </pre>
 
+== Tracing Intel User Interrupts with Intel Processor Trace (Intel PT) ==
+
+RFC patches to add Linux kernel support for Intel User Interrupts were submitted in 2021 [https://lwn.net/Articles/871113/ LWN Article],
+[https://lore.kernel.org/linux-api/20210913200132.3396598-1-sohil.mehta@intel.com/#r discussion], but have not progressed since.
+
+So this example uses a custom kernel based on the provided [https://github.com/intel/uintr-linux-kernel uintr-linux-kernel git repository] branch uintr-next commit 9bbbb4b7fb89fbc3bde8aaed57a0eabc43a2dc64.
+
+Importantly, User Interrupt support must be enabled in kernel config i.e. CONFIG_X86_USER_INTERRUPTS=y
+
+Once installed, check the kernel version is what is expected e.g.
+
+<pre>
+$ uname -a
+Linux spr2 6.0.0-00019-g9bbbb4b7fb89 #2 SMP PREEMPT_DYNAMIC Tue Jan 16 18:38:27 EET 2024 x86_64 GNU/Linux
+</pre>
+
+And check for the User Interrupts feature:
+
+<pre>
+$ cat /proc/cpuinfo | head -30 | grep -c uintr
+1
+</pre>
+
+The developer provided benchmark programs [https://github.com/intel/uintr-ipc-bench uintr-ipc-bench].  In this example, branch master commit 6696170577b964a16e770e2bca2c03ce898d4608.
+Build and run instructions in README.md
+
+Benchamark program build/source/uintrfd/uintrfd-uni will be used.  It repeatedly sends a user interrupt (senduipi) to another thread which will invoke a registered handler function ui_handler().  The time taken from sending to receiving is measured:
+
+<pre>
+$ cat source/uintrfd/uintrfd-uni.c
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <x86gprintrin.h>
+
+#define __USE_GNU
+#include <pthread.h>
+#include <sched.h>
+
+#include "common/common.h"
+
+#ifndef __NR_uintr_register_handler
+#define __NR_uintr_register_handler	471
+#define __NR_uintr_unregister_handler	472
+#define __NR_uintr_create_fd		473
+#define __NR_uintr_register_sender	474
+#define __NR_uintr_unregister_sender	475
+#define __NR_uintr_wait			476
+#endif
+
+#define uintr_register_handler(handler, flags)	syscall(__NR_uintr_register_handler, handler, flags)
+#define uintr_unregister_handler(flags)		syscall(__NR_uintr_unregister_handler, flags)
+#define uintr_create_fd(vector, flags)		syscall(__NR_uintr_create_fd, vector, flags)
+#define uintr_register_sender(fd, flags)	syscall(__NR_uintr_register_sender, fd, flags)
+#define uintr_unregister_sender(ipi_idx, flags)	syscall(__NR_uintr_unregister_sender, ipi_idx, flags)
+#define uintr_wait(flags)			syscall(__NR_uintr_wait, flags)
+
+volatile unsigned long uintr_received;
+volatile unsigned int uintr_count = 0;
+int descriptor;
+
+struct Benchmarks bench;
+
+void __attribute__ ((interrupt))
+     __attribute__((target("general-regs-only", "inline-all-stringops")))
+     ui_handler(struct __uintr_frame *ui_frame,
+		unsigned long long vector) {
+
+	benchmark(&bench);
+	uintr_count++;
+	uintr_received = 1;
+}
+
+void __attribute__ ((noinline)) senduipi(int uipi_index)
+{
+	_senduipi(uipi_index);
+}
+
+void *client_communicate(void *arg) {
+
+	struct Arguments* args = (struct Arguments*)arg;
+	int loop;
+
+	int uipi_index = uintr_register_sender(descriptor, 0);
+	if (uipi_index < 0)
+		throw("Sender register error\n");
+
+	for (loop = args->count; loop > 0; --loop) {
+
+		uintr_received = 0;
+		bench.single_start = now();
+
+		// Send User IPI
+		senduipi(uipi_index);
+
+		while (!uintr_received){
+			// Keep spinning until this user interrupt is received.
+		}
+	}
+
+	return NULL;
+}
+
+void server_communicate(int descriptor, struct Arguments* args) {
+
+	while (uintr_count < args->count) {
+		//Keep spinning until all user interrupts are delivered.
+	}
+
+	// The message size is always one (it's just a signal)
+	args->size = 1;
+	evaluate(&bench, args);
+}
+
+void communicate(int descriptor, struct Arguments* args) {
+
+	pthread_t pt;
+
+	setup_benchmarks(&bench);
+
+	// Create another thread
+	if (pthread_create(&pt, NULL, &client_communicate, args)) {
+		throw("Error creating sender thread");
+	}
+
+	server_communicate(descriptor, args);
+
+	close(descriptor);
+}
+
+int main(int argc, char* argv[]) {
+
+	struct Arguments args;
+
+	if (uintr_register_handler(ui_handler, 0))
+		throw("Interrupt handler register error\n");
+
+	// Create a new uintrfd object and get the corresponding
+	// file descriptor.
+	descriptor = uintr_create_fd(0, 0);
+	if (descriptor < 0)
+		throw("Interrupt vector allocation error\n");
+
+	// Enable interrupts
+	_stui();
+
+	parse_arguments(&args, argc, argv);
+
+	communicate(descriptor, &args);
+
+	return EXIT_SUCCESS;
+}
+</pre>
+
+The benchmark is using timespec_get() which is not ideal for comparing time measurements because it uses CLOCK_REALTIME which is not monotonic.
+For comparing times on different machines, CLOCK_MONOTONIC can be used.
+For comparing times on the same machine, CLOCK_MONTONIC or CLOCK_MONTONIC_RAW can be used.
+For comparing with Intel PT, CLOCK_MONTONIC_RAW will be a close match to perf time, so that is used here.
+
+Also to get precise timing, Intel PT address filtering can be used, but in that case senduipi needs to be a separate, non-inline function.
+
+Here are the changes:
+
+<pre>
+$ git diff
+diff --git a/source/common/benchmarks.c b/source/common/benchmarks.c
+index 6c3fe92..6619cd9 100644
+--- a/source/common/benchmarks.c
++++ b/source/common/benchmarks.c
+@@ -13,7 +13,7 @@ bench_t now() {
+ 	return ((double)clock()) / CLOCKS_PER_SEC * 1e9;
+ #else
+ 	struct timespec ts;
+-	timespec_get(&ts, TIME_UTC);
++	clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+
+ 	return ts.tv_sec * 1e9 + ts.tv_nsec;
+
+diff --git a/source/uintrfd/uintrfd-uni.c b/source/uintrfd/uintrfd-uni.c
+index cb62dbb..c26f9d2 100644
+--- a/source/uintrfd/uintrfd-uni.c
++++ b/source/uintrfd/uintrfd-uni.c
+@@ -42,6 +42,11 @@ void __attribute__ ((interrupt))
+ 	uintr_received = 1;
+ }
+
++void __attribute__ ((noinline)) senduipi(int uipi_index)
++{
++	_senduipi(uipi_index);
++}
++
+ void *client_communicate(void *arg) {
+
+ 	struct Arguments* args = (struct Arguments*)arg;
+@@ -57,7 +62,7 @@ void *client_communicate(void *arg) {
+ 		bench.single_start = now();
+
+ 		// Send User IPI
+-		_senduipi(uipi_index);
++		senduipi(uipi_index);
+
+ 		while (!uintr_received){
+ 			// Keep spinning until this user interrupt is received.
+</pre>
+
+Run the benchmark program, tracing with Intel PT and cycle-accurate mode, using address filters for the sending function senduipi() and receiving function ui_handler():
+
+<pre>
+$ perf record -e intel_pt/cyc/u --filter 'filter senduipi #1 @ build/source/uintrfd/uintrfd-uni , filter ui_handler #1 @ build/source/uintrfd/uintrfd-uni' -- build/source/uintrfd/uintrfd-uni
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0.131 MB uintr-tfr2/perf.data ]
+
+============ RESULTS ================
+Message size:       1
+Message count:      1000
+Total duration:     2.416	ms
+Average duration:   1.348	us
+Minimum duration:   1.280	us
+Maximum duration:   7.608	us
+Standard deviation: 0.235	us
+Message rate:       413926	msg/s
+=====================================
+</pre>
+
+A python script is needed to compute statistics from the Intel PT trace:
+
+<pre>
+$ cat uintr-uni-stats.py
+
+import statistics
+import numpy
+
+def trace_begin():
+	print("uintr-uni statistics")
+	print("====================")
+
+def get_optional(perf_dict, field, dflt):
+	if field in perf_dict:
+		return perf_dict[field]
+	return dflt
+
+glb_start = 0
+glb_data = []
+
+def process_event(param_dict):
+	name        = param_dict["ev_name"]
+	if not name.startswith("branches"):
+		return
+	sample      = param_dict["sample"]
+	pid         = sample["pid"]
+	tid         = sample["tid"]
+	cpu         = sample["cpu"]
+	ts          = sample["time"]
+	addr_symbol = get_optional(sample, "addr_symbol", "[unknown]")
+	addr_symoff = get_optional(sample, "addr_symoff", "[unknown]")
+	symbol      = get_optional(param_dict, "symbol", "[unknown]")
+	symoff      = get_optional(param_dict, "symoff", 1)
+	global glb_start
+	global glb_data
+	if addr_symbol == "senduipi" and addr_symoff == 0:
+		if glb_start:
+			print(cpu, pid, tid, ts, name, symbol, symoff, addr_symbol, addr_symoff, "START AFTER START")
+		glb_start = ts
+	elif addr_symbol == "ui_handler" and addr_symoff == 0:
+		if glb_start:
+			latency = (ts - glb_start) / 1000
+			glb_data.append(latency)
+			glb_start = 0
+		else:
+			print(cpu, pid, tid, ts, name, symbol, symoff, addr_symbol, addr_symoff, "END NO START")
+
+def trace_end():
+	print()
+	print("Count:              %u" % len(glb_data))
+	print("Average:            %.3f" % statistics.mean(glb_data))
+	print("Minimum:            %.3f" % min(glb_data))
+	print("Maximum:            %.3f" % max(glb_data))
+	print("Standard deviation: %.3f" % statistics.stdev(glb_data))
+	h = numpy.histogram(glb_data, bins=10)
+	print("\nHistogram:")
+	print("  Range          Count")
+	for i in range(10):
+		print("  %.3f - %.3f  %u" % (h[1][i], h[1][i+1], h[0][i]))
+</pre>
+
+First check for errors:
+
+<pre>
+$ perf script --itrace=e
+$
+</pre>
+
+No errors, so run the script:
+
+<pre>
+$ perf script --itrace=bep -s uintr-uni-stats.py
+uintr-uni statistics
+====================
+
+Count:              1000
+Average:            1.259
+Minimum:            1.201
+Maximum:            7.484
+Standard deviation: 0.216
+
+Histogram:
+  Range          Count
+  1.201 - 1.829  998
+  1.829 - 2.458  1
+  2.458 - 3.086  0
+  3.086 - 3.714  0
+  3.714 - 4.342  0
+  4.342 - 4.971  0
+  4.971 - 5.599  0
+  5.599 - 6.227  0
+  6.227 - 6.856  0
+  6.856 - 7.484  1
+</pre>
+
+The Intel PT results are slighly lower than the benchmark program produced itself, because they do not included the overhead of getting the time (via clock_gettime).
+
 == Appendix: Intel PT capabilities on different processors ==
 
 Generally, processors with the same CPU core microarchitecture can be expected to have the same Intel PT capabilities.  The Linux Intel PT driver provides capability flags in sysfs, refer [[#Intel_PT_man_page|Intel PT man page]]
