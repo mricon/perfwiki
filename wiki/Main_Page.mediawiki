@@ -26,6 +26,8 @@ The userspace <tt>perf</tt> command present a simple to use interface with comma
 
 To learn more, see the examples in the [[Tutorial]] or how to do a [[Top-Down Analysis]].
 
+To ask questions, report bugs/issues mail the [https://lore.kernel.org/linux-perf-users/ mailing list] or use [https://bugzilla.kernel.org/buglist.cgi?bug_status=__open__&order=changeddate%20DESC%2Cpriority%2Cbug_severity&product=Tracing%2FProfiling&query_format=advanced bugzilla].
+
 === Wiki Contents  ===
 
 * [[Tutorial]]
