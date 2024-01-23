@@ -40,3 +40,7 @@ To ask questions, report bugs/issues mail the [https://lore.kernel.org/linux-per
 * [[Glossary]]
 * [[Latest Manual Pages]]
 * [[Development]]
+
+=== Google Summer of Code ===
+
+As part of the [https://www.linuxfoundation.org/ Linux Foundation] the perf tool has participated in the [https://summerofcode.withgoogle.com/ Google Summer-of-Code] since 2021. [https://wiki.linuxfoundation.org/gsoc/2024-gsoc-perf Check out the 2024 process].
