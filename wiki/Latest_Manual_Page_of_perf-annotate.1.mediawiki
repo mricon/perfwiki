@@ -89,6 +89,7 @@ s       skip initial number of events
 q       quicker (less detailed) decoding
 A       approximate IPC
 Z       prefer to ignore timestamps (so-called &quot;timeless&quot; decoding)
+T       use the timestamp trace as kernel time
 
 The default is all events i.e. the same as --itrace=iybxwpe,
 except for perf script where it is --itrace=ce
@@ -231,6 +232,14 @@ on - the samples period or the number of samples (hits).</pre></blockquote></blo
 
 <blockquote>Do not show functions which have an overhead under that percent on stdio or stdio2 (Default: 0). Note that this is about selection of functions to display, not about lines within the function.
 </blockquote>
+--data-type[=TYPE_NAME]
+
+<blockquote>Display data type annotation instead of code. It infers data type of samples (if they are memory accessing instructions) using DWARF debug information. It can take an optional argument of data type name. In that case it’d show annotation for the type only, otherwise it’d show all data types it finds.
+</blockquote>
+--type-stat
+
+<blockquote>Show stats for the data type annotation.
+</blockquote>
 = SEE ALSO =
 
 [[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]], [[Latest Manual Page of perf-report.1|<tt>'''perf-report'''(1)</tt>]]
@@ -238,4 +247,4 @@ on - the samples period or the number of samples (hits).</pre></blockquote></blo
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.7
+This page is auto-generated.  The kernel version is v6.8-rc1
