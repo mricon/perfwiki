@@ -510,4 +510,4 @@ if ''brstack'' in dict: for entry in dict[''brstack'']: print &quot;from %s, to 
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.7
+This page is auto-generated.  The kernel version is v6.8-rc1
