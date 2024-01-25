@@ -68,6 +68,10 @@ perf - Performance analysis tools for Linux
                      in browser mode
   perf-event-open  - Print perf_event_open() arguments and
                      return value</pre></blockquote></blockquote>
+--debug-file
+
+<blockquote>Write debug output to a specified file.
+</blockquote>
 = DESCRIPTION =
 
 Performance counters for Linux are a new kernel-based subsystem that provide a framework for all things performance analysis. It covers hardware level (CPU/PMU, Performance Monitoring Unit) features and software features (software counters, tracepoints) as well.
@@ -81,4 +85,4 @@ Performance counters for Linux are a new kernel-based subsystem that provide a f
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.7
+This page is auto-generated.  The kernel version is v6.8-rc1
