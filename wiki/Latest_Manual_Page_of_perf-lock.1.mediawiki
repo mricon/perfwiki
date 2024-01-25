@@ -109,111 +109,95 @@ futex-default-S       1609          0               0</pre></blockquote></blockq
 
 <blockquote>dump map of lock instances (address:name table)
 </blockquote>
-CONTENTION OPTIONS
+= CONTENTION OPTIONS =
 
-<blockquote><pre>
-.ft C
--k::
---key=&lt;value&gt;::
-        Sorting key. Possible values: contended, wait_total (default),
-        wait_max, wait_min, avg_wait.
+-k, --key=&lt;value&gt;
 
--F::
---field=&lt;value&gt;::
-        Output fields. By default it shows all but the wait_min fields
-        and users can customize that using this.  Possible values:
-        contended, wait_total, wait_max, wait_min, avg_wait.
+<blockquote>Sorting key. Possible values: contended, wait_total (default), wait_max, wait_min, avg_wait.
+</blockquote>
+-F, --field=&lt;value&gt;
 
--t::
---threads::
-        Show per-thread lock contention stat
+<blockquote>Output fields. By default it shows all but the wait_min fields and users can customize that using this. Possible values: contended, wait_total, wait_max, wait_min, avg_wait.
+</blockquote>
+-t, --threads
 
--b::
---use-bpf::
-        Use BPF program to collect lock contention stats instead of
-        using the input data.
+<blockquote>Show per-thread lock contention stat
+</blockquote>
+-b, --use-bpf
 
--a::
---all-cpus::
-        System-wide collection from all CPUs.
+<blockquote>Use BPF program to collect lock contention stats instead of using the input data.
+</blockquote>
+-a, --all-cpus
 
--C::
---cpu=&lt;value&gt;::
-        Collect samples only on the list of CPUs provided. Multiple CPUs can be
-        provided as a comma-separated list with no space: 0,1. Ranges of CPUs
-        are specified with -: 0-2.  Default is to monitor all CPUs.
+<blockquote>System-wide collection from all CPUs.
+</blockquote>
+-C, --cpu=&lt;value&gt;
 
--p::
---pid=&lt;value&gt;::
-        Record events on existing process ID (comma separated list).
+<blockquote>Collect samples only on the list of CPUs provided. Multiple CPUs can be provided as a comma-separated list with no space: 0,1. Ranges of CPUs are specified with -: 0-2. Default is to monitor all CPUs.
+</blockquote>
+-p, --pid=&lt;value&gt;
 
---tid=&lt;value&gt;::
-        Record events on existing thread ID (comma separated list).
+<blockquote>Record events on existing process ID (comma separated list).
+</blockquote>
+--tid=&lt;value&gt;
 
--M::
---map-nr-entries=&lt;value&gt;::
-        Maximum number of BPF map entries (default: 16384).
-        This will be aligned to a power of 2.
+<blockquote>Record events on existing thread ID (comma separated list).
+</blockquote>
+-M, --map-nr-entries=&lt;value&gt;
 
---max-stack=&lt;value&gt;::
-        Maximum stack depth when collecting lock contention (default: 8).
+<blockquote>Maximum number of BPF map entries (default: 16384). This will be aligned to a power of 2.
+</blockquote>
+--max-stack=&lt;value&gt;
 
---stack-skip=&lt;value&gt;::
-        Number of stack depth to skip when finding a lock caller (default: 3).
+<blockquote>Maximum stack depth when collecting lock contention (default: 8).
+</blockquote>
+--stack-skip=&lt;value&gt;
 
--E::
---entries=&lt;value&gt;::
-        Display this many entries.
+<blockquote>Number of stack depth to skip when finding a lock caller (default: 3).
+</blockquote>
+-E, --entries=&lt;value&gt;
 
--l::
---lock-addr::
-        Show lock contention stat by address
+<blockquote>Display this many entries.
+</blockquote>
+-l, --lock-addr
 
--o::
---lock-owner::
-        Show lock contention stat by owners.  Implies --threads and
-        requires --use-bpf.
+<blockquote>Show lock contention stat by address
+</blockquote>
+-o, --lock-owner
 
--Y::
---type-filter=&lt;value&gt;::
-        Show lock contention only for given lock types (comma separated list).
-        Available values are:
-          semaphore, spinlock, rwlock, rwlock:R, rwlock:W, rwsem, rwsem:R, rwsem:W,
-          rtmutex, rwlock-rt, rwlock-rt:R, rwlock-rt:W, pcpu-sem, pcpu-sem:R, pcpu-sem:W,
-          mutex
+<blockquote>Show lock contention stat by owners. Implies --threads and requires --use-bpf.
+</blockquote>
+-Y, --type-filter=&lt;value&gt;
 
-        Note that RW-variant of locks have :R and :W suffix.  Names without the
-        suffix are shortcuts for the both variants.  Ex) rwsem = rwsem:R + rwsem:W.
+<blockquote>Show lock contention only for given lock types (comma separated list). Available values are: semaphore, spinlock, rwlock, rwlock:R, rwlock:W, rwsem, rwsem:R, rwsem:W, rtmutex, rwlock-rt, rwlock-rt:R, rwlock-rt:W, pcpu-sem, pcpu-sem:R, pcpu-sem:W, mutex
 
--L::
---lock-filter=&lt;value&gt;::
-        Show lock contention only for given lock addresses or names (comma separated list).
+<blockquote><pre>Note that RW-variant of locks have :R and :W suffix.  Names without the
+suffix are shortcuts for the both variants.  Ex) rwsem = rwsem:R + rwsem:W.</pre></blockquote></blockquote>
+-L, --lock-filter=&lt;value&gt;
 
--S::
---callstack-filter=&lt;value&gt;::
-        Show lock contention only if the callstack contains the given string.
-        Note that it matches the substring so rq would match both raw_spin_rq_lock
-        and irq_enter_rcu.
+<blockquote>Show lock contention only for given lock addresses or names (comma separated list).
+</blockquote>
+-S, --callstack-filter=&lt;value&gt;
 
--x::
---field-separator=&lt;SEP&gt;::
-        Show results using a CSV-style output to make it easy to import directly
-        into spreadsheets. Columns are separated by the string specified in SEP.
+<blockquote>Show lock contention only if the callstack contains the given string. Note that it matches the substring so ''rq'' would match both ''raw_spin_rq_lock'' and ''irq_enter_rcu''.
+</blockquote>
+-x, --field-separator=&lt;SEP&gt;
 
---lock-cgroup::
-        Show lock contention stat by cgroup.  Requires --use-bpf.
+<blockquote>Show results using a CSV-style output to make it easy to import directly into spreadsheets. Columns are separated by the string specified in SEP.
+</blockquote>
+--lock-cgroup
 
--G::
---cgroup-filter=&lt;value&gt;::
-        Show lock contention only in the given cgroups (comma separated list).
+<blockquote>Show lock contention stat by cgroup. Requires --use-bpf.
+</blockquote>
+-G, --cgroup-filter=&lt;value&gt;
 
+<blockquote>Show lock contention only in the given cgroups (comma separated list).
+</blockquote>
+= SEE ALSO =
 
-SEE ALSO
-.ft
-</pre></blockquote>
 [[Latest Manual Page of perf.1|<tt>'''perf'''(1)</tt>]]
 
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.7
+This page is auto-generated.  The kernel version is v6.8-rc1
