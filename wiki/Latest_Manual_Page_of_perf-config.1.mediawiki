@@ -210,7 +210,7 @@ annotate.addr2line
 </blockquote>
 annotate.objdump
 
-<blockquote>objdump binary to use for disassembly and annotations.
+<blockquote>objdump binary to use for disassembly and annotations, including in the ''perf test'' command.
 </blockquote>
 annotate.disassembler_style
 
@@ -592,4 +592,4 @@ session-&lt;NAME&gt;.*, session-&lt;NAME&gt;.run
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.7
+This page is auto-generated.  The kernel version is v6.8-rc1
