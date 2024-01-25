@@ -467,7 +467,7 @@ The 3 Intel PT modes of operation cannot be used together.
 
 == Buffer handling ==
 
-There may be buffer limitations (i.e. single ToPa entry) which means that actual buffer sizes are limited to powers of 2 up to 4MiB (MAX_ORDER). In order to provide other sizes, and in particular an arbitrarily large size, multiple buffers are logically concatenated. However an interrupt must be used to switch between buffers. That has two potential problems: a) the interrupt may not be handled in time so that the current buffer becomes full and some trace data is lost. b) the interrupts may slow the system and affect the performance results.
+There may be buffer limitations (i.e. single ToPa entry) which means that actual buffer sizes are limited to powers of 2 up to 4MiB (MAX_PAGE_ORDER). In order to provide other sizes, and in particular an arbitrarily large size, multiple buffers are logically concatenated. However an interrupt must be used to switch between buffers. That has two potential problems: a) the interrupt may not be handled in time so that the current buffer becomes full and some trace data is lost. b) the interrupts may slow the system and affect the performance results.
 
 If trace data is lost, the driver sets ''truncated'' in the PERF_RECORD_AUX event which the tools report as an error.
 
@@ -1393,4 +1393,4 @@ Examples can be found on perf wiki page &quot;Perf tools support for Intel® Pro
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.7
+This page is auto-generated.  The kernel version is v6.8-rc1
