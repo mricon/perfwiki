@@ -27,4 +27,4 @@ If the option ''--build-options'' is given, then the status of compiled-in libra
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.7
+This page is auto-generated.  The kernel version is v6.8-rc1
