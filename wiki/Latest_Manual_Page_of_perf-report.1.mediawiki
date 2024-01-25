@@ -196,6 +196,18 @@ retire_lat: On X86, this reports pipeline stall of this instruction compared to 
 <blockquote>·
 
 simd: Flags describing a SIMD operation. &quot;e&quot; for empty Arm SVE predicate. &quot;p&quot; for partial Arm SVE predicate
+</blockquote>
+<blockquote>·
+
+type: Data type of sample memory access.
+</blockquote>
+<blockquote>·
+
+typeoff: Offset in the data type of sample memory access.
+</blockquote>
+<blockquote>·
+
+symoff: Offset in the symbol.
 
 <blockquote><pre>By default, comm, dso and symbol keys are used.
 (i.e. --sort comm,dso,symbol)
@@ -614,6 +626,7 @@ s       skip initial number of events
 q       quicker (less detailed) decoding
 A       approximate IPC
 Z       prefer to ignore timestamps (so-called &quot;timeless&quot; decoding)
+T       use the timestamp trace as kernel time
 
 The default is all events i.e. the same as --itrace=iybxwpe,
 except for perf script where it is --itrace=ce
@@ -826,4 +839,4 @@ Since v3.16 the ''children'' overhead is shown by default and the output is sort
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.7
+This page is auto-generated.  The kernel version is v6.8-rc1
