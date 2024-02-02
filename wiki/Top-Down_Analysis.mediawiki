@@ -56,6 +56,43 @@ The output will be like:
          0.004290000 seconds user
          0.008581000 seconds sys
 
+The TopdownL1 metrics may be computed by default if no metric is provided:
+
+  $ perf stat perf bench mem memcpy
+  # Running 'mem/memcpy' benchmark:
+  # function 'default' (Default memcpy() provided by glibc)
+  # Copying 1MB bytes ...
+  
+        16.837284 GB/sec
+  # function 'x86-64-unrolled' (unrolled memcpy() in arch/x86/lib/memcpy_64.S)
+  # Copying 1MB bytes ...
+  
+        16.551907 GB/sec
+  # function 'x86-64-movsq' (movsq-based memcpy() in arch/x86/lib/memcpy_64.S)
+  # Copying 1MB bytes ...
+  
+        19.148284 GB/sec
+  
+   Performance counter stats for 'perf bench mem memcpy':
+  
+               21.38 msec task-clock                       #    0.927 CPUs utilized             
+                   7      context-switches                 #  327.406 /sec                      
+                   0      cpu-migrations                   #    0.000 /sec                      
+               6,247      page-faults                      #  292.187 K/sec                     
+          94,684,914      cycles                           #    4.429 GHz                       
+         117,788,965      instructions                     #    1.24  insn per cycle            
+          25,949,650      branches                         #    1.214 G/sec                     
+             252,622      branch-misses                    #    0.97% of all branches           
+                          TopdownL1                 #     45.8 %  tma_backend_bound      
+                                                    #     11.2 %  tma_bad_speculation    
+                                                    #     18.2 %  tma_frontend_bound     
+                                                    #     24.8 %  tma_retiring           
+  
+         0.023069998 seconds time elapsed
+  
+         0.000000000 seconds user
+         0.023455000 seconds sys
+
 On the right of the counter values are the metrics. For TopdownL1 there are the metrics tma_retiring, tma_backend_bound, tma_frontend_bound and tma_bad_speculation. For the benchmark tma_backend_bound is the largest. We can drill down into this metric by adding the suffix '''_group''' to the metric name:
 
   $ perf stat -M tma_backend_bound_group perf bench mem memcpy
@@ -186,7 +223,7 @@ For tma_ports_utilization_group we can see numbers like '''(34.73%)''' that indi
   ...
          2,268,815      RESOURCE_STALLS.SCOREBOARD       #     19.8 %  tma_ports_utilized_0
 
-Finally we see tma_ports_utilized_3m as the largest metric. Looking at '''perf list''', we can see the metrics meaning:
+Finally we see tma_ports_utilized_3m as the largest metric. Looking at '''perf list''', (sometimes '''perf list -v''') we can see the metrics meaning:
 
   tma_ports_utilized_3m
     This metric represents fraction of cycles CPU executed total of 3 or more uops per cycle on all execution ports (Logical Processor cycles since ICL, Physical Core cycles otherwise). Sample with: UOPS_EXECUTED.CYCLES_GE_3
