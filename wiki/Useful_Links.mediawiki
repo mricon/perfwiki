@@ -23,7 +23,7 @@ __TOC__
 
 =Useful web sites about profilers=
 
-* [https://www.markhansen.co.nz/profilerpedia/ ProfilerPedia A map of the Software Profiling Ecosystem]
+* [https://profilerpedia.markhansen.co.nz/ ProfilerPedia A map of the Software Profiling Ecosystem]
 * [https://oprofile.sourceforge.io/news/ OProfile]
 
 =Presentations=
