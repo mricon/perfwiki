@@ -11,7 +11,7 @@ make -C tools/perf DEBUG=1 EXTRA_CFLAGS="-fsanitize=address -DREFCNT_CHECKING=1"
 Breaking that apart:
 * '''DEBUG=1''' enables debug compiler flags like '''-g'''
 * '''-fsanitize=address''' enables the address sanitizer that looks for runtime memory problems and the leak sanitizer to look for memory leaks
-* '''-DREFCNT_CHECKING=1''' enables the reference count checker in the source code
+* '''-DREFCNT_CHECKING=1''' enables the reference count checker in the source code (automatically set if address or leak sanitizer defines are present)
 
 The way the reference count checker works is to take a struct like:
 
