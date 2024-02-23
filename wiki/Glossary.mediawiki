@@ -66,8 +66,11 @@ See [[#evsel|evsel]].
 ===IDQ===
  The IDQ (Instruction Decode Queue) serves as a buffer between the instruction fetch/decode stages and the rest of the out-of-order execution engine in modern CPUs. It stores decoded instructions often in the form of micro-ops.
 
-==K==
+==J==
+===JEClear===
+ Jump Execution Clear is a kind of pipeline flush on Intel CPUs cause by branch misprediction. [https://stackoverflow.com/questions/31280817/what-branch-misprediction-does-the-branch-target-buffer-detect Article on branching in Intel CPUs].
 
+==K==
 ===KVM===
  KVM stands for Kernel-based Virtual Machine, perf command with kvm helps us to trace/measure kvm guest os
 
