@@ -22,6 +22,12 @@ title: Glossary
  1. Used to refer to events on the CPU's PMU, contrast with [[#Uncore|Uncore]] and [[#Offcore|Offcore]].
  2. Part of the [[#Topology|topology]] containing multiple [[#SMT|SMT]] threads.
 
+==D==
+
+===DSB===
+
+ Decoded Stream Buffer, part of an Intel CPU's frontend decoding logic.
+
 ==E==
 
 ===Events===
@@ -67,6 +73,9 @@ See [[#evsel|evsel]].
 
 ===Metric===
  Taking multiple performance counters, typcally in ''perf stat'', and then computing a human meaningful value like memory bandwidth.
+
+=== MITE ===
+ Micro-Instruction Translation Engine, part of an Intel CPU's frontend decoding logic.
 
 ===Multiplexing===
  When the number of events is greater than the hardware counters the kernel will multiplex the events. Each event is scheduled for a period of time<br />(by default 1kHz) and then rotated.
