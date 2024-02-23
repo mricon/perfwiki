@@ -5,7 +5,7 @@ title: Glossary
 ==B==
 
 ===Beat===
- An individual transfer within a burst. For example, a burst can comprise of multiple beats. From the [https://developer.arm.com/documentation/105565/0200/B Arm Glossary]
+ A beat is the smallest single unit of data transfer within an AXI transaction. Its size is determined by the bus width. A Burst can be comprised of multiple beats. See the [https://developer.arm.com/documentation/105565/0200/B Arm Glossary]
 
 ===BPF===
  [https://en.wikipedia.org/wiki/Berkeley_Packet_Filter Berkeley Packet Filter].
@@ -25,8 +25,7 @@ title: Glossary
 ==D==
 
 ===DSB===
-
- Decoded Stream Buffer, part of an Intel CPU's frontend decoding logic.
+In modern Intel CPUs, the DSB (Decoded Stream Buffer) is a uop cache storing pre-decoded instructions in the form of micro-operations (uops).  The DSB allows the CPU to bypass the  decoding stage for frequently used instructions sequences.
 
 ==E==
 
@@ -64,6 +63,10 @@ See [[#evsel|evsel]].
 ===Hyperthread===
  Intel/x86 term for [[#SMT|SMT]].
 
+==I==
+===IDQ===
+The IDQ (Instruction Decode Queue) serves as a buffer between the instruction fetch/decode stages and the rest of the out-of-order execution engine in modern CPUs. It stores decoded instructions often in the form of micro-ops.
+
 ==K==
 
 ===KVM===
@@ -75,7 +78,10 @@ See [[#evsel|evsel]].
  Taking multiple performance counters, typcally in ''perf stat'', and then computing a human meaningful value like memory bandwidth.
 
 === MITE ===
- Micro-Instruction Translation Engine, part of an Intel CPU's frontend decoding logic.
+The MITE (Micro-instruction Translation Engine) is a legacy component within modern CPUs that acts as a secondary, simpler instruction decoder. While the primary decoder handles most instructions efficiently, the MITE is responsible for decoding specific complex instructions or instruction sequences that aren't well-suited for the main decoder.  The MITE often works alongside the microcode sequencer to break down these complex instructions into simpler micro-operations for the CPU to execute.
+
+===MS===
+The microcode sequencer is a specialized unit that handles the execution of complex instructions not directly supported as a single hardware operation. It breaks down these instructions into sequences of simpler micro-operations (microcode) that the CPU's execution units can directly understand.
 
 ===Multiplexing===
  When the number of events is greater than the hardware counters the kernel will multiplex the events. Each event is scheduled for a period of time<br />(by default 1kHz) and then rotated.
@@ -99,6 +105,16 @@ Devices and buses outside of the core CPU.
 
 ===Pinned Event===
  Pinned events are scheduled at a higher priority to flexible events. If they can't be scheduled within the kernel they don't multiplex and enter an error state.
+
+==R==
+===RAT===
+In modern CPUs, a Resource Allocation Table (RAT) is a structure that renames architectural registers to a larger set of physical registers during the out-of-order execution process. This renaming breaks false dependencies caused by register naming limitations, allowing instructions to execute in parallel and boosting performance. The RAT also tracks which physical registers hold the results of in-flight instructions, ensuring that data is used at the correct time.
+
+===ROB===
+Reorder Buffer, tracks in-flight instructions and their results in out-of-order CPUs.
+
+===RS===
+Reservation Station, buffers instructions awaiting resources (functional units, data) before execution.
 
 ==S==
 ==Software Event==
