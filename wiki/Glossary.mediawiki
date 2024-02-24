@@ -126,7 +126,7 @@ See [[#evsel|evsel]].
  Reservation Station, buffers instructions awaiting resources (functional units, data) before execution.
 
 ==S==
-==Software Event==
+===Software Event===
  They are kernel/os-based low-level counters. To identify the list of supported software events use the command: perf list software
 
 ===SMT===
