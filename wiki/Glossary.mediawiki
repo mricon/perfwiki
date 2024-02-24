@@ -133,6 +133,9 @@ See [[#evsel|evsel]].
  [https://en.wikipedia.org/wiki/Simultaneous_multithreading Simultaneous multithreading].
 
 ==T==
+===TOR===
+ The Table-of-Requests (TOR) is a data structure within Intel's Integrated Memory Controller (IMC) that stores and tracks in-flight memory requests made by CPU cores.
+
 ===Task===
  Kernel term for a process (if just 1 thread) or thread.
 
