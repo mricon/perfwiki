@@ -31,8 +31,9 @@ Install it using ''sudo apt-get install qtbase5-dev'' OR ''sudo apt install qt5*
 
 4.4) You might need to set "kernel.perf_event_paranoid = -1" because the "perf record" command may fail due to restricted access to performance monitoring features on your system.
 
-   sudo sysctl -w kernel.perf_event_paranoid=-1
-   Note: this should not be done in production environment
+ ''sudo sysctl -w kernel.perf_event_paranoid=-1''
+
+Note: this should not be done in production environment
    
 
 
