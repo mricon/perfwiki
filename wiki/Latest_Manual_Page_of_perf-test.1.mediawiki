@@ -40,4 +40,4 @@ To run just specific tests, inform test name fragments or the numbers obtained f
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.8-rc1
+This page is auto-generated.  The kernel version is v6.8
