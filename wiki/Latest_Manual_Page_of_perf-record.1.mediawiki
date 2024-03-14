@@ -965,4 +965,4 @@ But ''{cpu_core/cycles/,cpu_atom/instructions/}'' will return warning and disabl
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.8-rc1
+This page is auto-generated.  The kernel version is v6.8
