@@ -49,6 +49,10 @@ This command displays the symbolic event types which can be selected in the vari
 
 <blockquote>Output in JSON format.
 </blockquote>
+-o, --output=
+
+<blockquote>Output file name. By default output is written to stdout.
+</blockquote>
 = EVENT MODIFIERS =
 
 Events can optionally have a modifier by appending a colon and one or more modifiers. Modifiers allow the user to restrict the events to be counted. The following modifiers exist:
@@ -290,4 +294,4 @@ Support raw format:
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.8-rc1
+This page is auto-generated.  The kernel version is v6.8
