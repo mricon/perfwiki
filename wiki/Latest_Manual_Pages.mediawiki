@@ -45,4 +45,4 @@ title: Latest Manual Pages
 
 = Kernel Version =
 
-This page is auto-generated.  The kernel version is v6.8-rc1
+This page is auto-generated.  The kernel version is v6.8
