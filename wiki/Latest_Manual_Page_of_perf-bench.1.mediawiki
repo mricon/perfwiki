@@ -290,4 +290,4 @@ options (20 sender and receiver processes per group)
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.8-rc1
+This page is auto-generated.  The kernel version is v6.8
