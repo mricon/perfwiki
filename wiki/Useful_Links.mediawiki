@@ -41,3 +41,7 @@ __TOC__
 * [https://developer.amd.com/resources/developer-guides-manuals/ AMD PMU event table], the Processor Programming Reference Manual for AMD 17h family see Section 2.1.15 Performance Monitor Counters.
 * [https://developer.arm.com/architectures/cpu-architecture/a-profile/docs ARM PMU event tables], see Chapter D7. The Performance Monitors Extension, of the Arm Architecture Reference Manual Armv8, for Armv8-A architecture profile.
 * [https://documentation-service.arm.com/static/62cfe21e31ea212bb6627393?token= ARM Neovese N2 PMU guide].
+
+=In the press=
+
+* Discovery/analysis of ''libxz'' backdoor with ''perf record -e intel_pt//ub'' [https://www.openwall.com/lists/oss-security/2024/03/29/4 by the discoverer Andres Freund].
