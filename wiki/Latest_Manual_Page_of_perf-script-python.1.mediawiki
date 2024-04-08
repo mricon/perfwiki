@@ -481,7 +481,7 @@ avg(total, n) - returns average given a sum and a total number of values</pre></
 
 Currently supported fields:
 
-ev_name, comm, pid, tid, cpu, ip, time, period, phys_addr, addr, symbol, symoff, dso, time_enabled, time_running, values, callchain, brstack, brstacksym, datasrc, datasrc_decode, iregs, uregs, weight, transaction, raw_buf, attr, cpumode.
+ev_name, comm, id, stream_id, pid, tid, cpu, ip, time, period, phys_addr, addr, symbol, symoff, dso, time_enabled, time_running, values, callchain, brstack, brstacksym, datasrc, datasrc_decode, iregs, uregs, weight, transaction, raw_buf, attr, cpumode.
 
 Fields that may also be present:
 
@@ -510,4 +510,4 @@ if ''brstack'' in dict: for entry in dict[''brstack'']: print &quot;from %s, to 
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.8
+This page is auto-generated.  The kernel version is v6.9-rc3
