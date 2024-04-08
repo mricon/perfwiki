@@ -67,7 +67,9 @@ perf - Performance analysis tools for Linux
   stderr           - write debug output (option -v) to stderr
                      in browser mode
   perf-event-open  - Print perf_event_open() arguments and
-                     return value</pre></blockquote></blockquote>
+                     return value
+  kmaps            - Print kernel and module maps (perf script
+                     and perf report without browser)</pre></blockquote></blockquote>
 --debug-file
 
 <blockquote>Write debug output to a specified file.
@@ -85,4 +87,4 @@ Performance counters for Linux are a new kernel-based subsystem that provide a f
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.8
+This page is auto-generated.  The kernel version is v6.9-rc3
