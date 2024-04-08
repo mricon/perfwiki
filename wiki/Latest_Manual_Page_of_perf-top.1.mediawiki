@@ -233,10 +233,36 @@ Note that this feature may not be available on all processors.</pre></blockquote
 
 <blockquote>When displaying traceevent output, do not use print fmt or plugins.
 </blockquote>
---hierarchy
+-H, --hierarchy
 
-<blockquote>Enable hierarchy output.
-</blockquote>
+<blockquote>Enable hierarchical output. In the hierarchy mode, each sort key groups samples based on the criteria and then sub-divide it using the lower level sort key.
+
+<blockquote><pre>For example, in normal output:
+
+perf report -s dso,sym
+#
+# Overhead  Shared Object      Symbol
+# ........  .................  ...........
+    50.00%  [kernel.kallsyms]  [k] kfunc1
+    20.00%  perf               [.] foo
+    15.00%  [kernel.kallsyms]  [k] kfunc2
+    10.00%  perf               [.] bar
+     5.00%  libc.so            [.] libcall
+
+In hierarchy output:
+
+perf report -s dso,sym --hierarchy
+#
+#   Overhead  Shared Object / Symbol
+# ..........  ......................
+    65.00%    [kernel.kallsyms]
+      50.00%    [k] kfunc1
+      15.00%    [k] kfunc2
+    30.00%    perf
+      20.00%    [.] foo
+      10.00%    [.] bar
+     5.00%    libc.so
+       5.00%    [.] libcall</pre></blockquote></blockquote>
 --overwrite
 
 <blockquote>Enable this to use just the most recent records, which helps in high core count machines such as Knights Landing/Mill, but right now is disabled by default as the pausing used in this technique is leading to loss of metadata events such as PERF_RECORD_MMAP which makes ''perf top'' unable to resolve samples, leading to lots of unknown samples appearing on the UI. Enable this if you are in such machines and profiling a workload that doesn’t creates short lived threads and/or doesn’t uses many executable mmap operations. Work is being planed to solve this situation, till then, this will remain disabled by default.
@@ -440,4 +466,4 @@ Since v3.16 the ''children'' overhead is shown by default and the output is sort
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.8
+This page is auto-generated.  The kernel version is v6.9-rc3
