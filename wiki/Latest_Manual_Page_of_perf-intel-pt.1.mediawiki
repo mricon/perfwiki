@@ -62,8 +62,11 @@ The flags are &quot;bcrosyiABExghDt&quot; which stand for branch, call, return, 
 
 perf script also supports higher level ways to dump instruction traces:
 
+<blockquote><pre>perf script --insn-trace=disasm</pre></blockquote>
+or to use the xed disassembler, which requires installing the xed tool (see XED below):
+
 <blockquote><pre>perf script --insn-trace --xed</pre></blockquote>
-Dump all instructions. This requires installing the xed tool (see XED below) Dumping all instructions in a long trace can be fairly slow. It is usually better to start with higher level decoding, like
+Dumping all instructions in a long trace can be fairly slow. It is usually better to start with higher level decoding, like
 
 <blockquote><pre>perf script --call-trace</pre></blockquote>
 or
@@ -71,10 +74,10 @@ or
 <blockquote><pre>perf script --call-ret-trace</pre></blockquote>
 and then select a time range of interest. The time range can then be examined in detail with
 
-<blockquote><pre>perf script --time starttime,stoptime --insn-trace --xed</pre></blockquote>
+<blockquote><pre>perf script --time starttime,stoptime --insn-trace=disasm</pre></blockquote>
 While examining the trace it’s also useful to filter on specific CPUs using the -C option
 
-<blockquote><pre>perf script --time starttime,stoptime --insn-trace --xed -C 1</pre></blockquote>
+<blockquote><pre>perf script --time starttime,stoptime --insn-trace=disasm -C 1</pre></blockquote>
 Dump all instructions in time range on CPU 1.
 
 Another interesting field that is not printed by default is ''ipc'' which can be displayed as follows:
@@ -909,7 +912,7 @@ Start an open-ended perf record, tracing the VM process, do something on the VM,
 [ perf record: Captured and wrote 5.829 MB ]</pre></blockquote>
 perf script can be used to provide an instruction trace
 
-<blockquote><pre>$ perf script --guestkallsyms $KALLSYMS --insn-trace --xed -F+ipc | grep -C10 vmresume | head -21
+<blockquote><pre>$ perf script --guestkallsyms $KALLSYMS --insn-trace=disasm -F+ipc | grep -C10 vmresume | head -21
       CPU 0/KVM  1440  ffffffff82133cdd __vmx_vcpu_run+0x3d ([kernel.kallsyms])                movq  0x48(%rax), %r9
       CPU 0/KVM  1440  ffffffff82133ce1 __vmx_vcpu_run+0x41 ([kernel.kallsyms])                movq  0x50(%rax), %r10
       CPU 0/KVM  1440  ffffffff82133ce5 __vmx_vcpu_run+0x45 ([kernel.kallsyms])                movq  0x58(%rax), %r11
@@ -990,7 +993,7 @@ There were none.
 
 ''perf script'' can be used to provide an instruction trace showing timestamps
 
-<blockquote><pre>$ perf script -i perf.data.kvm --guestkallsyms $KALLSYMS --insn-trace --xed -F+ipc | grep -C10 vmresume | head -21
+<blockquote><pre>$ perf script -i perf.data.kvm --guestkallsyms $KALLSYMS --insn-trace=disasm -F+ipc | grep -C10 vmresume | head -21
       CPU 1/KVM 17006 [001] 11500.262865593:  ffffffff82133cdd __vmx_vcpu_run+0x3d ([kernel.kallsyms])                 movq  0x48(%rax), %r9
       CPU 1/KVM 17006 [001] 11500.262865593:  ffffffff82133ce1 __vmx_vcpu_run+0x41 ([kernel.kallsyms])                 movq  0x50(%rax), %r10
       CPU 1/KVM 17006 [001] 11500.262865593:  ffffffff82133ce5 __vmx_vcpu_run+0x45 ([kernel.kallsyms])                 movq  0x58(%rax), %r11
@@ -1393,4 +1396,4 @@ Examples can be found on perf wiki page &quot;Perf tools support for Intel® Pro
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.8
+This page is auto-generated.  The kernel version is v6.9-rc3
