@@ -125,9 +125,13 @@ information on how to write and run your own trace scripts.</pre></blockquote>
 </blockquote>
 -F, --fields
 
-<blockquote>Comma separated list of fields to print. Options are: comm, tid, pid, time, cpu, event, trace, ip, sym, dso, dsoff, addr, symoff, srcline, period, iregs, uregs, brstack, brstacksym, flags, bpf-output, brstackinsn, brstackinsnlen, brstackoff, callindent, insn, insnlen, synth, phys_addr, metric, misc, srccode, ipc, data_page_size, code_page_size, ins_lat, machine_pid, vcpu, cgroup, retire_lat. Field list can be prepended with the type, trace, sw or hw, to indicate to which event type the field list applies. e.g., -F sw:comm,tid,time,ip,sym and -F trace:time,cpu,trace
+<blockquote>Comma separated list of fields to print. Options are: comm, tid, pid, time, cpu, event, trace, ip, sym, dso, dsoff, addr, symoff, srcline, period, iregs, uregs, brstack, brstacksym, flags, bpf-output, brstackinsn, brstackinsnlen, brstackoff, callindent, insn, disasm, insnlen, synth, phys_addr, metric, misc, srccode, ipc, data_page_size, code_page_size, ins_lat, machine_pid, vcpu, cgroup, retire_lat.
 
-<blockquote><pre>perf script -F &lt;fields&gt;
+<blockquote><pre>Field list can be prepended with the type, trace, sw or hw,
+to indicate to which event type the field list applies.
+e.g., -F sw:comm,tid,time,ip,sym  and -F trace:time,cpu,trace
+
+perf script -F &lt;fields&gt;
 
 is equivalent to:
 
@@ -205,9 +209,9 @@ The callindent field is synthesized and may have a value when
 Instruction Trace decoding. For calls and returns, it will display the
 name of the symbol indented with spaces to reflect the stack depth.
 
-When doing instruction trace decoding insn and insnlen give the
-instruction bytes and the instruction length of the current
-instruction.
+When doing instruction trace decoding, insn, disasm and insnlen give the
+instruction bytes, disassembled instructions (requires libcapstone support)
+and the instruction length of the current instruction respectively.
 
 The synth field is used by synthesized events which may be created when
 Instruction Trace decoding.
@@ -480,9 +484,9 @@ perf script --time 0%-10%,30%-40%</pre></blockquote></blockquote>
 
 <blockquote>If a callgraph address belongs to an inlined function, the inline stack will be printed. Each entry has function name and file/line. Enabled by default, disable with --no-inline.
 </blockquote>
---insn-trace
+--insn-trace[=&lt;raw|disasm&gt;]
 
-<blockquote>Show instruction stream for intel_pt traces. Combine with --xed to show disassembly.
+<blockquote>Show instruction stream in bytes (raw) or disassembled (disasm) for intel_pt traces. The default is ''raw''. To use xed, combine ''raw'' with --xed to show disassembly done by xed.
 </blockquote>
 --xed
 
@@ -589,4 +593,4 @@ $ perf script --guestmount=~/guestmount </pre></blockquote></blockquote>
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.8
+This page is auto-generated.  The kernel version is v6.9-rc3
