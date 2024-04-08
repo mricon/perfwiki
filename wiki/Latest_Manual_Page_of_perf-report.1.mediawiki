@@ -697,10 +697,33 @@ To disable decoding entirely, use --no-itrace.</pre></blockquote></blockquote>
 
 <blockquote>When displaying traceevent output, do not use print fmt or plugins.
 </blockquote>
---hierarchy
+-H, --hierarchy
 
-<blockquote>Enable hierarchical output.
-</blockquote>
+<blockquote>Enable hierarchical output. In the hierarchy mode, each sort key groups samples based on the criteria and then sub-divide it using the lower level sort key.
+
+<blockquote><pre>For example:
+In normal output:
+
+perf report -s dso,sym
+# Overhead  Shared Object      Symbol
+    50.00%  [kernel.kallsyms]  [k] kfunc1
+    20.00%  perf               [.] foo
+    15.00%  [kernel.kallsyms]  [k] kfunc2
+    10.00%  perf               [.] bar
+     5.00%  libc.so            [.] libcall
+
+In hierarchy output:
+
+perf report -s dso,sym --hierarchy
+#   Overhead  Shared Object / Symbol
+    65.00%    [kernel.kallsyms]
+      50.00%    [k] kfunc1
+      15.00%    [k] kfunc2
+    30.00%    perf
+      20.00%    [.] foo
+      10.00%    [.] bar
+     5.00%    libc.so
+       5.00%    [.] libcall</pre></blockquote></blockquote>
 --inline
 
 <blockquote>If a callgraph address belongs to an inlined function, the inline stack will be printed. Each entry is function name or file/line. Enabled by default, disable with --no-inline.
@@ -839,4 +862,4 @@ Since v3.16 the ''children'' overhead is shown by default and the output is sort
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.8
+This page is auto-generated.  The kernel version is v6.9-rc3
