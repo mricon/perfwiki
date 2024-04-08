@@ -252,6 +252,10 @@ If the metric exists, it is calculated by the counts generated in this interval 
 
 <blockquote>Aggregate counts per processor die for system-wide mode measurements. This is a useful mode to detect imbalance between dies. To enable this mode, use --per-die in addition to -a. (system-wide). The output includes the die number and the number of online processors on that die. This is useful to gauge the amount of aggregation.
 </blockquote>
+--per-cluster
+
+<blockquote>Aggregate counts per processor cluster for system-wide mode measurement. This is a useful mode to detect imbalance between clusters. To enable this mode, use --per-cluster in addition to -a. (system-wide). The output includes the cluster number and the number of online processors on that cluster. This is useful to gauge the amount of aggregation. The information of cluster ID and related CPUs can be gotten from /sys/devices/system/cpu/cpuX/topology/cluster_{id, cpus}.
+</blockquote>
 --per-cache
 
 <blockquote>Aggregate counts per cache instance for system-wide mode measurements. By default, the aggregation happens for the cache level at the highest index in the system. To specify a particular level, mention the cache level alongside the option in the format [Ll][1-9][0-9]*. For example: Using option &quot;--per-cache=l3&quot; or &quot;--per-cache=L3&quot; will aggregate the information at the boundary of the level 3 cache in the system.
@@ -315,6 +319,10 @@ Reads and reports stat data from perf data file.
 --per-die
 
 <blockquote>Aggregate counts per processor die for system-wide mode measurements.
+</blockquote>
+--per-cluster
+
+<blockquote>Aggregate counts perf processor cluster for system-wide mode measurements.
 </blockquote>
 --per-cache
 
@@ -719,4 +727,4 @@ metric-unit : optional unit of metric
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.8
+This page is auto-generated.  The kernel version is v6.9-rc3
