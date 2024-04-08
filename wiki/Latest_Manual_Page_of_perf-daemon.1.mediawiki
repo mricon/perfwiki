@@ -166,4 +166,4 @@ Stop daemon:
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.8
+This page is auto-generated.  The kernel version is v6.9-rc3
