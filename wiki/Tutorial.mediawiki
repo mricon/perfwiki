@@ -720,32 +720,16 @@ perf record -a -F 1000 sleep 5
 </pre>
 
 ===  Flame Graph ===
-[https://www.brendangregg.com/flamegraphs.html FlameGraph], which has been introduced by [https://www.brendangregg.com/ Brendan Gregg], assists in visualizing call stacks for on-CPU applications. 
 
-Following a description from [https://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html Brendan Gregg's website], here’s how to understand FlameGraph's output: 
-
-There are two axis present in the FlameGraph out of which the x-axis stretches over the stack trace collected during the 
-execution of the <tt>perf record</tt> command (arranged in alphabetical order). The amount of frames on the stack (stack depth) is
-shown on the y-axis. The rectangular boxes represent each stack frame (operated on the stack). Moreover, the width of 
-these boxes tells us about the total time it was present on-CPU based on the sample counts in a hierarchical order. The 
-parent functions are seen at the bottom and at the top are the ones which were on-CPU. However in the case of Icicle charts, the 
-representation of the FlameGraph is in a topsy-turvy manner, that can be generated while running <tt>flamegraph.pl</tt> with the <tt>--inverted</tt>. 
-The FlameGraph is generated in .svg format which allows us to interact with the graph. It contains a few features like hovering the
-mouse on the stacks to show additional details, and the search button at the top will highlight the respective stacks. 
-
-The FlameGraph can be used to generate profiling for CPU, Memory, Off-CPU, Hot/Cold, and Differential. Let's look at a simple example
-on how we can generate CPU FlameGraph:
+[https://www.brendangregg.com/flamegraphs.html FlameGraphs] are a popular way to visualize stack traces and break down execution time. The perf tool supports natively generating flame graphs using the <tt>perf script report flamegraph</tt> command.
 
 <pre>
-Log in as a root user. 
-git clone https://github.com/brendangregg/FlameGraph  # or download it from GitHub
-cd FlameGraph 
-perf record -F 99 -a -g -- sleep 60
-perf script | ./stackcollapse-perf.pl > out.perf-folded
-./flamegraph.pl out.perf-folded > perf.svg
-firefox perf.svg  # or any other web browser, etc.
-
+perf record -a -g -F 99 sleep 60
+perf script report flamegraph
+google-chrome flamegraph.html
 </pre>
+
+By default this creates a <tt>flamegraph.html</tt> file and the <tt>google-chrome</tt> command will load the file into your web browser. The visualization uses [https://d3js.org/ d3] and the relevant d3 files may need to be installed or downloaded on demand. If downloading is necessary then a prompt will appear to ensure perf doesn't create unprompted network traffic. The prompt can be disabled with the <tt>--allow-download</tt> option.
 
 ===  Firefox Profiler ===
 [https://profiler.firefox.com/ Firefox profiler] is a powerful tool developed by Mozilla to analyze and optimize the performance of web applications and websites. It allows developers to gain deep insights into the behaviour of their code and identify performance bottlenecks, making it an invaluable asset for web development and debugging. Here is the [https://chat.mozilla.org/#/room/#profiler:mozilla.org matrix channel] for Firefox profiler discussion, you can reach out in case any doubt or issue arise. 
