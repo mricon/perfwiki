@@ -103,4 +103,4 @@ Performance counter stats for system wide:
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.9-rc3
+This page is auto-generated.  The kernel version is v6.9
