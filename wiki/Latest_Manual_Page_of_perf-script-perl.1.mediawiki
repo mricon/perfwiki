@@ -162,4 +162,4 @@ avg($total, $n) - returns average given a sum and a total number of values</pre>
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.9
+This page is auto-generated.  The kernel version is v6.10-rc1
