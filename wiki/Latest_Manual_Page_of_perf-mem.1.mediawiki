@@ -93,4 +93,4 @@ In addition, for report all perf report options are valid, and for record all pe
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.9
+This page is auto-generated.  The kernel version is v6.10-rc1
