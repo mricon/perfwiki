@@ -63,3 +63,7 @@ passing, skipping, or failing.
 == Latest source tar balls ==
 
 [https://mirrors.edge.kernel.org/pub/linux/kernel/tools/perf/ mirror]
+
+== Cross Compilation ==
+
+[[Arm64 cross-compilation Dockerfile|Arm64 cross-compilation Dockerfile]] for an example of how to cross-compile for Arm on x86
