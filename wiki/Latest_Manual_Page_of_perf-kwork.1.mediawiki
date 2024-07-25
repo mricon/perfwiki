@@ -214,4 +214,4 @@ SEE ALSO
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.10-rc1
+This page is auto-generated.  The kernel version is v6.10
