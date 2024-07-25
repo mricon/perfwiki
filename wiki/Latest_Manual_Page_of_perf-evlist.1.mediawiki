@@ -47,4 +47,4 @@ This command displays the names of events sampled in a perf.data file.
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.10-rc1
+This page is auto-generated.  The kernel version is v6.10
