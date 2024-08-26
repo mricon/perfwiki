@@ -3,6 +3,7 @@ title: Latest Manual Pages
 ---
 
 * [[Latest_Manual_Page_of_perf.1 | <tt>perf</tt>]]
+* [[Latest_Manual_Page_of_perf-amd-ibs.1 | <tt>perf amd-ibs</tt>]]
 * [[Latest_Manual_Page_of_perf-annotate.1 | <tt>perf annotate</tt>]]
 * [[Latest_Manual_Page_of_perf-archive.1 | <tt>perf archive</tt>]]
 * [[Latest_Manual_Page_of_perf-arm-spe.1 | <tt>perf arm-spe</tt>]]
@@ -45,4 +46,4 @@ title: Latest Manual Pages
 
 = Kernel Version =
 
-This page is auto-generated.  The kernel version is v6.10
+This page is auto-generated.  The kernel version is v6.11-rc1
