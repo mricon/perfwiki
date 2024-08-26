@@ -194,7 +194,7 @@ The &lt;term&gt; can be one of:
   ip, id, tid, pid, cpu, time, addr, period, txn, weight, phys_addr,
   code_pgsz, data_pgsz, weight1, weight2, weight3, ins_lat, retire_lat,
   p_stage_cyc, mem_op, mem_lvl, mem_snoop, mem_remote, mem_lock,
-  mem_dtlb, mem_blk, mem_hops
+  mem_dtlb, mem_blk, mem_hops, uid, gid
 
 The &lt;operator&gt; can be one of:
   ==, !=, &gt;, &gt;=, &lt;, &lt;=, &amp;
@@ -294,7 +294,7 @@ when sampled.  Default size of the stack dump is 8192 (bytes).
 User can change the size by passing the size after comma like
 &quot;--call-graph dwarf,4096&quot;.
 
-When &quot;fp&quot; recording is used, perf tries to save stack enties
+When &quot;fp&quot; recording is used, perf tries to save stack entries
 up to the number specified in sysctl.kernel.perf_event_max_stack
 by default.  User can change the number by passing it after comma
 like &quot;--call-graph fp,32&quot;.</pre></blockquote></blockquote>
@@ -965,4 +965,4 @@ But ''{cpu_core/cycles/,cpu_atom/instructions/}'' will return warning and disabl
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.10
+This page is auto-generated.  The kernel version is v6.11-rc1
