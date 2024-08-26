@@ -16,7 +16,7 @@ perf-mem - Profile memory accesses
 
 &quot;perf mem report&quot; displays the result. It invokes perf report with the right set of options to display a memory access profile. By default, loads and stores are sampled. Use the -t option to limit to loads or stores.
 
-Note that on Intel systems the memory latency reported is the use-latency, not the pure load (or store latency). Use latency includes any pipeline queueing delays in addition to the memory subsystem latency.
+Note that on Intel systems the memory latency reported is the use-latency, not the pure load (or store latency). Use latency includes any pipeline queuing delays in addition to the memory subsystem latency.
 
 On Arm64 this uses SPE to sample load and store operations, therefore hardware and kernel support is required. See [[Latest Manual Page of perf-arm-spe.1|<tt>'''perf-arm-spe'''(1)</tt>]] for a setup guide. Due to the statistical nature of SPE sampling, not every memory operation will be sampled.
 
@@ -93,4 +93,4 @@ In addition, for report all perf report options are valid, and for record all pe
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.10
+This page is auto-generated.  The kernel version is v6.11-rc1
