@@ -36,6 +36,10 @@ This command generates and displays a performance counter profile in real time.
 
 <blockquote>Select the PMU event. Selection can be a symbolic event name (use ''perf list'' to list all events) or a raw PMU event in the form of rN where N is a hexadecimal value that represents the raw register encoding with the layout of the event control registers as described by entries in /sys/bus/event_source/devices/cpu/format/*.
 </blockquote>
+--filter=&lt;filter&gt;
+
+<blockquote>Event filter. This option should follow an event selector (-e). For syntax see [[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]].
+</blockquote>
 -E &lt;entries&gt;, --entries=&lt;entries&gt;
 
 <blockquote>Display this many functions.
@@ -466,4 +470,4 @@ Since v3.16 the ''children'' overhead is shown by default and the output is sort
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.10
+This page is auto-generated.  The kernel version is v6.11-rc1
