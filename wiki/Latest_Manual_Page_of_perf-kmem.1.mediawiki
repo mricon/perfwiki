@@ -77,4 +77,4 @@ perf kmem [&lt;options&gt;] stat to report kernel memory statistics.</pre></bloc
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.10
+This page is auto-generated.  The kernel version is v6.11-rc1
