@@ -35,7 +35,7 @@ Example usage:
     perf kwork top
     perf kwork top -b
 
-By default it shows the individual work events such as irq, workqeueu,
+By default it shows the individual work events such as irq, workqueue,
 including the run time and delay (time between raise and actually entry):
 
    Runtime start      Runtime end        Cpu     Kwork name                 Runtime     Delaytime
@@ -214,4 +214,4 @@ SEE ALSO
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.10
+This page is auto-generated.  The kernel version is v6.11-rc1
