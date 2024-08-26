@@ -64,8 +64,8 @@ Example usage:
 
 By default it shows the individual schedule events, including the wait
 time (time between sched-out and next sched-in events for the task), the
-task scheduling delay (time between wakeup and actually running) and run
-time for the task:
+task scheduling delay (time between runnable and actually running) and
+run time for the task:
 
             time    cpu  task name             wait time  sch delay   run time
                          [tid/pid]                (msec)     (msec)     (msec)
@@ -128,6 +128,14 @@ Times are in msec.usec.</pre></blockquote>
 --color-pids
 
 <blockquote>Highlight the given pids.
+</blockquote>
+--task-name &lt;task&gt;
+
+<blockquote>Map output only for the given task name(s). Separate the task names with a comma (without whitespace). The sched-out time is printed and is represented by ''*-'' for the given task name(s). (''-'' indicates other tasks while ''.'' is idle).
+</blockquote>
+--fuzzy-name
+
+<blockquote>Given task name(s) can be partially matched (fuzzy matching).
 </blockquote>
 = OPTIONS FOR FIPERF SCHED TIMEHISTFR =
 
@@ -199,6 +207,12 @@ Times are in msec.usec.</pre></blockquote>
 
 <blockquote>Show task state when it switched out.
 </blockquote>
+= OPTIONS FOR FIPERF SCHED REPLAYFR =
+
+-r, --repeat &lt;n&gt;
+
+<blockquote>repeat the workload n times (0: infinite). Default is 10.
+</blockquote>
 = SEE ALSO =
 
 [[Latest Manual Page of perf-record.1|<tt>'''perf-record'''(1)</tt>]]
@@ -206,4 +220,4 @@ Times are in msec.usec.</pre></blockquote>
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.10
+This page is auto-generated.  The kernel version is v6.11-rc1
