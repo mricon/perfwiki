@@ -1396,4 +1396,4 @@ Examples can be found on perf wiki page &quot;Perf tools support for Intel® Pro
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.10
+This page is auto-generated.  The kernel version is v6.11-rc1
