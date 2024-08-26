@@ -103,11 +103,11 @@ futex-default-S       1609          0               0</pre></blockquote></blockq
 
 -t, --threads
 
-<blockquote>dump thread list in perf.data
+<blockquote>dump only the thread list in perf.data
 </blockquote>
 -m, --map
 
-<blockquote>dump map of lock instances (address:name table)
+<blockquote>dump only the map of lock instances (address:name table)
 </blockquote>
 = CONTENTION OPTIONS =
 
@@ -200,4 +200,4 @@ suffix are shortcuts for the both variants.  Ex) rwsem = rwsem:R + rwsem:W.</pre
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.10
+This page is auto-generated.  The kernel version is v6.11-rc1
