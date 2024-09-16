@@ -318,13 +318,15 @@ Trace the next two sched:sched_switch events, four block:*_plug events, the next
 
 = NOTES =
 
-<ul>
-<li><p>addr.dso@addr.offset</p>
-<p>mailto:addr.dso@addr.offset</p></li>
-<li><p>dso@symbol</p>
-<p>mailto:dso@symbol</p></li></ul>
+<dl>
+<dt> 1.</dt>
+<dd><p>addr.dso@addr.offset</p>
+<p>mailto:addr.dso@addr.offset</p></dd>
+<dt> 2.</dt>
+<dd><p>dso@symbol</p>
+<p>mailto:dso@symbol</p></dd></dl>
 
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.11-rc1
+This page is auto-generated.  The kernel version is v6.11
