@@ -286,13 +286,15 @@ Support raw format:
 
 = NOTES =
 
-<ul>
-<li><p>Intel® 64 and IA-32 Architectures Software Developer’s Manual Volume 3B: System Programming Guide</p>
-<p>http://www.intel.com/sdm/</p></li>
-<li><p>AMD Processor Programming Reference (PPR)</p>
-<p>https://bugzilla.kernel.org/show_bug.cgi?id=206537</p></li></ul>
+<dl>
+<dt> 1.</dt>
+<dd><p>Intel® 64 and IA-32 Architectures Software Developer’s Manual Volume 3B: System Programming Guide</p>
+<p>http://www.intel.com/sdm/</p></dd>
+<dt> 2.</dt>
+<dd><p>AMD Processor Programming Reference (PPR)</p>
+<p>https://bugzilla.kernel.org/show_bug.cgi?id=206537</p></dd></dl>
 
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.11-rc1
+This page is auto-generated.  The kernel version is v6.11
