@@ -248,4 +248,4 @@ Since the perf probe commands read the vmlinux (for kernel) and/or the debuginfo
 
 = KERNEL VERSION =
 
-This page is auto-generated.  The kernel version is v6.11-rc1
+This page is auto-generated.  The kernel version is v6.11
